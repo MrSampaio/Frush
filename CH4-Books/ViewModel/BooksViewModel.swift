@@ -10,7 +10,7 @@ import CoreData
 import Combine
 
 class BooksViewModel: ObservableObject {
-    @Published var books: [Books] = []
+    @Published var savedBooks: [Books] = []
     
     init(){
         self.fetchBooks()
@@ -20,7 +20,7 @@ class BooksViewModel: ObservableObject {
     func fetchBooks(){
         let request = NSFetchRequest<Books>(entityName: "Books")
         do{
-            try self.books = CoreDataManager.shared.viewContext.fetch(request)
+            try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
 
         } catch let error{
             fatalError("Error when trying to fetch books data:\(error)")
@@ -54,6 +54,17 @@ class BooksViewModel: ObservableObject {
         // funcao para salvar os livros
         self.saveBook()
         
+    }
+    
+    func deleteBook(indexSet: IndexSet){
+
+        guard let index = indexSet.first else { return }
+        let book = self.savedBooks[index]
+        
+        CoreDataManager.shared.viewContext.delete(book)
+        
+       
+
     }
     
 
