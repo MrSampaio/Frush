@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24902" systemVersion="25F84" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Books" representedClassName="Books" syncable="YES" codeGenerationType="class">
+        <attribute name="bookAuthor" optional="YES" attributeType="String"/>
+        <attribute name="bookCategory" optional="YES" attributeType="String"/>
+        <attribute name="bookCover" optional="YES" attributeType="String"/>
+        <attribute name="bookCurrentPage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="bookGoal" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="bookTitle" optional="YES" attributeType="String"/>
+        <attribute name="bookTotalPages" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isTimerRunning" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastPage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="wasLastPageAdded" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="booksNote" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Notes"/>
+    </entity>
+    <entity name="Notes" representedClassName="Notes" syncable="YES" codeGenerationType="class">
+        <attribute name="noteCategory" optional="YES" attributeType="String"/>
+        <attribute name="noteDescription" optional="YES" attributeType="String"/>
+        <attribute name="notePhoto" optional="YES" attributeType="String"/>
+        <attribute name="noteTitle" optional="YES" attributeType="String"/>
+    </entity>
+</model>
