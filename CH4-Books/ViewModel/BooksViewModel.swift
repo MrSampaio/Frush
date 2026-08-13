@@ -56,14 +56,15 @@ class BooksViewModel: ObservableObject {
         
     }
     
+    // funcao para deletar livros
     func deleteBook(indexSet: IndexSet){
 
         guard let index = indexSet.first else { return }
         let book = self.savedBooks[index]
         
         CoreDataManager.shared.viewContext.delete(book)
-        
-       
+        self.saveBook()
+        self.fetchBooks()
 
     }
     
