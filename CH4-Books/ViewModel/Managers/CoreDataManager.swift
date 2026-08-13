@@ -12,6 +12,10 @@ class CoreDataManager{
     let persistentContainer: NSPersistentContainer
     static let shared = CoreDataManager()
     
+    var viewContext: NSManagedObjectContext{
+        return self.persistentContainer.viewContext
+    }
+    
     init(){
         self.persistentContainer = NSPersistentContainer(name: "Database")
         self.persistentContainer.loadPersistentStores { (description, error) in
