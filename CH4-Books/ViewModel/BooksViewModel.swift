@@ -16,17 +16,29 @@ class BooksViewModel: ObservableObject {
         self.fetchBooks()
     }
     
+    // funcao que carrega todos os livros do banco e atrbui na lista books
     func fetchBooks(){
         let request = NSFetchRequest<Books>(entityName: "Books")
         do{
             try self.books = CoreDataManager.shared.viewContext.fetch(request)
 
         } catch let error{
-            print("Error when trying to fetch books data:\(error)")
+            fatalError("Error when trying to fetch books data:\(error)")
         }
        
     }
     
+    // funcao para salvar livros (chama ela sempre que quer subir efetivamente para o banco)
+    func saveBook(){
+        do{
+            try CoreDataManager.shared.viewContext.save()
+        } catch let error{
+            CoreDataManager.shared.viewContext.rollback()
+            print("Error when trying to save new book: \(error)")
+        }
+    }
+    
+    // funcao que adiciona livros com os parametros a serem recebidos pela view
     func addBook(bookTitle: String, bookAuthor: String, bookCover: String, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool){
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = bookTitle
@@ -39,6 +51,10 @@ class BooksViewModel: ObservableObject {
         newBook.isTimerRunning = isTimerRunning
         newBook.wasLastPageAdded = wasLastPageAdded
         
+        // funcao para salvar os livros
+        self.saveBook()
         
     }
+    
+
 }
