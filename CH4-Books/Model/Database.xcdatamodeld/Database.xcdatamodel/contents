@@ -11,7 +11,11 @@
         <attribute name="isTimerRunning" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="lastPage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="wasLastPageAdded" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="booksNote" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Notes"/>
+        <relationship name="booksNote" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Notes">
+            <userInfo>
+                <entry key="key" value="value"/>
+            </userInfo>
+        </relationship>
     </entity>
     <entity name="Notes" representedClassName="Notes" syncable="YES" codeGenerationType="class">
         <attribute name="noteCategory" optional="YES" attributeType="String"/>
