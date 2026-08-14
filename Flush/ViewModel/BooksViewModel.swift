@@ -4,7 +4,7 @@
 //
 //  Created by Julio Sampaio on 13/08/26.
 //
-
+// test
 import Foundation
 import CoreData
 import Combine
@@ -23,7 +23,7 @@ class BooksViewModel: ObservableObject {
             try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
 
         } catch let error{
-            fatalError("Error when trying to fetch books data:\(error)")
+            fatalError("Error when trying to fetch books data: \(error)")
         }
        
     }
