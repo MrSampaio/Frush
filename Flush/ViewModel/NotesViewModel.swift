@@ -39,12 +39,14 @@ class NotesViewModel: ObservableObject {
     }
     
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: String){
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: String, to book: Books){
         let newNote = Notes(context: CoreDataManager.shared.viewContext)
         newNote.noteTitle = noteTitle
         newNote.noteDescription = noteDescription
         newNote.noteCategory = noteCategory
         newNote.notePhoto = notePhoto
+        
+        newNote.book = book
         
         // funcao para salvar os notas
         self.saveNotes()
