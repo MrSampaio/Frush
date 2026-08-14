@@ -63,4 +63,17 @@ class NotesViewModel: ObservableObject {
 
     }
     
+    func updateNote(indexSet: IndexSet,noteTitle: String?, noteDescription: String?, noteCategory: String?, notePhoto: String?){
+        guard let index = indexSet.first else { return }
+        let note = self.savedNotes[index]
+        
+        note.noteTitle = noteTitle
+        note.noteDescription = noteDescription
+        note.noteCategory = noteCategory
+        note.notePhoto = notePhoto
+        
+        self.saveNotes()
+        self.fetchNotes()
+    }
+    
 }
