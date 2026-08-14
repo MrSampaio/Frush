@@ -11,11 +11,13 @@ import CoreData
 @main
 struct CH4_BooksApp: App {
     let persistenceController = CoreDataManager.shared
+    @StateObject var photoViewModel = PhotoLibraryViewModel()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.viewContext)
+                .environmentObject(photoViewModel)
         }
     }
 }
