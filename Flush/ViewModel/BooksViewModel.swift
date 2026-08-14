@@ -68,5 +68,22 @@ class BooksViewModel: ObservableObject {
 
     }
     
+    func updateBook(IndexSet: IndexSet,bookTitle: String?, bookAuthor: String?, bookCover: String?, bookCategory: String?, bookTotalPages: Int16?, bookCurrentPage: Int16?, bookGoal: Int16?){
+        guard let index = IndexSet.first else { return }
+        let book = self.savedBooks[index]
+        
+        book.bookTitle = bookTitle
+        book.bookAuthor = bookAuthor
+        book.bookCover = bookCover
+        book.bookCategory = bookCategory
+        book.bookTotalPages = bookTotalPages ?? book.bookTotalPages
+        book.bookCurrentPage = bookCurrentPage ?? book.bookCurrentPage
+        book.bookGoal = bookGoal ?? book.bookGoal
+                
+        self.saveBook()
+        self.fetchBooks()
+    }
+
+    
 
 }
