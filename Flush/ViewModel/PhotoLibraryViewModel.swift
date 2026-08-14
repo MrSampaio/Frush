@@ -23,7 +23,7 @@ class PhotoLibraryViewModel: ObservableObject {
     
     @Published var selectedImage: UIImage? = nil
     
-    private func loadImage() async {
+    func loadImage() async {
         guard let item = selectedItem else { return }
         if let data = try? await item.loadTransferable(type: Data.self),
            let image = UIImage(data: data) {
