@@ -3,7 +3,7 @@
     <entity name="Books" representedClassName="Books" syncable="YES" codeGenerationType="class">
         <attribute name="bookAuthor" optional="YES" attributeType="String"/>
         <attribute name="bookCategory" optional="YES" attributeType="String"/>
-        <attribute name="bookCover" optional="YES" attributeType="String"/>
+        <attribute name="bookCover" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="bookCurrentPage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="bookGoal" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="bookTitle" optional="YES" attributeType="String"/>

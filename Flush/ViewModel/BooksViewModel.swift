@@ -39,7 +39,7 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: String, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool){
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: Data, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool){
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = bookTitle
         newBook.bookAuthor = bookAuthor
