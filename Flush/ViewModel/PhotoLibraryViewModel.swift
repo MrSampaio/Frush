@@ -21,6 +21,8 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
+    //@Published var selectedImage: UIImage? = UIImage(named: "defaultBook")
+    
     @Published var selectedImage: UIImage? = nil
     
     func loadImage() async {
