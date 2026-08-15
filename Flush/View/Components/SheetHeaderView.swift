@@ -4,67 +4,81 @@
 //
 //  Created by Agatha Barbosa Marinho dos Santos on 14/08/26.
 //
- 
+
 import SwiftUI
 
-struct SheetHeaderView: View {
+struct SheetHeaderView: ToolbarContent {
     let title: String
     let actionIcon: String
     
-    //acoes passadas por quen chamar o componente
+    @Binding var showingDiscardAlert: Bool
+    
     var onCancel: () -> Void
     var onAction: () -> Void
+    var onDiscard: () -> Void
   
-    var body: some View {
-        HStack {
-            //botão de cancelar
-            Button(action: onCancel){
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: {
+                showingDiscardAlert = true
+            }) {
                 Image(systemName: "xmark")
-                    .font(.body.bold())
-                    .foregroundColor(.black)
-                    .padding(8)
-                    .background(Color(uiColor: .systemGray6))
-                    .clipShape(Circle())
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
             }
-            
-            Spacer()
-            
-            //titulo
-            Text(title)
-                .font(.title2)
-                .bold()
-            
-            Spacer()
-            
-            //botão de ação
-            Button(action: onAction){
-                Image(systemName: actionIcon)
-                    .font(.body.bold())
-                    .foregroundColor(.black)
-                    .padding(8)
-                    .background(Color(uiColor: .systemGray6))
-                    .clipShape(Circle())
+            .confirmationDialog(
+                "Atenção",
+                isPresented: $showingDiscardAlert,
+                titleVisibility: .hidden
+            ) {
+                Button("Descartar", role: .destructive) {
+                    onDiscard()
+                }
+                
+                Button("Continuar Editando", role: .cancel) { }
+                
+            } message: {
+                Text("Deseja mesmo descartar a edição deste livro?")
             }
-            
         }
-        .padding(.horizontal)
-        .padding(.top)
         
+        ToolbarItem(placement: .principal) {
+            Text(title)
+                .font(.system(size: 18, weight: .semibold))
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                onAction()
+            }) {
+                Image(systemName: actionIcon)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+        }
     }
 }
 
-
 #Preview {
-    SheetHeaderView (
-        title: "Cadastrar Livro",
-        actionIcon: "checkmark",
-        onCancel: {
-            print("Clicou no X")
-        },
-        onAction: {
-            print("Clicou no Check")
+    struct PreviewWrapper: View {
+        @State private var showAlert = false
+        
+        var body: some View {
+            NavigationStack {
+                Text("Conteúdo da sua Sheet aqui")
+                    .toolbar {
+                        SheetHeaderView (
+                            title: "Cadastrar Livro",
+                            actionIcon: "checkmark",
+                            showingDiscardAlert: $showAlert,
+                            onCancel: { print("Clicou no X") },
+                            onAction: { print("Clicou no Check") },
+                            onDiscard: { print("Clicou em descartar") }
+                        )
+                    }
+            }
         }
-    )
+    }
     
+    return PreviewWrapper()
 }
- 
