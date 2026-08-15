@@ -6,24 +6,24 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct SheetNotes: View {
-
     @State private var titleText: String = ""
     @State private var noteText: String = ""
-
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    
     var body: some View {
         ZStack {
-            //cor da interface
             Color(UIColor.systemGroupedBackground)
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 20) {
                 //aqui e o teste
                 NavigationBarView()
                     .padding(.horizontal)
                     .padding(.top, 10)
-
+                
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 16) {
                         
@@ -31,7 +31,7 @@ struct SheetNotes: View {
                             .padding()
                             .background(Color(UIColor.secondarySystemGroupedBackground))
                             .cornerRadius(10)
-
+                        
                         ZStack(alignment: .topLeading) {
                             if noteText.isEmpty {
                                 Text("Escreva sua nota...")
@@ -41,7 +41,7 @@ struct SheetNotes: View {
                                     .zIndex(1)
                                     .allowsHitTesting(false)
                             }
-
+                            
                             TextEditor(text: $noteText)
                                 .padding(8)
                                 .scrollContentBackground(.hidden)
@@ -49,12 +49,21 @@ struct SheetNotes: View {
                                 .cornerRadius(10)
                                 .frame(height: 250)
                         }
-
-                        Button(action: {
-                        }) {
+                        
+                        if let selectedImage = photoLibraryViewModel.selectedImage {
+                            Image(uiImage: selectedImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 200)
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                                .cornerRadius(10)
+                        }
+                        
+                        PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
                             HStack {
                                 Image(systemName: "camera.viewfinder")
-                                Text("Adicionar foto")
+                                Text(photoLibraryViewModel.selectedImage == nil ? "Adicionar foto" : "Trocar foto")
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .foregroundColor(Color(UIColor.tertiaryLabel))
@@ -62,13 +71,13 @@ struct SheetNotes: View {
                             .padding()
                             .background(Color(UIColor.secondarySystemGroupedBackground))
                             .cornerRadius(10)
+                            .foregroundColor(.primary)
                         }
-
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Escolher categoria")
                                 .font(.headline)
                                 .padding(.leading, 4)
-
+                            
                             VStack(spacing: 0) {
                                 CategoryRow(title: "Categoria 1", hasDivider: true)
                                 CategoryRow(title: "Categoria 2", hasDivider: true)
@@ -80,7 +89,7 @@ struct SheetNotes: View {
                     }
                     .padding(.horizontal)
                 }
-
+                
                 Button(action: {
                 }) {
                     Text("Adicionar nota")
@@ -100,4 +109,5 @@ struct SheetNotes: View {
 
 #Preview {
     SheetNotes()
+        .environmentObject(PhotoLibraryViewModel())
 }
