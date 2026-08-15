@@ -83,7 +83,4 @@ class BooksViewModel: ObservableObject {
         self.saveBook()
         self.fetchBooks()
     }
-
-    
-
 }
