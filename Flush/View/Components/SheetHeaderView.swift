@@ -14,7 +14,7 @@ struct SheetHeaderView: ToolbarContent {
     @Binding var showingDiscardAlert: Bool
     
     var onCancel: () -> Void
-    var onAction: () -> Void
+    var onConfirm: () -> Void
     var onDiscard: () -> Void
   
     var body: some ToolbarContent {
@@ -49,7 +49,7 @@ struct SheetHeaderView: ToolbarContent {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: {
-                onAction()
+                onConfirm()
             }) {
                 Image(systemName: actionIcon)
                     .fontWeight(.semibold)
@@ -72,7 +72,7 @@ struct SheetHeaderView: ToolbarContent {
                             actionIcon: "checkmark",
                             showingDiscardAlert: $showAlert,
                             onCancel: { print("Clicou no X") },
-                            onAction: { print("Clicou no Check") },
+                            onConfirm: { print("Clicou no Check") },
                             onDiscard: { print("Clicou em descartar") }
                         )
                     }

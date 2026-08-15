@@ -12,11 +12,16 @@ import PhotosUI
 struct AddBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
     
     @State private var showingDiscardAlert: Bool = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
     
-    let goalOptions = ["5 minutos", "10 minutos", "15 minutos", "20 minutos", "30 minutos", "45 minutos", "60 minutos"]
+    @State private var bookTitle = ""
+    
     @State private var selectedGoal: String = ""
+    @State private var selectedCategory: String = ""
     
     var body: some View {
         NavigationStack {
@@ -69,20 +74,43 @@ struct AddBookSheetView: View {
                         }
                     }
                     
-                    TextField("Título", text: .constant(""))
+                    TextField("Título", text: $bookTitle)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
-                    TextField("Categoria", text: .constant(""))
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
+//                    TextField("Categoria", text: .constant(""))
+//                        .textFieldStyle(RoundedBorderTextFieldStyle())
+//                        .padding(.horizontal)
+                    
+                    Menu {
+                        ForEach(booksViewModel.bookCategories, id: \.self) { option in
+                            Button(option) {
+                                selectedCategory = option
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(selectedCategory.isEmpty ? "Categoria do livro" : selectedCategory)
+                                .foregroundColor(selectedCategory.isEmpty ? Color(uiColor: .placeholderText) : .primary)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(uiColor: .systemGray4), lineWidth: 1)
+                        )
+                    }
+                    .padding(.horizontal)
+
                     
                     TextField("Páginas", text: .constant(""))
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
                     Menu {
-                        ForEach(goalOptions, id: \.self) { option in
+                        ForEach(booksViewModel.goalOptions, id: \.self) { option in
                             Button(option) {
                                 selectedGoal = option
                             }
@@ -110,9 +138,25 @@ struct AddBookSheetView: View {
                     actionIcon: "checkmark",
                     showingDiscardAlert: $showingDiscardAlert,
                     onCancel: {},
-                    onAction: { dismiss() },
+                    onConfirm: {
+                        
+                        // refaz essa lógica e joga ela na função da viewmodel
+                        if bookTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            errorMessage = "Insira um nome para o livro."
+                            showErrorAlert = true
+                            return
+                        }
+                        
+                        
+                    },
                     onDiscard: { dismiss() }
                 )
+            }
+            
+            .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                Button("Tentar novamente", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
             }
         }
     }
@@ -121,5 +165,6 @@ struct AddBookSheetView: View {
 #Preview {
     AddBookSheetView()
         .environmentObject(PhotoLibraryViewModel())
+        .environmentObject(BooksViewModel())
 }
 

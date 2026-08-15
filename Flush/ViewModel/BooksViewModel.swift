@@ -12,6 +12,10 @@ import Combine
 class BooksViewModel: ObservableObject {
     @Published var savedBooks: [Books] = []
     
+    let goalOptions = ["5 minutos", "10 minutos", "15 minutos", "20 minutos", "30 minutos", "45 minutos", "60 minutos"]
+    
+    let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
+    
     init(){
         self.fetchBooks()
     }
