@@ -99,4 +99,5 @@ struct StopwatchView: View {
     StopwatchView()
         .preferredColorScheme(.dark)
         .environmentObject(StopwatchViewModel())
+        .environmentObject(PhotoLibraryViewModel())
 }
