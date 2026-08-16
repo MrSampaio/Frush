@@ -19,9 +19,11 @@ struct AddBookSheetView: View {
     @State private var errorMessage = ""
     
     @State private var bookTitle = ""
-    
     @State private var selectedGoal: String = ""
     @State private var selectedCategory: String = ""
+    @State private var bookTotalPages: String = ""
+    @State private var bookLastPage: String = ""
+    @State private var bookAuthor: String = ""
     
     var body: some View {
         NavigationStack {
@@ -78,6 +80,10 @@ struct AddBookSheetView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
+                    TextField("Autor(a)", text: $bookAuthor)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                    
 //                    TextField("Categoria", text: .constant(""))
 //                        .textFieldStyle(RoundedBorderTextFieldStyle())
 //                        .padding(.horizontal)
@@ -105,13 +111,19 @@ struct AddBookSheetView: View {
                     .padding(.horizontal)
 
                     
-                    TextField("Páginas", text: .constant(""))
+                    TextField("Páginas totais", text: $bookTotalPages)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
+                        .keyboardType(.numberPad)
+                    
+                    TextField("Última página lida", text: $bookLastPage)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                        .keyboardType(.numberPad)
                     
                     Menu {
                         ForEach(booksViewModel.goalOptions, id: \.self) { option in
-                            Button(option) {
+                            Button("\(option) minutos") {
                                 selectedGoal = option
                             }
                         }
@@ -140,14 +152,34 @@ struct AddBookSheetView: View {
                     onCancel: {},
                     onConfirm: {
                         
-                        // refaz essa lógica e joga ela na função da viewmodel
-                        if bookTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            errorMessage = "Insira um nome para o livro."
+                        do{
+                            let pagesInt = Int16(bookTotalPages) ?? 0
+                            
+                            let lastPageInt = Int16(bookLastPage) ?? 0
+                            
+                            let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 1) ?? Data()
+
+                            let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
+                            
+                            try booksViewModel.addBook(
+                                bookTitle: bookTitle,
+                                bookAuthor: bookAuthor,
+                                bookCover: coverData,
+                                bookCategory: selectedCategory,
+                                bookTotalPages: pagesInt,
+                                bookCurrentPage: lastPageInt,
+                                bookGoal: goalInt
+                            )
+                            
+                            dismiss()
+                            
+                        } catch let error as LocalizedError{
+                            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true
-                            return
+                        } catch {
+                            errorMessage = "Erro inesperado."
+                            showErrorAlert = true
                         }
-                        
-                        
                     },
                     onDiscard: { dismiss() }
                 )
