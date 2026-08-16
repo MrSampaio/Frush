@@ -24,8 +24,10 @@ struct NavigationBarView: View {
                 Spacer()
                 
                 Text("Add Note")
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                    //.font(.title3)
+                    //.fontWeight(.semibold)
+                    .font(.bitter(.medium, style: .title3))
+                    .foregroundStyle(Color("TitleColor"))
                 
                 Spacer()
                 
@@ -39,6 +41,7 @@ struct NavigationBarView: View {
                         .clipShape(Circle())
                 }
             }
+            .background(Color("BackgroundColorViews"))
         }
     }
 

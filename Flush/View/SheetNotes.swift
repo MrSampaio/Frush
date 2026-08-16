@@ -15,7 +15,7 @@ struct SheetNotes: View {
     
     var body: some View {
         ZStack {
-            Color(UIColor.systemGroupedBackground)
+            Color("BackgroundColorViews")
                 .ignoresSafeArea()
             
             VStack(spacing: 20) {
@@ -97,7 +97,7 @@ struct SheetNotes: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Color.blue)
+                        .background(Color("ActionColor"))
                         .cornerRadius(30)
                 }
                 .padding(.horizontal)
