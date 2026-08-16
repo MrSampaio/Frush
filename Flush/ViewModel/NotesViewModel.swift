@@ -12,6 +12,8 @@ import Combine
 class NotesViewModel: ObservableObject {
     @Published var savedNotes: [Notes] = []
     
+    let noteCategories = ["Citação", "Resumo", "Pensamento", "Crítica", "Conceito", "Lição", "Pergunta", "Favorito"]
+    
     init(){
         self.fetchNotes()
     }
