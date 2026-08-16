@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct BookCaseView: View {
+    @State private var isShowingSheet = false
+    
     var body: some View {
         
         NavigationStack{
@@ -87,14 +89,20 @@ struct BookCaseView: View {
                 //.navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     BookCaseToolbar(onAddClick: {
-                        print("Clicou em adicionar")
+                        isShowingSheet.toggle()
                     })
                 }
             }
+        }
+        
+        .sheet(isPresented: $isShowingSheet) {
+            AddBookSheetView()
         }
     }
 }
 
 #Preview {
     BookCaseView()
+        .environmentObject(PhotoLibraryViewModel())
+        .environmentObject(BooksViewModel())
 }
