@@ -110,6 +110,8 @@ class BooksViewModel: ObservableObject {
         newBook.wasLastPageAdded = true
         
         try self.saveBook()
+        
+        self.fetchBooks()
     }
     
     // funcao para deletar livros

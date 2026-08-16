@@ -81,17 +81,18 @@ class NotesViewModel: ObservableObject {
             newNote.noteCategory = noteCategory
             newNote.book = book
             
+            var photosDataArray: [Data] = []
             for photo in notePhotos {
-                if let fileName = self.savePhotoToDisk(photo) {
-                    
-                    let noteImage = NoteImage(context: CoreDataManager.shared.viewContext)
-                    noteImage.id = UUID()
-                    noteImage.fileName = fileName
-                    
-                    noteImage.note = newNote
+                if let data = photo.jpegData(compressionQuality: 0.8) {
+                    photosDataArray.append(data)
                 }
             }
+            
+            newNote.notePhoto = photosDataArray as NSObject
+            
             try self.saveNote()
+
+            self.fetchNotes()
         }
     
     // funcao para deletar notas

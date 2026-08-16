@@ -23,5 +23,7 @@ class CoreDataManager{
                 fatalError("Error loading persistent stores: \(error)")
             }
         }
+        
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
     }
 }

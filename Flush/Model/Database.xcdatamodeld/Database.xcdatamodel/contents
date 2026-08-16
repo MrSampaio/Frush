@@ -24,7 +24,7 @@
     <entity name="Notes" representedClassName="Notes" syncable="YES" codeGenerationType="class">
         <attribute name="noteCategory" optional="YES" attributeType="String"/>
         <attribute name="noteDescription" optional="YES" attributeType="String"/>
-        <attribute name="notePhoto" optional="YES" attributeType="String"/>
+        <attribute name="notePhoto" optional="YES" attributeType="Transformable"/>
         <attribute name="noteTitle" optional="YES" attributeType="String"/>
         <relationship name="book" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Books" inverseName="notes" inverseEntity="Books"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="NoteImage" inverseName="note" inverseEntity="NoteImage"/>
