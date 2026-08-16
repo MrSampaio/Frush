@@ -11,6 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		22DAEAED30314BE2001A9E75 /* CH4-Books-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "CH4-Books-Info.plist"; sourceTree = "<group>"; };
 		361872EC302F885700CF27C2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		365691D2302E3C18000D19BC /* CH4-Books.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CH4-Books.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -37,6 +38,7 @@
 		365691C9302E3C18000D19BC = {
 			isa = PBXGroup;
 			children = (
+				22DAEAED30314BE2001A9E75 /* CH4-Books-Info.plist */,
 				365691D4302E3C18000D19BC /* Flush */,
 				365691D3302E3C18000D19BC /* Products */,
 				361872EC302F885700CF27C2 /* .gitignore */,
@@ -263,6 +265,7 @@
 				DEVELOPMENT_TEAM = YDGZTDXJVC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CH4-Books-Info.plist";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Por favor, permita que o Flush acesse a galeria >:(";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -296,6 +299,7 @@
 				DEVELOPMENT_TEAM = YDGZTDXJVC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CH4-Books-Info.plist";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Por favor, permita que o Flush acesse a galeria >:(";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
