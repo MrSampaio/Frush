@@ -125,7 +125,11 @@ struct SheetNotes: View {
                                 )
                                 
                             }*/
-                            CategoryMenuView(title: "Escolher categoria", selectedCategory: $selectedCategory)
+                            
+                            CategoryMenuView(
+                                title: "Escolha a categoria",
+                                categories: notesViewModel.noteCategories
+                            )
                         }
                         .padding(.horizontal)
                     }
