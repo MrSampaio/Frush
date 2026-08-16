@@ -11,7 +11,7 @@ struct CategoryMenuView: View {
     var title: String
     //let categories = ["Citação", "Resumo", "Pensamento", "Crítica"]
     let categories: [String]
-    @State var selectedCategory = ""
+    @Binding var selectedCategory: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -57,6 +57,7 @@ struct CategoryMenuView: View {
         CategoryMenuView(
             title: "Escolher categoria",
             categories: ["Citação", "Resumo", "Pensamento", "Crítica"],
+            selectedCategory: .constant("Teste"),
             //selectedCategory: .constant("Citação"),
         )
         .padding()

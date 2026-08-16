@@ -12,12 +12,16 @@ import CoreData
 struct CH4_BooksApp: App {
     let persistenceController = CoreDataManager.shared
     @StateObject var photoViewModel = PhotoLibraryViewModel()
+    @StateObject private var booksViewModel = BooksViewModel()
+    @StateObject private var notesViewModel = NotesViewModel()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.viewContext)
                 .environmentObject(photoViewModel)
+                .environmentObject(booksViewModel)
+                .environmentObject(notesViewModel)
         }
     }
 }

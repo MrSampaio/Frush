@@ -10,11 +10,12 @@ import CoreData
 
 struct ContentView: View {
     var body: some View {
-        BookView()
+        NotesListView(notesViewModel: NotesViewModel())
     }
 }
 
 #Preview {
     ContentView()
         .environmentObject(BooksViewModel())
+        .environmentObject(PhotoLibraryViewModel())
 }

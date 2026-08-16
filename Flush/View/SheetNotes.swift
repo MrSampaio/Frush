@@ -22,7 +22,7 @@ struct SheetNotes: View {
     @State private var titleText: String = ""
     @State private var noteText: String = ""
     @State var image: UIImage? = nil
-    @State private var selectedCategory: String = ""
+    @State var selectedCategory: String = ""
     
     @State private var selectedBook: Books? = nil
     
@@ -169,8 +169,11 @@ struct SheetNotes: View {
                                                         .cornerRadius(10)
                                                     
                                                     Button(action: {
-                                                        selectedImages.remove(at: index)
-                                                        selectedItems.remove(at: index)
+                                                        withAnimation{
+                                                            selectedImages.remove(at: index)
+                                                            selectedItems.remove(at: index)
+                                                        }
+                                                        
                                                     }) {
                                                         Image(systemName: "xmark.circle.fill")
                                                             .foregroundColor(.white)
@@ -215,8 +218,6 @@ struct SheetNotes: View {
                                             }
                                         }
                                     }
-                                
-                                
                                 TipsComponent(
                                     content: "Você pode adicionar até 3 fotos em uma mesma nota."
                                 )
@@ -226,7 +227,7 @@ struct SheetNotes: View {
                             CategoryMenuView(
                                 title: "Escolha a categoria",
                                 categories: notesViewModel.noteCategories,
-                                selectedCategory: selectedCategory
+                                selectedCategory: $selectedCategory
                             )
                             
                         }
