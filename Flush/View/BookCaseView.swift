@@ -90,16 +90,8 @@ struct BookCaseView: View {
                         print("Clicou em adicionar")
                     })
                 }
-
-                
-                
-                
-                    
-                
             }
         }
-
-        
     }
 }
 
