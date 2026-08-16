@@ -2,68 +2,74 @@
 //  NotesViewModel.swift
 //  CH4-Books
 //
-//  Created by Julio Sampaio on 13/08/26.
+//  Created by Julio Sampaio on 14/08/26.
 //
-
+ 
 import Foundation
 import CoreData
 import Combine
-
+import UIKit
+ 
 class NotesViewModel: ObservableObject {
     @Published var savedNotes: [Notes] = []
     
     enum NoteError: LocalizedError {
         case invalidTitle
         case invalidDescription
-        //case invalidAuthor
+        case invalidCategory
+        case invalidBook
+        case savingError
         
         var errorDescription: String? {
             switch self {
             case .invalidTitle:
                 return "Insira um título válido."
             case .invalidDescription:
-                return "Insira uma descrição válida."
-//            case .invalidAuthor:
-//                return "Insira um autor válido."
-                
+                return "Escreva o conteúdo da nota."
+            case .invalidCategory:
+                return "Escolha uma categoria para a nota."
+            case .invalidBook:
+                return "Selecione o livro relacionado a essa nota."
+            case .savingError:
+                return "Houve um erro ao salvar a nota. Tente novamente."
             }
         }
     }
     
+    // mesma lista usada no CategoryMenuView da sheet
     let noteCategories = ["Citação", "Resumo", "Pensamento", "Crítica", "Conceito", "Lição", "Pergunta", "Favorito"]
     
-    init(){
+    init() {
         self.fetchNotes()
     }
     
-    // funcao que carrega todos as notas do banco e atrbui na lista notes
-    func fetchNotes(){
+    // funcao que carrega todas as notas do banco e atribui na lista savedNotes
+    func fetchNotes() {
         let request = NSFetchRequest<Notes>(entityName: "Notes")
-        do{
+        do {
             try self.savedNotes = CoreDataManager.shared.viewContext.fetch(request)
-
-        } catch let error{
-            fatalError("Error when trying to fetch notes data:\(error)")
+        } catch let error {
+            fatalError("Error when trying to fetch notes data: \(error)")
         }
-       
     }
     
-    // funcao para salvar notes (chama ela sempre que quer subir efetivamente para o banco)
-    func saveNotes(){
-        do{
+    // funcao para salvar notas (chama ela sempre que quer subir efetivamente para o banco)
+    func saveNote() throws {
+        do {
             try CoreDataManager.shared.viewContext.save()
-        } catch let error{
+        } catch let error {
             CoreDataManager.shared.viewContext.rollback()
-            print("Error when trying to save new book: \(error)")
+            print("Error when trying to save new note: \(error)")
+            throw NoteError.savingError
         }
     }
     
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: String, to book: Books) throws {
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: UIImage?, to book: Books?) throws {
         
         let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-                
+        
         if cleanTitle.isEmpty {
             throw NoteError.invalidTitle
         }
@@ -71,44 +77,57 @@ class NotesViewModel: ObservableObject {
         if cleanDescription.isEmpty {
             throw NoteError.invalidDescription
         }
-    
+        
+        if noteCategory.isEmpty {
+            throw NoteError.invalidCategory
+        }
+        
+        guard let book else {
+            throw NoteError.invalidBook
+        }
+        
         let newNote = Notes(context: CoreDataManager.shared.viewContext)
-        
-        newNote.noteTitle = noteTitle
-        newNote.noteDescription = noteDescription
+        newNote.noteTitle = cleanTitle
+        newNote.noteDescription = cleanDescription
         newNote.noteCategory = noteCategory
-        newNote.notePhoto = notePhoto
-        
+        newNote.notePhoto = self.savePhotoToDisk(notePhoto) ?? ""
         newNote.book = book
         
-        // funcao para salvar os notas
-        self.saveNotes()
-        
+        try self.saveNote()
     }
     
     // funcao para deletar notas
-    func deleteNote(indexSet: IndexSet){
-
+    func deleteNote(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
         let note = self.savedNotes[index]
         
         CoreDataManager.shared.viewContext.delete(note)
-        self.saveNotes()
-        self.fetchNotes()
-
-    }
-    
-    func updateNote(indexSet: IndexSet,noteTitle: String?, noteDescription: String?, noteCategory: String?, notePhoto: String?){
-        guard let index = indexSet.first else { return }
-        let note = self.savedNotes[index]
         
-        note.noteTitle = noteTitle
-        note.noteDescription = noteDescription
-        note.noteCategory = noteCategory
-        note.notePhoto = notePhoto
+        do {
+            try self.saveNote()
+        } catch let error {
+            print("Erro ao deletar nota: \(error)")
+        }
         
-        self.saveNotes()
         self.fetchNotes()
     }
     
+    // salva a imagem em disco e retorna apenas o nome do arquivo,
+    // já que notePhoto no Core Data é String (não Binary Data)
+    private func savePhotoToDisk(_ image: UIImage?) -> String? {
+        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        
+        let fileName = "\(UUID().uuidString).jpg"
+        let url = FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: url)
+            return fileName
+        } catch {
+            print("Erro ao salvar imagem no disco: \(error)")
+            return nil
+        }
+    }
 }
