@@ -12,6 +12,26 @@ import Combine
 class BooksViewModel: ObservableObject {
     @Published var savedBooks: [Books] = []
     
+    enum BookError: Error {
+        case invalidTitle
+        case invalidAuthor
+        case invalidTotalPages
+        case invalidCurrentPage
+        
+        var errorMessage: String {
+            switch self {
+            case .invalidTitle:
+                return "Insira um título válido."
+            case .invalidAuthor:
+                return "Insira um autor válido."
+            case .invalidTotalPages:
+                return "Número de páginas inválido."
+            case .invalidCurrentPage:
+                return "Página atual inválida."
+            }
+        }
+    }
+    
     let goalOptions = ["5 minutos", "10 minutos", "15 minutos", "20 minutos", "30 minutos", "45 minutos", "60 minutos"]
     
     let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
@@ -43,7 +63,19 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: Data, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool){
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: Data, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16) throws{
+        
+        let cleanTitle = bookTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+        
+        if cleanTitle.isEmpty {
+            throw BookError.invalidTitle
+        }
+        
+        if bookTotalPages <= 0 {
+            throw BookError.invalidTotalPages
+        }
+        
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = bookTitle
         newBook.bookAuthor = bookAuthor
@@ -52,11 +84,13 @@ class BooksViewModel: ObservableObject {
         newBook.bookTotalPages = bookTotalPages
         newBook.bookCurrentPage = bookCurrentPage
         newBook.bookGoal = bookGoal
-        newBook.isTimerRunning = isTimerRunning
-        newBook.wasLastPageAdded = wasLastPageAdded
+        newBook.isTimerRunning = false
+        newBook.wasLastPageAdded = true
         
         // funcao para salvar os livros
         self.saveBook()
+        
+        //return true
         
     }
     
