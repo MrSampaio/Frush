@@ -123,7 +123,7 @@ struct AddBookSheetView: View {
                     
                     Menu {
                         ForEach(booksViewModel.goalOptions, id: \.self) { option in
-                            Button(option) {
+                            Button("\(option) minutos") {
                                 selectedGoal = option
                             }
                         }
@@ -152,14 +152,12 @@ struct AddBookSheetView: View {
                     onCancel: {},
                     onConfirm: {
                         
-//                        booksViewModel.addBook(bookTitle: bookTitle, bookAuthor: <#T##String#>, bookCover: <#T##Data#>, bookCategory: <#T##String#>, bookTotalPages: <#T##Int16#>, bookCurrentPage: <#T##Int16#>, bookGoal: <#T##Int16#>, isTimerRunning: <#T##Bool#>, wasLastPageAdded: <#T##Bool#>)
-                        
                         do{
                             let pagesInt = Int16(bookTotalPages) ?? 0
                             
                             let lastPageInt = Int16(bookLastPage) ?? 0
                             
-                            let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.8) ?? Data()
+                            let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 1) ?? Data()
 
                             let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
                             

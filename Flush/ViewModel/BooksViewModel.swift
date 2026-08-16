@@ -12,27 +12,34 @@ import Combine
 class BooksViewModel: ObservableObject {
     @Published var savedBooks: [Books] = []
     
-    enum BookError: Error {
+    enum BookError: LocalizedError {
         case invalidTitle
-        case invalidAuthor
+        //case invalidAuthor
         case invalidTotalPages
         case invalidCurrentPage
+        case invalidGoal
+        case invalidPageLogic
         
-        var errorMessage: String {
+        var errorDescription: String? {
             switch self {
             case .invalidTitle:
                 return "Insira um título válido."
-            case .invalidAuthor:
-                return "Insira um autor válido."
+//            case .invalidAuthor:
+//                return "Insira um autor válido."
             case .invalidTotalPages:
                 return "Número de páginas inválido."
             case .invalidCurrentPage:
                 return "Página atual inválida."
+            case .invalidGoal:
+                return "Escolha uma meta de leitura."
+            case .invalidPageLogic:
+                return "Página atual deve ser menor que o total de páginas."
+                
             }
         }
     }
     
-    let goalOptions = ["5 minutos", "10 minutos", "15 minutos", "20 minutos", "30 minutos", "45 minutos", "60 minutos"]
+    let goalOptions = ["5", "10", "15", "20", "30", "45", "60"]
     
     let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
     
@@ -67,7 +74,6 @@ class BooksViewModel: ObservableObject {
         
         let cleanTitle = bookTitle.trimmingCharacters(in: .whitespacesAndNewlines)
                 
-        
         if cleanTitle.isEmpty {
             throw BookError.invalidTitle
         }
@@ -76,11 +82,23 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidTotalPages
         }
         
+        if bookCurrentPage < 0{
+            throw BookError.invalidCurrentPage
+        }
+        
+        if bookCurrentPage > bookTotalPages {
+            throw BookError.invalidPageLogic
+        }
+        
+        if bookGoal <= 0{
+            throw BookError.invalidGoal
+        }
+        
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = bookTitle
-        newBook.bookAuthor = bookAuthor
+        newBook.bookAuthor = bookAuthor.isEmpty ? "Desconhecido" : bookAuthor
         newBook.bookCover = bookCover
-        newBook.bookCategory = bookCategory
+        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
         newBook.bookTotalPages = bookTotalPages
         newBook.bookCurrentPage = bookCurrentPage
         newBook.bookGoal = bookGoal
