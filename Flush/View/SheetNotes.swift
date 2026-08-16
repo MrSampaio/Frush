@@ -26,6 +26,9 @@ struct SheetNotes: View {
     
     @State private var selectedBook: Books? = nil
     
+    @State private var selectedItems: [PhotosPickerItem] = []
+    @State private var selectedImages: [UIImage] = []
+    
     //descomentar e adicionar em to: book
     // essa variável é pra quando a sheet for aberta direto da view de um livro
     //var book: Books
@@ -143,6 +146,8 @@ struct SheetNotes: View {
                                     .cornerRadius(10)
                             }
                             
+                            
+                            
                             VStack(alignment: .leading, spacing: 5){
 
                                 Text("Mídias")
@@ -151,31 +156,72 @@ struct SheetNotes: View {
                                     .padding(.bottom, 6)
                                     .padding(.leading, 4)
                                 
-                                PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
-                                    HStack {
-                                        Image(systemName: "camera.viewfinder")
-                                            .foregroundColor(Color("AddNoteImage"))
-                                        
-                                        Text(photoLibraryViewModel.selectedImage == nil ? "Adicionar foto" : "Trocar foto")
-                                            .foregroundColor(Color("AddNoteImage"))
-                                            .font(.system(.body, weight: .regular))
-                                        
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(Color("AddNoteImage"))
+                                if !selectedImages.isEmpty {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 12) {
+                                            ForEach(selectedImages.indices, id: \.self) { index in
+                                                ZStack(alignment: .topTrailing) {
+                                                    Image(uiImage: selectedImages[index])
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .frame(width: 120, height: 120)
+                                                        .clipped()
+                                                        .cornerRadius(10)
+                                                    
+                                                    Button(action: {
+                                                        selectedImages.remove(at: index)
+                                                        selectedItems.remove(at: index)
+                                                    }) {
+                                                        Image(systemName: "xmark.circle.fill")
+                                                            .foregroundColor(.white)
+                                                            .background(Color.black.opacity(0.6))
+                                                            .clipShape(Circle())
+                                                            .padding(6)
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                    .padding()
-                                    .cornerRadius(10)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.white, lineWidth: 1)
-                                    )
-                                    .foregroundColor(.primary)
                                 }
+                                
+                                PhotosPicker(selection: $selectedItems, maxSelectionCount: 3, matching: .images, photoLibrary: .shared()) {
+                                        HStack {
+                                            Image(systemName: "camera.viewfinder")
+                                                .foregroundColor(Color("AddNoteImage"))
+                                            
+                                            Text(selectedImages.isEmpty ? "Adicionar fotos" : "Alterar fotos (\(selectedImages.count)/3)")
+                                                .foregroundColor(Color("AddNoteImage"))
+                                                .font(.system(.body, weight: .regular))
+                                            
+                                            Spacer()
+                                            Image(systemName: "chevron.right")
+                                                .foregroundColor(Color("AddNoteImage"))
+                                        }
+                                        .padding()
+                                        .cornerRadius(10)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.white, lineWidth: 1)
+                                        )
+                                    }
+                                    .onChange(of: selectedItems) {newItems in
+                                        Task {
+                                            selectedImages.removeAll()
+                                            for item in newItems {
+                                                if let data = try? await item.loadTransferable(type: Data.self),
+                                                   let uiImage = UIImage(data: data) {
+                                                    selectedImages.append(uiImage)
+                                                }
+                                            }
+                                        }
+                                    }
+                                
+                                
                                 TipsComponent(
                                     content: "Você pode adicionar até 3 fotos em uma mesma nota."
                                 )
                             }
+                            
                             
                             CategoryMenuView(
                                 title: "Escolha a categoria",
@@ -194,14 +240,14 @@ struct SheetNotes: View {
                         title: "Adicionar nota",
                         actionIcon: "checkmark",
                         showingDiscardAlert: $showingDiscardAlert,
-                        onCancel: { print("Clicou no X") },
+                        onCancel: { dismiss() },
                         onConfirm: {
                             do {
                                 try notesViewModel.addNote(
                                     noteTitle: titleText,
                                     noteDescription: noteText,
                                     noteCategory: selectedCategory,
-                                    notePhoto: photoLibraryViewModel.selectedImage,
+                                    notePhotos: selectedImages,
                                     to: selectedBook
                                 )
                                 
@@ -215,7 +261,7 @@ struct SheetNotes: View {
                                 showErrorAlert = true
                             }
                         },
-                        onDiscard: { print("Clicou em descartar") }
+                        onDiscard: { dismiss() }
                     )
                 }
             }

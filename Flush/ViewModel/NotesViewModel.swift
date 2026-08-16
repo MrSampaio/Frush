@@ -65,36 +65,34 @@ class NotesViewModel: ObservableObject {
     }
     
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: UIImage?, to book: Books?) throws {
-        
-        let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if cleanTitle.isEmpty {
-            throw NoteError.invalidTitle
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?) throws {
+            
+            let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            if cleanTitle.isEmpty { throw NoteError.invalidTitle }
+            if cleanDescription.isEmpty { throw NoteError.invalidDescription }
+            if noteCategory.isEmpty { throw NoteError.invalidCategory }
+            guard let book else { throw NoteError.invalidBook }
+            
+            let newNote = Notes(context: CoreDataManager.shared.viewContext)
+            newNote.noteTitle = cleanTitle
+            newNote.noteDescription = cleanDescription
+            newNote.noteCategory = noteCategory
+            newNote.book = book
+            
+            for photo in notePhotos {
+                if let fileName = self.savePhotoToDisk(photo) {
+                    
+                    let noteImage = NoteImage(context: CoreDataManager.shared.viewContext)
+                    noteImage.id = UUID()
+                    noteImage.fileName = fileName
+                    
+                    noteImage.note = newNote
+                }
+            }
+            try self.saveNote()
         }
-        
-        if cleanDescription.isEmpty {
-            throw NoteError.invalidDescription
-        }
-        
-        if noteCategory.isEmpty {
-            throw NoteError.invalidCategory
-        }
-        
-        guard let book else {
-            throw NoteError.invalidBook
-        }
-        
-        let newNote = Notes(context: CoreDataManager.shared.viewContext)
-        newNote.noteTitle = cleanTitle
-        newNote.noteDescription = cleanDescription
-        newNote.noteCategory = noteCategory
-        newNote.notePhoto = self.savePhotoToDisk(notePhoto) ?? ""
-        newNote.book = book
-        
-        try self.saveNote()
-    }
     
     // funcao para deletar notas
     func deleteNote(indexSet: IndexSet) {
@@ -112,8 +110,6 @@ class NotesViewModel: ObservableObject {
         self.fetchNotes()
     }
     
-    // salva a imagem em disco e retorna apenas o nome do arquivo,
-    // já que notePhoto no Core Data é String (não Binary Data)
     private func savePhotoToDisk(_ image: UIImage?) -> String? {
         guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
         
