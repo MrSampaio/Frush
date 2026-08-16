@@ -38,13 +38,15 @@ struct SheetHeaderView: ToolbarContent {
                 Button("Continuar Editando", role: .cancel) { }
                 
             } message: {
-                Text("Deseja mesmo descartar a edição deste livro?")
+                Text("Deseja mesmo descartar a edição?")
             }
         }
         
         ToolbarItem(placement: .principal) {
             Text(title)
-                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.title)
+                .font(.title2)
+                .fontWeight(.semibold)
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -53,8 +55,13 @@ struct SheetHeaderView: ToolbarContent {
             }) {
                 Image(systemName: actionIcon)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .font(.body.bold())
+                    .foregroundColor(.title)
             }
+            
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.circle)
+            .tint(Color("ActionColor"))
         }
     }
 }
