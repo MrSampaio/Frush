@@ -12,6 +12,7 @@ extension Font {
         case regular = "Bitter-Regular"
         case medium = "Bitter-Medium"
         case bold = "Bitter-Bold"
+        case semibold = "Bitter-SemiBold"
     }
     
     // aplica a fonte Bitter com peso específico ajustada ao Dynamic Type

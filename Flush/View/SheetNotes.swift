@@ -17,7 +17,7 @@ struct SheetNotes: View {
     @State var image: UIImage? = nil
     //descomentar e adicionar em to: book
     //var book: Books
-
+    @State private var selectedCategory: String = ""
     
     var body: some View {
         ZStack {
@@ -33,28 +33,43 @@ struct SheetNotes: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 16) {
                         
-                        TextField("Adicionar título", text: $titleText)
+                        TextField("", text: $titleText, prompt: Text("Adicionar título")
+                            .font(.system(.body, weight: .regular))
+                            .foregroundColor(.white.opacity(0.7))
+                        )
+                            .foregroundStyle(.white)
                             .padding()
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
-                            .cornerRadius(10)
+                            .font(.system(.body, weight: .regular))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white, lineWidth: 1)
+                            )
+                            
                         
                         ZStack(alignment: .topLeading) {
                             if noteText.isEmpty {
                                 Text("Escreva sua nota...")
-                                    .foregroundColor(Color(UIColor.placeholderText))
+                                    .foregroundColor(.white.opacity(0.7))
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 16)
                                     .zIndex(1)
                                     .allowsHitTesting(false)
+                                    .font(.system(.body, weight: .regular))
                             }
                             
                             TextEditor(text: $noteText)
                                 .padding(8)
                                 .scrollContentBackground(.hidden)
-                                .background(Color(UIColor.secondarySystemGroupedBackground))
                                 .cornerRadius(10)
                                 .frame(height: 250)
+                                .foregroundStyle(.white)
+                                .font(.system(.body, weight: .regular))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white, lineWidth: 1)
+                                )
                         }
+             
                         
                         if let selectedImage = photoLibraryViewModel.selectedImage {
                             Image(uiImage: selectedImage)
@@ -69,33 +84,51 @@ struct SheetNotes: View {
                         PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
                             HStack {
                                 Image(systemName: "camera.viewfinder")
+                                    .foregroundColor(Color("AddNoteImage"))
+                                
                                 Text(photoLibraryViewModel.selectedImage == nil ? "Adicionar foto" : "Trocar foto")
+                                    .foregroundColor(Color("AddNoteImage"))
+                                    .font(.system(.body, weight: .regular))
+                                
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(Color(UIColor.tertiaryLabel))
+                                    .foregroundColor(Color("AddNoteImage"))
                             }
                             .padding()
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
                             .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white, lineWidth: 1)
+                            )
                             .foregroundColor(.primary)
                         }
+                        
+                        /* CATEGORIAS ANTIGAS
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Escolher categoria")
-                                .font(.headline)
                                 .padding(.leading, 4)
+                                .font(.system(.title3, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.bottom, 6)
                             
                             VStack(spacing: 0) {
                                 CategoryRow(title: "Categoria 1", hasDivider: true)
                                 CategoryRow(title: "Categoria 2", hasDivider: true)
                                 CategoryRow(title: "Categoria 3", hasDivider: false)
                             }
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
                             .cornerRadius(10)
-                        }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white, lineWidth: 1)
+                            )
+                            
+                        }*/
+                        CategoryMenuView(title: "Escolher categoria", selectedCategory: $selectedCategory)
                     }
                     .padding(.horizontal)
                 }
                 
+                /* BOTAO DE ADICIONAR NOTA ANTIGO
                 Button(action: {
                     //codigo que seleciona o primeiro livro do banco
                     guard let book = booksViewModel.savedBooks.count > 0
@@ -113,7 +146,7 @@ struct SheetNotes: View {
                             )
                 }) {
                     Text("Adicionar nota")
-                        .font(.headline)
+                        .font(.system(.title3, weight: .medium))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -122,6 +155,7 @@ struct SheetNotes: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 10)
+                 */
             }
         }
     }

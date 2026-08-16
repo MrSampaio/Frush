@@ -15,7 +15,8 @@ struct CategoryRow: View {
         VStack(spacing: 0) {
             HStack {
                 Text(title)
-                    .foregroundColor(.primary)
+                    .font(.system(.body, weight: .regular))
+                    .foregroundColor(.white.opacity(0.7))
                 Spacer()
             }
             .padding()
@@ -24,6 +25,7 @@ struct CategoryRow: View {
             if hasDivider {
                 Divider()
                     .padding(.horizontal)
+                    .overlay(Color.white)
             }
         }
     }
