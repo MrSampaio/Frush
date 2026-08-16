@@ -33,7 +33,20 @@ struct SheetNotes: View {
 //                        .padding(.top, 10)
                     
                     ScrollView(showsIndicators: false) {
-                        VStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            
+                            VStack(alignment: .leading, spacing: 0){
+                                Text("Conteúdo da nota")
+                                    .font(.system(.title3, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 6)
+                                    .padding(.leading, 4)
+                                
+                                TipsComponent(
+                                    content: "Adicione um título e um conteúdo para a sua nota."
+                                )
+                            }
+                            
                             
                             TextField("", text: $titleText, prompt: Text("Adicionar título")
                                 .font(.system(.body, weight: .regular))
@@ -83,27 +96,34 @@ struct SheetNotes: View {
                                     .cornerRadius(10)
                             }
                             
-                            PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
-                                HStack {
-                                    Image(systemName: "camera.viewfinder")
-                                        .foregroundColor(Color("AddNoteImage"))
-                                    
-                                    Text(photoLibraryViewModel.selectedImage == nil ? "Adicionar foto" : "Trocar foto")
-                                        .foregroundColor(Color("AddNoteImage"))
-                                        .font(.system(.body, weight: .regular))
-                                    
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(Color("AddNoteImage"))
+                            VStack(alignment: .leading, spacing: 10){
+                                PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
+                                    HStack {
+                                        Image(systemName: "camera.viewfinder")
+                                            .foregroundColor(Color("AddNoteImage"))
+                                        
+                                        Text(photoLibraryViewModel.selectedImage == nil ? "Adicionar foto" : "Trocar foto")
+                                            .foregroundColor(Color("AddNoteImage"))
+                                            .font(.system(.body, weight: .regular))
+                                        
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(Color("AddNoteImage"))
+                                    }
+                                    .padding()
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.white, lineWidth: 1)
+                                    )
+                                    .foregroundColor(.primary)
                                 }
-                                .padding()
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.white, lineWidth: 1)
+                                TipsComponent(
+                                    content: "Você pode adicionar até 3 fotos em uma mesma nota."
                                 )
-                                .foregroundColor(.primary)
                             }
+                            
+                            
                             
                             /* CATEGORIAS ANTIGAS
                             VStack(alignment: .leading, spacing: 8) {

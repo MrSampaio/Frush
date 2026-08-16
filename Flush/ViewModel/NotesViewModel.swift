@@ -12,6 +12,33 @@ import Combine
 class NotesViewModel: ObservableObject {
     @Published var savedNotes: [Notes] = []
     
+    enum NoteError: LocalizedError {
+        case invalidTitle
+        //case invalidAuthor
+        case invalidTotalPages
+        case invalidCurrentPage
+        case invalidGoal
+        case invalidPageLogic
+        
+        var errorDescription: String? {
+            switch self {
+            case .invalidTitle:
+                return "Insira um título válido."
+//            case .invalidAuthor:
+//                return "Insira um autor válido."
+            case .invalidTotalPages:
+                return "Número de páginas inválido."
+            case .invalidCurrentPage:
+                return "Página atual inválida."
+            case .invalidGoal:
+                return "Escolha uma meta de leitura."
+            case .invalidPageLogic:
+                return "Página atual deve ser menor que o total de páginas."
+                
+            }
+        }
+    }
+    
     let noteCategories = ["Citação", "Resumo", "Pensamento", "Crítica", "Conceito", "Lição", "Pergunta", "Favorito"]
     
     init(){
