@@ -8,13 +8,19 @@ import Combine
 import Foundation
 
 class StopwatchViewModel: ObservableObject {
-    @Published var elapsedTime: TimeInterval = 120
+    @Published var elapsedTime: TimeInterval = 10
     @Published var isRunning: Bool = false
     @Published var timer: Timer? = nil
         
     func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            self.elapsedTime -= 0.1
+            if self.elapsedTime > 0 {
+                self.elapsedTime -= 0.1
+                
+            }else{
+                self.isRunning = false
+            }
+            
         }
     }
     
