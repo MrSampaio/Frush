@@ -109,11 +109,7 @@ class BooksViewModel: ObservableObject {
         newBook.isTimerRunning = false
         newBook.wasLastPageAdded = true
         
-        // funcao para salvar os livros
         try self.saveBook()
-        
-        //return true
-        
     }
     
     // funcao para deletar livros
@@ -130,18 +126,47 @@ class BooksViewModel: ObservableObject {
 
     }
     
-    func updateBook(IndexSet: IndexSet,bookTitle: String?, bookAuthor: String?, bookCover: Data?, bookCategory: String?, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16) throws{
+    func updateBook(IndexSet: IndexSet, bookTitle: String?, bookAuthor: String?, bookCover: Data?, bookCategory: String?, bookTotalPages: Int16?, bookCurrentPage: Int16?, bookGoal: Int16?) throws {
+        
         guard let index = IndexSet.first else { return }
+        
         let book = self.savedBooks[index]
         
-        book.bookTitle = bookTitle == book.bookTitle ? book.bookTitle : bookTitle
-        book.bookAuthor = bookAuthor == book.bookAuthor ? book.bookAuthor : bookAuthor
-        book.bookCover = bookCover == book.bookCover ? book.bookCover : bookCover
-        book.bookCategory = bookCategory == book.bookCategory ? book.bookCategory : bookCategory
-        book.bookTotalPages = bookTotalPages == book.bookTotalPages ? book.bookTotalPages : bookTotalPages
-        book.bookCurrentPage = bookCurrentPage == book.bookCurrentPage ? book.bookCurrentPage : bookCurrentPage
-        book.bookGoal = bookGoal == book.bookGoal ? book.bookGoal : bookGoal
-                
+        // valores finais que serão aplicados (novo valor, ou o valor atual se nil)
+        let finalTitle = (bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)) ?? book.bookTitle
+        let finalTotalPages = bookTotalPages ?? book.bookTotalPages
+        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
+        let finalGoal = bookGoal ?? book.bookGoal
+        
+        if let finalTitle, finalTitle.isEmpty {
+            throw BookError.invalidTitle
+        }
+        
+        if finalTotalPages <= 0 {
+            throw BookError.invalidTotalPages
+        }
+        
+        if finalCurrentPage < 0 {
+            throw BookError.invalidCurrentPage
+        }
+        
+        if finalCurrentPage > finalTotalPages {
+            throw BookError.invalidPageLogic
+        }
+        
+        if finalGoal <= 0 {
+            throw BookError.invalidGoal
+        }
+        
+        // só aplica as mudanças se passou em todas as validações
+        book.bookTitle = finalTitle
+        book.bookAuthor = bookAuthor ?? book.bookAuthor
+        book.bookCover = bookCover ?? book.bookCover
+        book.bookCategory = bookCategory ?? book.bookCategory
+        book.bookTotalPages = finalTotalPages
+        book.bookCurrentPage = finalCurrentPage
+        book.bookGoal = finalGoal
+        
         try self.saveBook()
         self.fetchBooks()
     }
