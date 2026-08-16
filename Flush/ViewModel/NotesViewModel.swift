@@ -14,26 +14,17 @@ class NotesViewModel: ObservableObject {
     
     enum NoteError: LocalizedError {
         case invalidTitle
+        case invalidDescription
         //case invalidAuthor
-        case invalidTotalPages
-        case invalidCurrentPage
-        case invalidGoal
-        case invalidPageLogic
         
         var errorDescription: String? {
             switch self {
             case .invalidTitle:
                 return "Insira um título válido."
+            case .invalidDescription:
+                return "Insira uma descrição válida."
 //            case .invalidAuthor:
 //                return "Insira um autor válido."
-            case .invalidTotalPages:
-                return "Número de páginas inválido."
-            case .invalidCurrentPage:
-                return "Página atual inválida."
-            case .invalidGoal:
-                return "Escolha uma meta de leitura."
-            case .invalidPageLogic:
-                return "Página atual deve ser menor que o total de páginas."
                 
             }
         }
@@ -68,8 +59,21 @@ class NotesViewModel: ObservableObject {
     }
     
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: String, to book: Books){
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhoto: String, to book: Books) throws {
+        
+        let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+        if cleanTitle.isEmpty {
+            throw NoteError.invalidTitle
+        }
+        
+        if cleanDescription.isEmpty {
+            throw NoteError.invalidDescription
+        }
+    
         let newNote = Notes(context: CoreDataManager.shared.viewContext)
+        
         newNote.noteTitle = noteTitle
         newNote.noteDescription = noteDescription
         newNote.noteCategory = noteCategory

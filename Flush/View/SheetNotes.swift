@@ -9,16 +9,19 @@ import SwiftUI
 import PhotosUI
 
 struct SheetNotes: View {
-    @State private var titleText: String = ""
-    @State private var noteText: String = ""
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
-    @State var image: UIImage? = nil
+    
     @State var showingDiscardAlert: Bool = false
+    
+    @State private var titleText: String = ""
+    @State private var noteText: String = ""
+    @State var image: UIImage? = nil
+    @State private var selectedCategory: String = ""
     //descomentar e adicionar em to: book
     //var book: Books
-    @State private var selectedCategory: String = ""
+   
     
     var body: some View {
         NavigationStack{
