@@ -12,6 +12,12 @@ struct SheetNotes: View {
     @State private var titleText: String = ""
     @State private var noteText: String = ""
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var notesViewModel: NotesViewModel
+    @State var image: UIImage? = nil
+    //descomentar e adicionar em to: book
+    //var book: Books
+
     
     var body: some View {
         ZStack {
@@ -91,6 +97,20 @@ struct SheetNotes: View {
                 }
                 
                 Button(action: {
+                    //codigo que seleciona o primeiro livro do banco
+                    guard let book = booksViewModel.savedBooks.count > 0
+                                ? booksViewModel.savedBooks[1]
+                                : booksViewModel.savedBooks.first else {
+                            print("Nenhum livro disponível no banco!")
+                            return
+                        }
+                            notesViewModel.addNote(
+                                noteTitle: titleText,
+                                noteDescription: noteText,
+                                noteCategory: "Teste",
+                                notePhoto: "foto_teste.jpg",
+                                to: book
+                            )
                 }) {
                     Text("Adicionar nota")
                         .font(.headline)
@@ -110,4 +130,6 @@ struct SheetNotes: View {
 #Preview {
     SheetNotes()
         .environmentObject(PhotoLibraryViewModel())
+        .environmentObject(BooksViewModel())
+        .environmentObject(NotesViewModel())
 }
