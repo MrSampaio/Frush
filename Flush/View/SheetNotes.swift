@@ -1,4 +1,3 @@
-
 //
 //  SheetNotes.swift
 //  CH4-Books
@@ -29,239 +28,45 @@ struct SheetNotes: View {
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var selectedImages: [UIImage] = []
     
+    @State private var showCameraPicker = false
+    @State private var capturedImage: UIImage? = nil
+    @State private var showMediaSourceMenu = false
+    
+    @State private var showPhotoPicker = false
+    
     //descomentar e adicionar em to: book
     // essa variável é pra quando a sheet for aberta direto da view de um livro
     //var book: Books
    
     
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             ZStack {
                 Color("BackgroundColorViews")
                     .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    //aqui e o teste
-//                    NavigationBarView()
-//                        .padding(.horizontal)
-//                        .padding(.top, 10)
-                    
                     ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 17) {
-                            
-                            VStack(alignment: .leading, spacing: 0){
-                                Text("Conteúdo da nota")
-                                    .font(.system(.title3, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 6)
-                                    .padding(.leading, 4)
-                                
-                                TipsComponent(
-                                    content: "Adicione um título e um conteúdo para a sua nota."
-                                )
-                            }
-                            
-                            
-                            TextField("", text: $titleText, prompt: Text("Adicionar título")
-                                .font(.system(.body, weight: .regular))
-                                .foregroundColor(.white.opacity(0.7))
-                            )
-                                .foregroundStyle(.white)
-                                .padding()
-                                .font(.system(.body, weight: .regular))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.white, lineWidth: 1)
-                                )
-                                
-                            
-                            ZStack(alignment: .topLeading) {
-                                if noteText.isEmpty {
-                                    Text("Escreva sua nota...")
-                                        .foregroundColor(.white.opacity(0.7))
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 16)
-                                        .zIndex(1)
-                                        .allowsHitTesting(false)
-                                        .font(.system(.body, weight: .regular))
-                                }
-                                
-                                TextEditor(text: $noteText)
-                                    .padding(8)
-                                    .scrollContentBackground(.hidden)
-                                    .cornerRadius(10)
-                                    .frame(height: 250)
-                                    .foregroundStyle(.white)
-                                    .font(.system(.body, weight: .regular))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.white, lineWidth: 1)
-                                    )
-                            }
-                            
-                            // depois muda pra sheet receber o livro como parâmetro
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("Livro relacionado")
-                                    .font(.system(.title3, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 6)
-                                    .padding(.leading, 4)
-                                
-                                Menu {
-                                    ForEach(booksViewModel.savedBooks, id: \.self) { book in
-                                        Button(book.bookTitle ?? "Sem título") {
-                                            selectedBook = book
-                                        }
-                                    }
-                                } label: {
-                                    HStack {
-                                        Text(selectedBook?.bookTitle ?? "Selecione um livro")
-                                            .font(.system(.body, weight: .regular))
-                                            .foregroundColor(selectedBook == nil ? .white.opacity(0.7) : .white)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.up.chevron.down")
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundColor(.white)
-                                    }
-                                    .padding()
-                                    .contentShape(Rectangle())
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.white, lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                 
-                            
-                            if let selectedImage = photoLibraryViewModel.selectedImage {
-                                Image(uiImage: selectedImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: 200)
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                    .cornerRadius(10)
-                            }
-                            
-                            
-                            
-                            VStack(alignment: .leading, spacing: 5){
-
-                                Text("Mídias")
-                                    .font(.system(.title3, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 6)
-                                    .padding(.leading, 4)
-                                
-                                if !selectedImages.isEmpty {
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 12) {
-                                            ForEach(selectedImages.indices, id: \.self) { index in
-                                                ZStack(alignment: .topTrailing) {
-                                                    Image(uiImage: selectedImages[index])
-                                                        .resizable()
-                                                        .scaledToFill()
-                                                        .frame(width: 120, height: 120)
-                                                        .clipped()
-                                                        .cornerRadius(10)
-                                                    
-                                                    Button(action: {
-                                                        withAnimation{
-                                                            selectedImages.remove(at: index)
-                                                            selectedItems.remove(at: index)
-                                                        }
-                                                        
-                                                    }) {
-                                                        Image(systemName: "xmark.circle.fill")
-                                                            .foregroundColor(.white)
-                                                            .background(Color.black.opacity(0.6))
-                                                            .clipShape(Circle())
-                                                            .padding(6)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                PhotosPicker(selection: $selectedItems, maxSelectionCount: 3, matching: .images, photoLibrary: .shared()) {
-                                        HStack {
-                                            Image(systemName: "camera.viewfinder")
-                                                .foregroundColor(Color("AddNoteImage"))
-                                            
-                                            Text(selectedImages.isEmpty ? "Adicionar fotos" : "Alterar fotos (\(selectedImages.count)/3)")
-                                                .foregroundColor(Color("AddNoteImage"))
-                                                .font(.system(.body, weight: .regular))
-                                            
-                                            Spacer()
-                                            Image(systemName: "chevron.right")
-                                                .foregroundColor(Color("AddNoteImage"))
-                                        }
-                                        .padding()
-                                        .cornerRadius(10)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.white, lineWidth: 1)
-                                        )
-                                    }
-                                    .onChange(of: selectedItems) {newItems in
-                                        Task {
-                                            selectedImages.removeAll()
-                                            for item in newItems {
-                                                if let data = try? await item.loadTransferable(type: Data.self),
-                                                   let uiImage = UIImage(data: data) {
-                                                    selectedImages.append(uiImage)
-                                                }
-                                            }
-                                        }
-                                    }
-                                TipsComponent(
-                                    content: "Você pode adicionar até 3 fotos em uma mesma nota."
-                                )
-                            }
-                            
-                            
-                            CategoryMenuView(
-                                title: "Escolha a categoria",
-                                categories: notesViewModel.noteCategories,
-                                selectedCategory: $selectedCategory
-                            )
-                            
+                            noteContentHeader
+                            titleField
+                            noteTextEditor
+                            bookPickerSection
+                            selectedImagePreview
+                            mediaSection
+                            categorySection
                         }
                         .padding(.horizontal)
                     }
- 
                 }
                 
                 .toolbar {
-                    SheetHeaderView (
+                    SheetHeaderView(
                         title: "Adicionar nota",
                         actionIcon: "checkmark",
                         showingDiscardAlert: $showingDiscardAlert,
                         onCancel: { dismiss() },
-                        onConfirm: {
-                            do {
-                                try notesViewModel.addNote(
-                                    noteTitle: titleText,
-                                    noteDescription: noteText,
-                                    noteCategory: selectedCategory,
-                                    notePhotos: selectedImages,
-                                    to: selectedBook
-                                )
-                                
-                                dismiss()
-                                
-                            } catch let error as LocalizedError {
-                                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                showErrorAlert = true
-                            } catch {
-                                errorMessage = "Erro inesperado."
-                                showErrorAlert = true
-                            }
-                        },
+                        onConfirm: handleConfirm,
                         onDiscard: { dismiss() }
                     )
                 }
@@ -271,9 +76,268 @@ struct SheetNotes: View {
             } message: {
                 Text(errorMessage)
             }
+            .onChange(of: selectedItems) { newItems in
+                loadPickedItems(newItems)
+            }
+            .fullScreenCover(isPresented: $showCameraPicker) {
+                CameraPicker(selectedImage: $capturedImage)
+                    .ignoresSafeArea()
+            }
+            .photosPicker(
+                isPresented: $showPhotoPicker,
+                selection: $selectedItems,
+                maxSelectionCount: 3 - selectedImages.count,
+                matching: .images
+            )
+            .onChange(of: capturedImage) { newImage in
+                appendCapturedImage(newImage)
+            }
         }
     }
+    
+    // MARK: - Seções (extraídas para aliviar o type-checker)
+    
+    private var noteContentHeader: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Conteúdo da nota")
+                .font(.system(.title3, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.bottom, 6)
+                .padding(.leading, 4)
+            
+            TipsComponent(
+                content: "Adicione um título e um conteúdo para a sua nota."
+            )
+        }
+    }
+    
+    private var titleField: some View {
+        let placeholder = Text("Adicionar título")
+            .font(.system(.body, weight: .regular))
+            .foregroundColor(.white.opacity(0.7))
+        
+        return TextField("", text: $titleText, prompt: placeholder)
+            .foregroundStyle(.white)
+            .padding()
+            .font(.system(.body, weight: .regular))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white, lineWidth: 1)
+            )
+    }
+    
+    private var noteTextEditor: some View {
+        ZStack(alignment: .topLeading) {
+            if noteText.isEmpty {
+                Text("Escreva sua nota...")
+                    .foregroundColor(.white.opacity(0.7))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
+                    .zIndex(1)
+                    .allowsHitTesting(false)
+                    .font(.system(.body, weight: .regular))
+            }
+            
+            TextEditor(text: $noteText)
+                .padding(8)
+                .scrollContentBackground(.hidden)
+                .cornerRadius(10)
+                .frame(height: 250)
+                .foregroundStyle(.white)
+                .font(.system(.body, weight: .regular))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white, lineWidth: 1)
+                )
+        }
+    }
+    
+    // depois muda pra sheet receber o livro como parâmetro
+    private var bookPickerSection: some View {
+        let bookTitle: String = selectedBook?.bookTitle ?? "Selecione um livro"
+        let bookTextColor: Color = selectedBook == nil ? .white.opacity(0.7) : .white
+        
+        return VStack(alignment: .leading, spacing: 0) {
+            Text("Livro relacionado")
+                .font(.system(.title3, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.bottom, 6)
+                .padding(.leading, 4)
+            
+            Menu {
+                ForEach(booksViewModel.savedBooks, id: \.self) { book in
+                    Button(book.bookTitle ?? "Sem título") {
+                        selectedBook = book
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(bookTitle)
+                        .font(.system(.body, weight: .regular))
+                        .foregroundColor(bookTextColor)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.white)
+                }
+                .padding()
+                .contentShape(Rectangle())
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white, lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    @ViewBuilder
+    private var selectedImagePreview: some View {
+        if let selectedImage = photoLibraryViewModel.selectedImage {
+            Image(uiImage: selectedImage)
+                .resizable()
+                .scaledToFill()
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                .clipped()
+                .cornerRadius(10)
+        }
+    }
+    
+    private var mediaSection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("Mídias")
+                .font(.system(.title3, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.bottom, 6)
+                .padding(.leading, 4)
+            
+            if !selectedImages.isEmpty {
+                mediaThumbnailsRow
+            }
+            
+            mediaPickerMenu
+            
+            TipsComponent(
+                content: "Você pode adicionar até 3 fotos em uma mesma nota."
+            )
+        }
+    }
+    
+    private var mediaThumbnailsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(selectedImages.indices, id: \.self) { index in
+                    MediaThumbnailView(image: selectedImages[index]) {
+                        withAnimation {
+                            //selectedImages.remove(at: index)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private var mediaPickerMenu: some View {
+        let isLimitReached = selectedImages.count >= 3
+        let mediaButtonText: String = selectedImages.isEmpty
+            ? "Adicionar fotos"
+            : "Adicionar mais fotos (\(selectedImages.count)/3)"
+        
+        return Menu {
+            Button {
+                showCameraPicker = true
+            } label: {
+                Label("Tirar foto com a Câmera", systemImage: "camera")
+            }
+            .disabled(isLimitReached)
+            
+            Button {
+                showPhotoPicker = true
+            } label: {
+                Label("Escolher da Galeria", systemImage: "photo.on.rectangle")
+            }
+            .disabled(isLimitReached)
+            
+        } label: {
+            HStack {
+                Image(systemName: "camera.viewfinder")
+                    .foregroundColor(Color("AddNoteImage"))
+                
+                Text(mediaButtonText)
+                    .foregroundColor(Color("AddNoteImage"))
+                    .font(.system(.body, weight: .regular))
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color("AddNoteImage"))
+            }
+            .padding()
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white, lineWidth: 1)
+            )
+        }
+        .disabled(isLimitReached)
+        .opacity(isLimitReached ? 0.5 : 1.0)
+    }
+    
+    private var categorySection: some View {
+        CategoryMenuView(
+            title: "Escolha a categoria",
+            categories: notesViewModel.noteCategories,
+            selectedCategory: $selectedCategory
+        )
+    }
+    
+    // MARK: - Ações
+    private func handleConfirm() {
+        do {
+            try notesViewModel.addNote(
+                noteTitle: titleText,
+                noteDescription: noteText,
+                noteCategory: selectedCategory,
+                notePhotos: selectedImages,
+                to: selectedBook
+            )
+            
+            dismiss()
+            
+        } catch let error as LocalizedError {
+            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+            showErrorAlert = true
+        } catch {
+            errorMessage = "Erro inesperado."
+            showErrorAlert = true
+        }
+    }
+    
+    private func loadPickedItems(_ newItems: [PhotosPickerItem]) {
+        Task {
+            for item in newItems {
+                guard selectedImages.count < 3 else { break }
+                
+                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+                guard let uiImage = UIImage(data: data) else { continue }
+                
+                selectedImages.append(uiImage)
+            }
+            selectedItems.removeAll()
+        }
+    }
+    
+    private func appendCapturedImage(_ newImage: UIImage?) {
+        guard let newImage, selectedImages.count < 3 else { return }
+        selectedImages.append(newImage)
+        capturedImage = nil
+    }
 }
+
+
  
 #Preview {
     SheetNotes()

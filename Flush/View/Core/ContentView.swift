@@ -14,7 +14,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Estante", systemImage: "book"){
-                BookView()
+                SheetNotes()
             }
             Tab("Cronometro", systemImage: "timer"){
                 StopwatchView()
