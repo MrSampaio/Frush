@@ -47,9 +47,14 @@ struct BookDetailView: View {
                             currentPage: Int(currentBook.bookCurrentPage),
                             totalPages: Int(currentBook.bookTotalPages)
                         )
-                        //quadro de anotacoes
-                        NotesSectionView(notes: notesViewModel.savedNotes)
-                        //butons de adicao de leitura e livro
+                        //Notas
+                        VStack{
+                            NotesHeaderview()
+                            //quadro de anotacoes
+                            NotesSectionView(notes: notesViewModel.savedNotes)
+                        }
+                        //botoes de adicao de leitura e livro
+
                         VStack(spacing: 16) {
                             Button(action: {
                             }) {

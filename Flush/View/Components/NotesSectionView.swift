@@ -12,26 +12,6 @@ struct NotesSectionView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            HStack {
-                Text("Anotações")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button(action: {
-                    // Adicionar nova anotação
-                }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .frame(width: 40, height: 40)
-                        .background(Color(.tertiarySystemFill))
-                        .clipShape(Circle())
-                }
-            }
-            .padding(.horizontal, 24)
-            
             if notes.isEmpty {
                 VStack {
                     Text("Nenhuma anotação para este livro.")
