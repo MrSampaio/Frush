@@ -1,3 +1,4 @@
+
 //
 //  SheetNotes.swift
 //  CH4-Books
@@ -7,6 +8,11 @@
  
 import SwiftUI
 import PhotosUI
+
+struct SelectableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
  
 struct SheetNotes: View {
     @Environment(\.dismiss) var dismiss
@@ -26,7 +32,7 @@ struct SheetNotes: View {
     @State private var selectedBook: Books? = nil
     
     @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var selectedImages: [UIImage] = []
+    @State private var selectedImages: [SelectableImage] = []
     
     @State private var showCameraPicker = false
     @State private var capturedImage: UIImage? = nil
@@ -95,6 +101,55 @@ struct SheetNotes: View {
         }
     }
     
+    // MARK: - Ações
+    
+    private func handleConfirm() {
+        do {
+            try notesViewModel.addNote(
+                noteTitle: titleText,
+                noteDescription: noteText,
+                noteCategory: selectedCategory,
+                notePhotos: selectedImages.map(\.image),
+                to: selectedBook
+            )
+            
+            dismiss()
+            
+        } catch let error as LocalizedError {
+            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+            showErrorAlert = true
+        } catch {
+            errorMessage = "Erro inesperado."
+            showErrorAlert = true
+        }
+    }
+    
+    private func loadPickedItems(_ newItems: [PhotosPickerItem]) {
+        Task {
+            for item in newItems {
+                guard selectedImages.count < 3 else { break }
+                
+                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+                guard let uiImage = UIImage(data: data) else { continue }
+                
+                selectedImages.append(SelectableImage(image: uiImage))
+            }
+            selectedItems.removeAll()
+        }
+    }
+    
+    private func appendCapturedImage(_ newImage: UIImage?) {
+        guard let newImage, selectedImages.count < 3 else { return }
+        selectedImages.append(SelectableImage(image: newImage))
+        capturedImage = nil
+    }
+    
+    private func removeImage(id: UUID) {
+        withAnimation {
+            selectedImages.removeAll { $0.id == id }
+        }
+    }
+    
     // MARK: - Seções (extraídas para aliviar o type-checker)
     
     private var noteContentHeader: some View {
@@ -154,6 +209,9 @@ struct SheetNotes: View {
     
     // depois muda pra sheet receber o livro como parâmetro
     private var bookPickerSection: some View {
+        // valores pré-calculados fora da view builder: isso é o que mais ajuda
+        // o type-checker, já que ele não precisa inferir ternário + optional junto
+        // com os modificadores de uma vez só.
         let bookTitle: String = selectedBook?.bookTitle ?? "Selecione um livro"
         let bookTextColor: Color = selectedBook == nil ? .white.opacity(0.7) : .white
         
@@ -229,11 +287,9 @@ struct SheetNotes: View {
     private var mediaThumbnailsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(selectedImages.indices, id: \.self) { index in
-                    MediaThumbnailView(image: selectedImages[index]) {
-                        withAnimation {
-                            //selectedImages.remove(at: index)
-                        }
+                ForEach(selectedImages) { item in
+                    MediaThumbnailView(image: item.image) {
+                        removeImage(id: item.id)
                     }
                 }
             }
@@ -241,6 +297,8 @@ struct SheetNotes: View {
     }
     
     private var mediaPickerMenu: some View {
+        // isolar o texto condicional (ternário + interpolação) numa constante
+        // evita que o type-checker precise resolver tudo dentro do Text()
         let isLimitReached = selectedImages.count >= 3
         let mediaButtonText: String = selectedImages.isEmpty
             ? "Adicionar fotos"
@@ -293,51 +351,7 @@ struct SheetNotes: View {
             selectedCategory: $selectedCategory
         )
     }
-    
-    // MARK: - Ações
-    private func handleConfirm() {
-        do {
-            try notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: selectedCategory,
-                notePhotos: selectedImages,
-                to: selectedBook
-            )
-            
-            dismiss()
-            
-        } catch let error as LocalizedError {
-            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-            showErrorAlert = true
-        } catch {
-            errorMessage = "Erro inesperado."
-            showErrorAlert = true
-        }
-    }
-    
-    private func loadPickedItems(_ newItems: [PhotosPickerItem]) {
-        Task {
-            for item in newItems {
-                guard selectedImages.count < 3 else { break }
-                
-                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
-                guard let uiImage = UIImage(data: data) else { continue }
-                
-                selectedImages.append(uiImage)
-            }
-            selectedItems.removeAll()
-        }
-    }
-    
-    private func appendCapturedImage(_ newImage: UIImage?) {
-        guard let newImage, selectedImages.count < 3 else { return }
-        selectedImages.append(newImage)
-        capturedImage = nil
-    }
 }
-
-
  
 #Preview {
     SheetNotes()
