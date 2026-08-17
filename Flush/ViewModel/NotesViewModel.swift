@@ -66,34 +66,34 @@ class NotesViewModel: ObservableObject {
     
     // funcao que adiciona notas com os parametros a serem recebidos pela view
     func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?) throws {
-            
-            let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-            let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if cleanTitle.isEmpty { throw NoteError.invalidTitle }
-            if cleanDescription.isEmpty { throw NoteError.invalidDescription }
-            if noteCategory.isEmpty { throw NoteError.invalidCategory }
-            guard let book else { throw NoteError.invalidBook }
-            
-            let newNote = Notes(context: CoreDataManager.shared.viewContext)
-            newNote.noteTitle = cleanTitle
-            newNote.noteDescription = cleanDescription
-            newNote.noteCategory = noteCategory
-            newNote.book = book
-            
-            var photosDataArray: [Data] = []
-            for photo in notePhotos {
-                if let data = photo.jpegData(compressionQuality: 0.8) {
-                    photosDataArray.append(data)
-                }
+        
+        let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if cleanTitle.isEmpty { throw NoteError.invalidTitle }
+        if cleanDescription.isEmpty { throw NoteError.invalidDescription }
+        if noteCategory.isEmpty { throw NoteError.invalidCategory }
+        guard let book else { throw NoteError.invalidBook }
+        
+        let newNote = Notes(context: CoreDataManager.shared.viewContext)
+        newNote.noteTitle = cleanTitle
+        newNote.noteDescription = cleanDescription
+        newNote.noteCategory = noteCategory
+        newNote.book = book
+        
+        var photosDataArray: [Data] = []
+        for photo in notePhotos {
+            if let data = photo.jpegData(compressionQuality: 0.8) {
+                photosDataArray.append(data)
             }
-            
-            newNote.notePhoto = photosDataArray as NSObject
-            
-            try self.saveNote()
-
-            self.fetchNotes()
         }
+        
+        newNote.notePhoto = photosDataArray as NSObject
+        
+        try self.saveNote()
+        
+        self.fetchNotes()
+    }
     
     // funcao para deletar notas
     func deleteNote(indexSet: IndexSet) {
@@ -125,6 +125,23 @@ class NotesViewModel: ObservableObject {
         } catch {
             print("Erro ao salvar imagem no disco: \(error)")
             return nil
+        }
+    }
+    //depois avaliar se realemtne e necessaria
+    func fetchNotes(for book: Books?) {
+        guard let book = book else {
+            self.savedNotes = []
+            return
+        }
+        
+        let request = NSFetchRequest<Notes>(entityName: "Notes")
+        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
+        request.predicate = NSPredicate(format: "book == %@", book)
+        
+        do {
+            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
+        } catch let error {
+            print("Erro ao buscar anotações do livro: \(error)")
         }
     }
 }
