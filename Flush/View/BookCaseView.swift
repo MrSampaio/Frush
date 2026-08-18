@@ -21,9 +21,7 @@ struct BookCaseView: View {
                     VStack (alignment: .leading, spacing: 24) {
                         //título e botão "+"
                         HStack {
-                            Text("Meus livros")
-                                .font(.bitter(.medium, style: .largeTitle))
-                                .foregroundStyle(Color("TitleColor"))
+                            TitleComponent(title: "Meus Livros")
                             
     //                        Spacer()
     //
