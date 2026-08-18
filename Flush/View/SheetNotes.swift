@@ -8,6 +8,7 @@
  
 import SwiftUI
 import PhotosUI
+import CoreData
 
 struct SelectableImage: Identifiable {
     let id = UUID()
@@ -42,7 +43,7 @@ struct SheetNotes: View {
     
     //descomentar e adicionar em to: book
     // essa variável é pra quando a sheet for aberta direto da view de um livro
-    //var book: Books
+    var book: Books
    
     
     var body: some View {
@@ -57,7 +58,7 @@ struct SheetNotes: View {
                             noteContentHeader
                             titleField
                             noteTextEditor
-                            bookPickerSection
+                            //bookPickerSection
                             selectedImagePreview
                             mediaSection
                             categorySection
@@ -154,6 +155,12 @@ struct SheetNotes: View {
     
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("Livro: \(book.bookTitle ?? "Sem título")")
+                .font(.system(.title3, weight: .medium))
+                .foregroundColor(.addNote)
+                .padding(.bottom, 6)
+                .padding(.leading, 4)
+            
             Text("Conteúdo da nota")
                 .font(.system(.title3, weight: .medium))
                 .foregroundColor(.white)
@@ -167,18 +174,15 @@ struct SheetNotes: View {
     }
     
     private var titleField: some View {
-        let placeholder = Text("Adicionar título")
-            .font(.system(.body, weight: .regular))
-            .foregroundColor(.white.opacity(0.7))
+//        let placeholder = Text("Adicionar título")
+//            .font(.system(.body, weight: .regular))
+//            .foregroundColor(.white.opacity(0.7))
         
-        return TextField("", text: $titleText, prompt: placeholder)
-            .foregroundStyle(.white)
-            .padding()
-            .font(.system(.body, weight: .regular))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white, lineWidth: 1)
-            )
+        return TextFieldSheets(
+            text: $titleText,
+            placeholder: "Adicionar título",
+            label: nil
+        )
     }
     
     private var noteTextEditor: some View {
@@ -208,48 +212,48 @@ struct SheetNotes: View {
     }
     
     // depois muda pra sheet receber o livro como parâmetro
-    private var bookPickerSection: some View {
-        // valores pré-calculados fora da view builder: isso é o que mais ajuda
-        // o type-checker, já que ele não precisa inferir ternário + optional junto
-        // com os modificadores de uma vez só.
-        let bookTitle: String = selectedBook?.bookTitle ?? "Selecione um livro"
-        let bookTextColor: Color = selectedBook == nil ? .white.opacity(0.7) : .white
-        
-        return VStack(alignment: .leading, spacing: 0) {
-            Text("Livro relacionado")
-                .font(.system(.title3, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.bottom, 6)
-                .padding(.leading, 4)
-            
-            Menu {
-                ForEach(booksViewModel.savedBooks, id: \.self) { book in
-                    Button(book.bookTitle ?? "Sem título") {
-                        selectedBook = book
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(bookTitle)
-                        .font(.system(.body, weight: .regular))
-                        .foregroundColor(bookTextColor)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(.white)
-                }
-                .padding()
-                .contentShape(Rectangle())
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white, lineWidth: 1)
-                )
-            }
-            .buttonStyle(.plain)
-        }
-    }
+//    private var bookPickerSection: some View {
+//        // valores pré-calculados fora da view builder: isso é o que mais ajuda
+//        // o type-checker, já que ele não precisa inferir ternário + optional junto
+//        // com os modificadores de uma vez só.
+//        let bookTitle: String = selectedBook?.bookTitle ?? "Selecione um livro"
+//        let bookTextColor: Color = selectedBook == nil ? .white.opacity(0.7) : .white
+//        
+//        return VStack(alignment: .leading, spacing: 0) {
+//            Text("Livro relacionado")
+//                .font(.system(.title3, weight: .medium))
+//                .foregroundColor(.white)
+//                .padding(.bottom, 6)
+//                .padding(.leading, 4)
+//            
+//            Menu {
+//                ForEach(booksViewModel.savedBooks, id: \.self) { book in
+//                    Button(book.bookTitle ?? "Sem título") {
+//                        selectedBook = book
+//                    }
+//                }
+//            } label: {
+//                HStack {
+//                    Text(bookTitle)
+//                        .font(.system(.body, weight: .regular))
+//                        .foregroundColor(bookTextColor)
+//                    
+//                    Spacer()
+//                    
+//                    Image(systemName: "chevron.up.chevron.down")
+//                        .font(.footnote.weight(.semibold))
+//                        .foregroundColor(.white)
+//                }
+//                .padding()
+//                .contentShape(Rectangle())
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .stroke(Color.white, lineWidth: 1)
+//                )
+//            }
+//            .buttonStyle(.plain)
+//        }
+//    }
     
     @ViewBuilder
     private var selectedImagePreview: some View {
@@ -352,9 +356,9 @@ struct SheetNotes: View {
         )
     }
 }
- 
+
 #Preview {
-    SheetNotes()
+    SheetNotes(book: PreviewProviderHelper.sampleBook)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
