@@ -44,9 +44,8 @@ struct SheetHeaderView: ToolbarContent {
         
         ToolbarItem(placement: .principal) {
             Text(title)
-                .foregroundColor(.title)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .foregroundColor(Color("LinesColor"))
+                .font(.bitter(.semibold, style: .title2))
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -75,7 +74,7 @@ struct SheetHeaderView: ToolbarContent {
                 Text("Conteúdo da sua Sheet aqui")
                     .toolbar {
                         SheetHeaderView (
-                            title: "Cadastrar Livro",
+                            title: "Cadastrar livro",
                             actionIcon: "checkmark",
                             showingDiscardAlert: $showAlert,
                             onCancel: { print("Clicou no X") },

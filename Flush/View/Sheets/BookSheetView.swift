@@ -50,19 +50,29 @@ struct BookSheetView: View {
                                                 Image("defaultBook")
                                                     .resizable()
                                                     .scaledToFill()
-                                                    .frame(width: 150, height: 210)
+                                                    .frame(width: 172, height: 243)
                                                     .background(Color(uiColor: .systemGray4))
                                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                                             }
                                         }
                                         
-                                        Image(systemName: photoLibraryViewModel.selectedImage == nil ? "plus" : "pencil")
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .frame(width: 40, height: 40)
-                                            .background(Color.black)
+                                        
+                                        Image(systemName: photoLibraryViewModel.selectedImage == nil ? "plus" : "trash")
+                                            .font(.title2)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.title)
+                                            .frame(width: 44, height: 44)
+                                            .background(.ultraThinMaterial, in: Circle())
                                             .clipShape(Circle())
-                                            .offset(x: 12, y: 12)
+                                            .overlay(
+                                                    Circle()
+                                                        .stroke(Color.white.opacity(0.2), lineWidth: 1) 
+                                            )
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 6)
+                                            
+                            
+            
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -84,18 +94,18 @@ struct BookSheetView: View {
                             }
                             
                             //detalhes do livro
-                            TextFieldSheets(text: $bookTitle, placeholder: "Adicionar título", label: "Título")
+                            TextFieldSheets(text: $bookTitle, placeholder: "Adicione o título", label: "Título")
                             
-                            TextFieldSheets(text: $bookAuthor, placeholder: "Adicionar autor(a)", label: "Autor(a)")
+                            TextFieldSheets(text: $bookAuthor, placeholder: "Adicione o autor(a)", label: "Autor(a)")
                             
                             MenuSheetPicker(
                                 title: "Categoria",
-                                placeholder: "Categoria do livro",
+                                placeholder: "Adicione a categoria",
                                 selectedValue: $selectedCategory,
                                 options: booksViewModel.bookCategories
                             )
                         
-                            TextFieldSheets(text: $bookTotalPages, placeholder: "Páginas totais", label: "Páginas")
+                            TextFieldSheets(text: $bookTotalPages, placeholder: "Adicione a quantidade de páginas", label: "Páginas")
                                 .keyboardType(.numberPad)
                             
 //                            TextFieldSheets(text: $bookLastPage, placeholder: "Exemplo: 125", label: "Última página lida")

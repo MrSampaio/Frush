@@ -17,21 +17,21 @@ struct TextFieldSheets: View {
             if let label = label {
                 Text(label)
                     .font(.system(.title3, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("LinesColor"))
                     .padding(.bottom, 6)
                     .padding(.leading, 4)
             }
             
             TextField("", text: $text, prompt: Text(placeholder)
                 .font(.system(.body, weight: .regular))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(Color("TextFieldPlaceholderColor"))
             )
             .foregroundStyle(.white)
             .padding()
             .font(.system(.body, weight: .regular))
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 100)
+                    .stroke(Color("LinesColor"), lineWidth: 0.5)
             )
             
         }
