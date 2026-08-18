@@ -20,8 +20,10 @@ class CoreDataManager{
         self.persistentContainer = NSPersistentContainer(name: "Database")
         self.persistentContainer.loadPersistentStores { (description, error) in
             if let error = error{
-                fatalError("Error loading persistent stores: \(error)")
+                print("Error loading persistent stores: \(error)")
             }
         }
+        
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
     }
 }

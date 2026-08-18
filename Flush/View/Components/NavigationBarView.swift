@@ -11,34 +11,39 @@ struct NavigationBarView: View {
     var body: some View {
                 
             HStack {
+                
                 Button(action: {
+                    // Ação do botão
                 }) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.primary)
-                        .frame(width: 44, height: 44)
-                        .background(Color(UIColor.tertiarySystemFill))
-                        .clipShape(Circle())
+                        .font(.system(.title, weight: .semibold))
+                        .foregroundStyle(Color("TitleColor"))
+                        .frame(width: 48, height: 48)
+                        .background(Color.black.opacity(0.3), in: Circle())
                 }
+                .glassEffect(.regular, in: Circle())
                 
                 Spacer()
                 
-                Text("Add Note")
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                Text("Adicionar nota")
+                    .font(.bitter(.semibold, style: .title))
+                    .foregroundStyle(Color("TitleColor"))
                 
                 Spacer()
+                
                 
                 Button(action: {
+                    // Ação do botão
                 }) {
                     Image(systemName: "checkmark")
-                        .font(.callout.weight(.bold))
-                        .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.blue)
-                        .clipShape(Circle())
+                        .font(.system(.title, weight: .semibold))
+                        .foregroundStyle(Color("TitleColor"))
+                        .frame(width: 48, height: 48)
+                        .background(Color("ActionColor").opacity(0.8), in: Circle())
                 }
+                .glassEffect(.regular, in: Circle())
             }
+            .background(Color("BackgroundColorViews"))
         }
     }
 
