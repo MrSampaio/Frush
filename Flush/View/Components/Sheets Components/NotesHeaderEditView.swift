@@ -26,8 +26,8 @@ struct NotesHeaderEditView: View {
             Spacer()
             
             Text(title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
+                .font(.bitter(.semibold, style: .title2))
+                .foregroundColor(Color("LinesColor"))
             
             Spacer()
             
