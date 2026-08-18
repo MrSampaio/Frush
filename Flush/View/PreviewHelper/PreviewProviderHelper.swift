@@ -2,15 +2,13 @@
 //  test.swift
 //  CH4-Books
 //
-//  Created by Julio Sampaio on 17/08/26.
-//
 
 import Foundation
 import SwiftUI
 import CoreData
 
 struct PreviewProviderHelper {
-    static var sampleBook: Books {
+    static let sharedContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Database")
         let description = NSPersistentStoreDescription()
         description.type = NSInMemoryStoreType
@@ -18,11 +16,15 @@ struct PreviewProviderHelper {
         
         container.loadPersistentStores { _, error in
             if let error = error {
-                fatalError("Erro ao carregar container de teste: \(error)")
+                print("Erro ao carregar container de teste: \(error)")
             }
         }
+        return container
+    }()
+    
+    static var sampleBook: Books {
+        let context = sharedContainer.viewContext
         
-        let context = container.viewContext
         let book = Books(context: context)
         book.bookTitle = "Clean Code"
         book.bookAuthor = "Robert C. Martin"
@@ -35,4 +37,15 @@ struct PreviewProviderHelper {
         
         return book
     }
+}
+
+#Preview {
+    ZStack {
+        HStack(spacing: 16) {
+            BookCardView(
+                book: PreviewProviderHelper.sampleBook
+            )
+        }
+    }
+    .environment(\.managedObjectContext, PreviewProviderHelper.sharedContainer.viewContext)
 }

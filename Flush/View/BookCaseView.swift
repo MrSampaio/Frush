@@ -21,9 +21,8 @@ struct BookCaseView: View {
                     VStack (alignment: .leading, spacing: 24) {
                         //título e botão "+"
                         HStack {
-                            Text("Meus livros")
-                                .font(.bitter(.medium, style: .largeTitle))
-                                .foregroundStyle(Color("TitleColor"))
+                            TitleComponent(title: "Meus Livros")
+                            
                             
     //                        Spacer()
     //
@@ -42,43 +41,7 @@ struct BookCaseView: View {
                         }
                         .padding(.top, 28)
                         
-                        
-                        //card de livros lidos por mês
-                        HStack {
-                            Image("BookPagesReadCard")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 98, height: 51)
-                            
-                            Spacer()
-                            
-                            VStack (alignment: .leading, spacing: 4){
-                                Text("128 páginas lidas")
-                                    .font(.bitter(.bold, style: .title3))
-                                    .foregroundStyle(Color.black)
-                                
-                                Text(" neste mês")
-                                    .font(.bitter(.regular, style: .footnote))
-                                    .foregroundStyle(Color.black)
-                            }
-                            
-                            Spacer()
-                            
-                        }
-                        .padding(24)
-                        .background(
-                            LinearGradient(
-                                colors: [
-                                    Color("PagesReadCard2"),
-                                    Color("PagesReadCard1")
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            in: RoundedRectangle(cornerRadius: 20)
-                        )
-                        
-                        
+                        CardTotalPages(totalPages: 100)
                         //lista de livros
                         //FAZER
                     }
@@ -96,7 +59,7 @@ struct BookCaseView: View {
         }
         
         .sheet(isPresented: $isShowingSheet) {
-            AddBookSheetView()
+            BookSheetView()
         }
     }
 }

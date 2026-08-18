@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import PhotosUI
 
-struct AddBookSheetView: View {
+struct BookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
@@ -86,6 +86,8 @@ struct AddBookSheetView: View {
                             //detalhes do livro
                             TextFieldSheets(text: $bookTitle, placeholder: "Adicionar título", label: "Título")
                             
+                            TextFieldSheets(text: $bookAuthor, placeholder: "Adicionar autor(a)", label: "Autor(a)")
+                            
                             MenuSheetPicker(
                                 title: "Categoria",
                                 placeholder: "Categoria do livro",
@@ -96,18 +98,16 @@ struct AddBookSheetView: View {
                             TextFieldSheets(text: $bookTotalPages, placeholder: "Páginas totais", label: "Páginas")
                                 .keyboardType(.numberPad)
                             
-                            TextFieldSheets(text: $bookAuthor, placeholder: "Adicionar autor(a)", label: "Autor(a)")
+//                            TextFieldSheets(text: $bookLastPage, placeholder: "Exemplo: 125", label: "Última página lida")
+//                                .keyboardType(.numberPad)
                             
-                            TextFieldSheets(text: $bookLastPage, placeholder: "Exemplo: 125", label: "Última página lida")
-                                .keyboardType(.numberPad)
-                            
-                            MenuSheetPicker(
-                                title: "Objetivo diário",
-                                placeholder: "Objetivo diário (minutos)",
-                                selectedValue: $selectedGoal,
-                                options: booksViewModel.goalOptions,
-                                formatOption: { "\($0) minutos" }
-                            )
+//                            MenuSheetPicker(
+//                                title: "Objetivo diário",
+//                                placeholder: "Objetivo diário (minutos)",
+//                                selectedValue: $selectedGoal,
+//                                options: booksViewModel.goalOptions,
+//                                formatOption: { "\($0) minutos" }
+//                            )
                             
                         }
                         .padding(.horizontal)
@@ -166,7 +166,7 @@ struct AddBookSheetView: View {
 }
 
 #Preview {
-    AddBookSheetView()
+    BookSheetView()
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }

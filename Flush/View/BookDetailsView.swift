@@ -16,6 +16,7 @@ struct BookDetailView: View {
     
     var book: Books? = nil
     
+    
     private var currentBook: Books? {
         book ?? viewModel.savedBooks.first
     }
@@ -48,10 +49,7 @@ struct BookDetailView: View {
                         
                         BookInstanceDetailView(book: currentBook)
                         
-                        ProgressBookView(
-                            currentPage: Int(currentBook.bookCurrentPage),
-                            totalPages: Int(currentBook.bookTotalPages)
-                        )
+                        CardTotalPages(totalPages: 100)
                         .padding(.horizontal)
                         
                         VStack(spacing: 16) {
@@ -68,14 +66,17 @@ struct BookDetailView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 24)
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                    )
+//                                    .background(
+//                                        RoundedRectangle(cornerRadius: 24)
+//                                    )
+//                                    .overlay(
+//                                        RoundedRectangle(cornerRadius: 24)
+//                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+//                                    )
                             }
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
                             
                             Button(action: {
                             }) {
@@ -84,12 +85,17 @@ struct BookDetailView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
-                                    .background(Color(.orange))
+                                   
+//
                                     .cornerRadius(24)
                             }
+                            //.background(Color(.action))
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
+                            
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 16)
+       
                         
                     }
                     .padding(.bottom, 40)
@@ -106,7 +112,7 @@ struct BookDetailView: View {
             notesViewModel.fetchNotes(for: currentBook)
         }) {
             if let currentBook {
-                SheetNotes(book: currentBook)
+                NoteSheetView(book: currentBook)
                     .environmentObject(notesViewModel)
             }
         }

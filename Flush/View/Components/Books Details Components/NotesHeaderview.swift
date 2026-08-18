@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+
 struct NotesHeaderview: View {
     @Binding var isPresentedAddNote: Bool
     var body: some View {
@@ -20,10 +21,18 @@ struct NotesHeaderview: View {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color(.orange)) 
+                    .padding()
+//                    .frame(width: 36, height: 36)
+                    //.background(Color(.orange))
                     .clipShape(Circle())
+                    
             }
+            .tint(Color(.orange))
+            .background(Color(.orange))
+            .clipShape(Circle())
+            //.padding()
+            .buttonStyle(.glass)
+            
         }
     }
 }
