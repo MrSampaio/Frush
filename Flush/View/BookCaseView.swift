@@ -23,6 +23,7 @@ struct BookCaseView: View {
                         HStack {
                             TitleComponent(title: "Meus Livros")
                             
+                            
     //                        Spacer()
     //
     //                        Button(action: {
