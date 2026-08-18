@@ -24,11 +24,15 @@ struct BookInstanceDetailView: View {
     
     var body: some View {
         VStack(spacing: 16) {
+            /*
             Text(book.bookTitle ?? "Título desconhecido")
                 .font(.custom("Georgia", size: 32))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+             */
+            
+            TitleComponent(title: book.bookTitle ?? "Título desconhecido")
             
             if let coverData = book.bookCover, let uiImage = UIImage(data: coverData) {
                 Image(uiImage: uiImage)
@@ -51,15 +55,15 @@ struct BookInstanceDetailView: View {
             }
             
             Text("Autor: \(book.bookAuthor ?? "Erro")")
-                .font(.system(size: 16))
+                .font(.body)
                 .foregroundColor(.white)
             
             Text("\(book.bookCategory ?? "erro")")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(.footnote, weight: .medium))
                 .foregroundColor(.black)
                 .padding(.horizontal, 40)
                 .padding(.vertical, 8)
-                .background(Color(.blue))
+                .background(Color("TagNoteColor"))
                 .opacity(0.8)
                 .clipShape(Capsule())
             
@@ -70,20 +74,20 @@ struct BookInstanceDetailView: View {
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Início da leitura")
-                            .font(.caption).foregroundColor(.gray)
+                            .font(.footnote).foregroundColor(Color("InfosDetailsView"))
                         Text("adicionar data de leitura")
                             .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                     VStack(spacing: 4) {
-                        Text("Páginas").font(.caption).foregroundColor(.gray)
+                        Text("Páginas").font(.footnote).foregroundColor(Color("InfosDetailsView"))
                         Text("\(book.bookTotalPages) páginas")
                             .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                     VStack(spacing: 4) {
-                        Text("Progresso").font(.caption)
-                            .foregroundColor(.gray)
+                        Text("Progresso").font(.footnote)
+                            .foregroundColor(Color("InfosDetailsView"))
                         Text("\(formattedReadingProgress)")
                             .font(.subheadline).bold().foregroundColor(.white)
                     }
@@ -91,7 +95,7 @@ struct BookInstanceDetailView: View {
                 }
                 
                 Divider()
-                    .background(Color.white.opacity(0.3))
+                    .background(Color("LinesColor").opacity(0.3))
             }
             .padding(.top, 8)
         }

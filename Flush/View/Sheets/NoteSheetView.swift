@@ -61,7 +61,6 @@ struct NoteSheetView: View {
                             //bookPickerSection
                             selectedImagePreview
                             mediaSection
-                            categorySection
                         }
                         .padding(.horizontal)
                     }
@@ -77,6 +76,7 @@ struct NoteSheetView: View {
                         onDiscard: { dismiss() }
                     )
                 }
+  
             }
             .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
                 Button("Tentar novamente", role: .cancel) { }
@@ -157,14 +157,14 @@ struct NoteSheetView: View {
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Livro: \(book.bookTitle ?? "Sem título")")
-                .font(.system(.title3, weight: .medium))
-                .foregroundColor(.addNote)
+                .font(.system(.title3))
+                .foregroundColor(Color("TextFieldPlaceholderColor"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
             
             Text("Conteúdo da nota")
-                .font(.system(.title3, weight: .medium))
-                .foregroundColor(.white)
+                .font(.system(.title, weight: .medium))
+                .foregroundColor(Color("Texts"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
             
@@ -181,7 +181,7 @@ struct NoteSheetView: View {
         
         return TextFieldSheets(
             text: $titleText,
-            placeholder: "Adicionar título",
+            placeholder: "Adicione o título",
             label: nil
         )
     }
@@ -190,7 +190,7 @@ struct NoteSheetView: View {
         ZStack(alignment: .topLeading) {
             if noteText.isEmpty {
                 Text("Escreva sua nota...")
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(Color("TextFieldPlaceholderColor"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                     .zIndex(1)
@@ -206,8 +206,8 @@ struct NoteSheetView: View {
                 .foregroundStyle(.white)
                 .font(.system(.body, weight: .regular))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color("LinesColor"), lineWidth: 0.5)
                 )
         }
     }
@@ -271,11 +271,6 @@ struct NoteSheetView: View {
     
     private var mediaSection: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("Mídias")
-                .font(.system(.title3, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.bottom, 6)
-                .padding(.leading, 4)
             
             if !selectedImages.isEmpty {
                 mediaThumbnailsRow
@@ -341,21 +336,17 @@ struct NoteSheetView: View {
             .padding()
             .cornerRadius(10)
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 100)
+                    .stroke(Color("LinesColor"), lineWidth: 0.5)
             )
         }
         .disabled(isLimitReached)
         .opacity(isLimitReached ? 0.5 : 1.0)
     }
     
-    private var categorySection: some View {
-        CategoryMenuView(
-            title: "Escolha a categoria",
-            categories: notesViewModel.noteCategories,
-            selectedCategory: $selectedCategory
-        )
-    }
+    
+
+     
 }
 
 #Preview {

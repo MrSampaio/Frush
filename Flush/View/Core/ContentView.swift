@@ -14,9 +14,9 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Estante", systemImage: "book"){
-                NoteSheetView(book: PreviewProviderHelper.sampleBook)
+                BookCaseView()
             }
-            Tab("Cronometro", systemImage: "timer"){
+            Tab("Cronômetro", systemImage: "timer"){
                 StopwatchView()
             }
             Tab(role: .search){
