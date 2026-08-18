@@ -6,49 +6,34 @@
 //
 
 import SwiftUI
-struct ProgressSectionView: View {
-    let currentPage: Int
-    let totalPages: Int
-    
-    var progressPercentage: Int {
-        guard totalPages > 0 else { return 0 }
-        let calc = (Double(currentPage) / Double(totalPages)) * 100.0
-        return min(max(Int(calc), 0), 100)
-    }
+
+struct ProgressBookView: View {
+    var currentPage: Int
+    var totalPages: Int
     
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text("\(currentPage) de \(totalPages) páginas")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text("\(progressPercentage)%")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.primary)
-            }
+        HStack(spacing: 20) {
+            Image(systemName: "book.fill")
+                .font(.system(size: 40))
+                .foregroundColor(Color(red: 0.3, green: 0.2, blue: 0.1))
             
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color(.systemGray5))
-                        .frame(height: 10)
-                    
-                    Capsule()
-                        .fill(Color.orange)
-                        .frame(
-                            width: geometry.size.width * (CGFloat(progressPercentage) / 100.0),
-                            height: 10
-                        )
-                }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("fazer Logica")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color(red: 0.3, green: 0.2, blue: 0.1))
+                
+                Text("nesta semana")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(red: 0.3, green: 0.2, blue: 0.1).opacity(0.8))
             }
-            .frame(height: 10)
+            Spacer()
         }
-        .padding(.horizontal, 32)
+        .padding(24)
+        .background(Color(.yellow))
+        .opacity(0.9)
+        .cornerRadius(20)
     }
 }
 #Preview {
-    ProgressSectionView(currentPage: 10, totalPages: 100)
+    ProgressBookView(currentPage: 10, totalPages: 100)
 }
