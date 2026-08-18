@@ -8,35 +8,52 @@ import SwiftUI
 import CoreData
 
 struct NotesSectionView: View {
-    let notes: [Notes]
+    var notes: [Notes]
     
     var body: some View {
-        VStack(spacing: 16) {
-            if notes.isEmpty {
-                VStack {
-                    Text("Nenhuma anotação para este livro.")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.secondary)
-                        .padding(.vertical, 20)
+        VStack(spacing: 0) {
+            NoteRowView(title: "Sociedade", subtitle: "Esse livro fala como a...", isLast: false)
+            NoteRowView(title: "Homem", subtitle: "O homem em sociedade...", isLast: false)
+            NoteRowView(title: "José Saramago", subtitle: "Esse autor é sensacional...", isLast: true)
+        }
+        .background(Color(red: 0.16, green: 0.14, blue: 0.10))
+        .cornerRadius(20)
+    }
+}
+
+struct NoteRowView: View {
+    var title: String
+    var subtitle: String
+    var isLast: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(width: 50, height: 50)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Text(subtitle)
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(24)
-                .padding(.horizontal, 24)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(notes.enumerated()), id: \.element.objectID) { index, note in
-                        NoteFieldView(note: note)
-                        if index < notes.count - 1 {
-                            Divider()
-                                .padding(.horizontal, 16)
-                        }
-                    }
-                }
-                .padding(.vertical, 8)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(24)
-                .padding(.horizontal, 24)
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding()
+            
+            if !isLast {
+                Divider()
+                    .background(Color.white.opacity(0.1))
+                    .padding(.leading, 82) 
             }
         }
     }

@@ -9,10 +9,9 @@ import SwiftUI
 import CoreData
 
 struct BookDetailView: View {
-    
     @ObservedObject var viewModel: BooksViewModel
     @StateObject private var notesViewModel = NotesViewModel()
-    //funcoes de teste apagar assim que conseguir enviar instancia do livro
+    
     var book: Books? = nil
     
     private var currentBook: Books? {
@@ -21,62 +20,70 @@ struct BookDetailView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground)
+            Color(.orange)
+                .opacity(0.1)
                 .ignoresSafeArea()
             
             if let currentBook = currentBook {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
+                        
                         HStack {
                             Spacer()
                             Button(action: {
                             }) {
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.primary)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.white)
                                     .frame(width: 44, height: 44)
-                                    .background(Color(.tertiarySystemFill))
+                                    .background(Color(.orange))
                                     .clipShape(Circle())
                             }
                         }
                         .padding(.horizontal)
-                        //mostra informacoes sobre capa e a instancia geral do livro selecionado
+                        .padding(.top, 16)
+                        
+
                         BookInstanceDetailView(book: currentBook)
                         
-                        ProgressSectionView(
+                        ProgressBookView(
                             currentPage: Int(currentBook.bookCurrentPage),
                             totalPages: Int(currentBook.bookTotalPages)
                         )
-                        //Notas
-                        VStack{
+                        .padding(.horizontal)
+                        
+                        VStack(spacing: 16) {
                             NotesHeaderview()
-                            //quadro de anotacoes
                             NotesSectionView(notes: notesViewModel.savedNotes)
                         }
-                        //botoes de adicao de leitura e livro
-
+                        .padding(.horizontal)
+                        
                         VStack(spacing: 16) {
                             Button(action: {
                             }) {
                                 Text("Adicionar leitura")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
                                     .background(
                                         RoundedRectangle(cornerRadius: 24)
-                                            .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                            .fill(Color(red: 0.22, green: 0.20, blue: 0.16))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
                                     )
                             }
                             
                             Button(action: {
                             }) {
-                                Text("Adicionar livro")
+                                Text("Iniciar leitura")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color(.systemBackground))
+                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
-                                    .background(Color.primary)
+                                    .background(Color(.orange))
                                     .cornerRadius(24)
                             }
                         }
@@ -96,7 +103,6 @@ struct BookDetailView: View {
         }
     }
 }
-
 #Preview {
     BookDetailView(viewModel: BooksViewModel())
 }
