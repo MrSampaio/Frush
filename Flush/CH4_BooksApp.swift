@@ -14,6 +14,7 @@ struct CH4_BooksApp: App {
     @StateObject var photoViewModel = PhotoLibraryViewModel()
     @StateObject private var booksViewModel = BooksViewModel()
     @StateObject private var notesViewModel = NotesViewModel()
+    @StateObject private var stopWatchViewModel = StopwatchViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -22,6 +23,7 @@ struct CH4_BooksApp: App {
                 .environmentObject(photoViewModel)
                 .environmentObject(booksViewModel)
                 .environmentObject(notesViewModel)
+                .environmentObject(stopWatchViewModel)
         }
     }
 }
