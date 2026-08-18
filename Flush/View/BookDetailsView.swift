@@ -11,6 +11,8 @@ import CoreData
 struct BookDetailView: View {
     @ObservedObject var viewModel: BooksViewModel
     @StateObject private var notesViewModel = NotesViewModel()
+    @State private var isPresentedAddNote: Bool = false
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var book: Books? = nil
     
@@ -43,7 +45,7 @@ struct BookDetailView: View {
                         .padding(.horizontal)
                         .padding(.top, 16)
                         
-
+                        
                         BookInstanceDetailView(book: currentBook)
                         
                         ProgressBookView(
@@ -53,7 +55,7 @@ struct BookDetailView: View {
                         .padding(.horizontal)
                         
                         VStack(spacing: 16) {
-                            NotesHeaderview()
+                            NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
                             NotesSectionView(notes: notesViewModel.savedNotes)
                         }
                         .padding(.horizontal)
@@ -68,7 +70,6 @@ struct BookDetailView: View {
                                     .padding(.vertical, 16)
                                     .background(
                                         RoundedRectangle(cornerRadius: 24)
-                                            .fill(Color(red: 0.22, green: 0.20, blue: 0.16))
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 24)
@@ -101,8 +102,19 @@ struct BookDetailView: View {
         .onAppear {
             notesViewModel.fetchNotes(for: currentBook)
         }
+        .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+            notesViewModel.fetchNotes(for: currentBook)
+        }) {
+            if let currentBook {
+                SheetNotes(book: currentBook)
+                    .environmentObject(notesViewModel)
+            }
+        }
     }
 }
 #Preview {
     BookDetailView(viewModel: BooksViewModel())
+        .environmentObject(PhotoLibraryViewModel())
+        .environmentObject(NotesViewModel())
+    
 }

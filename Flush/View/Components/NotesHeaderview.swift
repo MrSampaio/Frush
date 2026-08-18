@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct NotesHeaderview: View {
+    @Binding var isPresentedAddNote: Bool
     var body: some View {
         HStack {
             Text("Anotações")
@@ -14,15 +15,18 @@ struct NotesHeaderview: View {
                 .foregroundColor(.white)
             Spacer()
             Button(action: {
-                // fazer logica de nota
+                isPresentedAddNote = true
             }) {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 36, height: 36)
-                    .background(Color(red: 0.89, green: 0.49, blue: 0.12)) // Laranja
+                    .background(Color(.orange)) 
                     .clipShape(Circle())
             }
         }
     }
+}
+#Preview {
+    NotesHeaderview(isPresentedAddNote: .constant(false))
 }

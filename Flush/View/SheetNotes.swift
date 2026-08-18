@@ -111,7 +111,8 @@ struct SheetNotes: View {
                 noteDescription: noteText,
                 noteCategory: selectedCategory,
                 notePhotos: selectedImages.map(\.image),
-                to: selectedBook
+                //a antiga variavel nao estava permitindo adicionar uma nota 
+                to: book
             )
             
             dismiss()

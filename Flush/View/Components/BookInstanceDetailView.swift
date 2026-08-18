@@ -9,9 +9,21 @@ import SwiftUI
 struct BookInstanceDetailView: View {
     var book: Books
     
+    var readingProgress: Double {
+        guard book.bookTotalPages > 0 else { return 0.0 }
+            let current = Double(book.bookCurrentPage)
+            let total = Double(book.bookTotalPages)
+            return min(max(current / total, 0.0), 1.0)
+        }
+        
+        var formattedReadingProgress: String {
+            let percentage = readingProgress * 100
+            return String(format: "%.0f%%", percentage)
+        }
+    
+    
     var body: some View {
         VStack(spacing: 16) {
-            // Título
             Text(book.bookTitle ?? "Título desconhecido")
                 .font(.custom("Georgia", size: 32))
                 .foregroundColor(.white)
@@ -42,12 +54,13 @@ struct BookInstanceDetailView: View {
                 .font(.system(size: 16))
                 .foregroundColor(.white)
             
-            Text("Ficção")
+            Text("\(book.bookCategory ?? "erro")")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.black)
                 .padding(.horizontal, 40)
                 .padding(.vertical, 8)
-                .background(Color(red: 0.68, green: 0.85, blue: 0.90)) // Azul claro
+                .background(Color(.blue))
+                .opacity(0.8)
                 .clipShape(Capsule())
             
             VStack(spacing: 16) {
@@ -56,23 +69,29 @@ struct BookInstanceDetailView: View {
                 HStack {
                     Spacer()
                     VStack(spacing: 4) {
-                        Text("Início da leitura").font(.caption).foregroundColor(.gray)
-                        Text("12/08/2026").font(.subheadline).bold().foregroundColor(.white)
+                        Text("Início da leitura")
+                            .font(.caption).foregroundColor(.gray)
+                        Text("adiconar data de leitura")
+                            .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Páginas").font(.caption).foregroundColor(.gray)
-                        Text("362 páginas").font(.subheadline).bold().foregroundColor(.white)
+                        Text("\(book.bookTotalPages)")
+                            .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                     VStack(spacing: 4) {
-                        Text("Progresso").font(.caption).foregroundColor(.gray)
-                        Text("60%").font(.subheadline).bold().foregroundColor(.white)
+                        Text("Progresso").font(.caption)
+                            .foregroundColor(.gray)
+                        Text("\(formattedReadingProgress)")
+                            .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                 }
                 
-                Divider().background(Color.white.opacity(0.3))
+                Divider()
+                    .background(Color.white.opacity(0.3))
             }
             .padding(.top, 8)
         }
