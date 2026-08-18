@@ -96,14 +96,10 @@ struct AddBookSheetView: View {
                             TextFieldSheets(text: $bookTotalPages, placeholder: "Páginas totais", label: "Páginas")
                                 .keyboardType(.numberPad)
                             
-                            /*
                             TextFieldSheets(text: $bookAuthor, placeholder: "Adicionar autor(a)", label: "Autor(a)")
-                             */
                             
-                            /*
-                            TextFieldSheets(text: $bookLastPage, placeholder: "Última página lida", label: "")
+                            TextFieldSheets(text: $bookLastPage, placeholder: "Exemplo: 125", label: "Última página lida")
                                 .keyboardType(.numberPad)
-                             */
                             
                             MenuSheetPicker(
                                 title: "Objetivo diário",
