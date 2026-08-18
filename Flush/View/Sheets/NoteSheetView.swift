@@ -15,7 +15,7 @@ struct SelectableImage: Identifiable {
     let image: UIImage
 }
  
-struct SheetNotes: View {
+struct NoteSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
@@ -359,58 +359,8 @@ struct SheetNotes: View {
 }
 
 #Preview {
-    SheetNotes(book: PreviewProviderHelper.sampleBook)
+    NoteSheetView(book: PreviewProviderHelper.sampleBook)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
 }
-
-/* CATEGORIAS ANTIGAS
-VStack(alignment: .leading, spacing: 8) {
-    Text("Escolher categoria")
-        .padding(.leading, 4)
-        .font(.system(.title3, weight: .medium))
-        .foregroundColor(.white)
-        .padding(.bottom, 6)
-    
-    VStack(spacing: 0) {
-        CategoryRow(title: "Categoria 1", hasDivider: true)
-        CategoryRow(title: "Categoria 2", hasDivider: true)
-        CategoryRow(title: "Categoria 3", hasDivider: false)
-    }
-    .cornerRadius(10)
-    .overlay(
-        RoundedRectangle(cornerRadius: 10)
-            .stroke(Color.white, lineWidth: 1)
-    )
-    
-}*/
-
-/* BOTAO DE ADICIONAR NOTA ANTIGO
-Button(action: {
-    //codigo que seleciona o primeiro livro do banco
-    guard let book = booksViewModel.savedBooks.count > 0
-                ? booksViewModel.savedBooks[1]
-                : booksViewModel.savedBooks.first else {
-            print("Nenhum livro disponível no banco!")
-            return
-        }
-            notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: "Teste",
-                notePhoto: "foto_teste.jpg",
-                to: book
-            )
-}) {
-    Text("Adicionar nota")
-        .font(.system(.title3, weight: .medium))
-        .foregroundColor(.white)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(Color("ActionColor"))
-        .cornerRadius(30)
-}
-.padding(.horizontal)
-.padding(.bottom, 10)
- */

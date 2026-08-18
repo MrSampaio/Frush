@@ -40,7 +40,7 @@ struct BookInstanceDetailView: View {
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(red: 0.22, green: 0.20, blue: 0.16))
+                        .fill(Color(.systemGray2))
                     
                     Image("defaultBook")
                         .font(.system(size: 40))
@@ -71,13 +71,13 @@ struct BookInstanceDetailView: View {
                     VStack(spacing: 4) {
                         Text("Início da leitura")
                             .font(.caption).foregroundColor(.gray)
-                        Text("adiconar data de leitura")
+                        Text("adicionar data de leitura")
                             .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Páginas").font(.caption).foregroundColor(.gray)
-                        Text("\(book.bookTotalPages)")
+                        Text("\(book.bookTotalPages) páginas")
                             .font(.subheadline).bold().foregroundColor(.white)
                     }
                     Spacer()
