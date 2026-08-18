@@ -65,7 +65,7 @@ struct NoteSheetView: View {
                         .padding(.horizontal)
                     }
                 }
-                
+                .padding(.top, 18)
                 .toolbar {
                     SheetHeaderView(
                         title: "Adicionar nota",
@@ -78,6 +78,9 @@ struct NoteSheetView: View {
                 }
   
             }
+            .navigationBarTitleDisplayMode(.inline)
+            
+            
             .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
                 Button("Tentar novamente", role: .cancel) { }
             } message: {
@@ -168,9 +171,7 @@ struct NoteSheetView: View {
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
             
-            TipsComponent(
-                content: "Adicione um título e um conteúdo para a sua nota."
-            )
+            
         }
     }
     

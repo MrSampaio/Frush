@@ -121,6 +121,7 @@ struct BookSheetView: View {
                             
                         }
                         .padding(.horizontal)
+                        .padding(.top, 18)
                     }
               
                     .toolbar {
@@ -171,6 +172,7 @@ struct BookSheetView: View {
                     }
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
