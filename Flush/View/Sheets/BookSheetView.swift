@@ -140,6 +140,7 @@ struct BookSheetView: View {
                                         bookGoal: goalInt
                                     )
                                     
+                                    booksViewModel.fetchBooks()
                                     dismiss()
                                     
                                 } catch let error as LocalizedError{

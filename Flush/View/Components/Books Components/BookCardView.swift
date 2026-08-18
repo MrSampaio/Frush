@@ -16,24 +16,27 @@ struct BookCardView: View {
 //    let coverImage: String
     
     private var coverUIImage: UIImage? {
-        if let imageData = book.value(forKey: "bookImage") as? Data,
+        if book.entity.attributesByName.keys.contains("bookImage"),
+           let imageData = book.value(forKey: "bookImage") as? Data,
            let uiImage = UIImage(data: imageData) {
             return uiImage
         }
         
-        if let imageName = book.value(forKey: "bookCover") as? String,
-           !imageName.isEmpty {
-            return UIImage(named: imageName)
+        if book.entity.attributesByName.keys.contains("bookCover"),
+           let imageName = book.value(forKey: "bookCover") as? String,
+           !imageName.isEmpty,
+           let uiImage = UIImage(named: imageName) {
+            return uiImage
         }
         
         return nil
     }
         
-//    private var percentageRead: Int {
-//        guard book.bookTotalPages > 0 else { return 0 }
-//        let percentage = (Double(book.bookCurrentPage) / Double(book.bookTotalPages)) * 100.0
-//        return min(max(Int(percentage), 0), 100)
-//    }
+    private var percentageRead: Int {
+        guard book.bookTotalPages > 0 else { return 0 }
+        let percentage = (Double(book.bookCurrentPage) / Double(book.bookTotalPages)) * 100.0
+        return min(max(Int(percentage), 0), 100)
+    }
     
     
     var body: some View {
@@ -84,7 +87,7 @@ struct BookCardView: View {
                     
                     Spacer()
                     
-                    Text("\(book.bookCurrentPage)%")
+                    Text("\(percentageRead)%")
                         .font(.system(.headline, weight: .bold))
                         .foregroundColor(.addNote)
                 }

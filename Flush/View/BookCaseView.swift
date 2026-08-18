@@ -8,7 +8,15 @@
 import SwiftUI
 
 struct BookCaseView: View {
+    @ObservedObject var booksViewModel: BooksViewModel
     @State private var isShowingSheet = false
+    
+    var books: [Books] {
+        booksViewModel.savedBooks
+    }
+    
+    
+    //@State var books = self.booksViewModel.savedBooks
     
     var body: some View {
         
@@ -42,6 +50,12 @@ struct BookCaseView: View {
                         .padding(.top, 28)
                         
                         CardTotalPages(totalPages: 100)
+                        
+                        ForEach(books) { book in
+                            BookCardView(book: book)
+                        }
+                        
+                                                
                         //lista de livros
                         //FAZER
                     }
@@ -60,12 +74,13 @@ struct BookCaseView: View {
         
         .sheet(isPresented: $isShowingSheet) {
             BookSheetView()
+                .environmentObject(booksViewModel)
         }
     }
 }
 
 #Preview {
-    BookCaseView()
+    BookCaseView(booksViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }
