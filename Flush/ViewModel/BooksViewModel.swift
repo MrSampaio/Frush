@@ -14,10 +14,10 @@ class BooksViewModel: ObservableObject {
     
     enum BookError: LocalizedError {
         case invalidTitle
-        //case invalidAuthor
+        case invalidAuthor
         case invalidTotalPages
         case invalidCurrentPage
-        case invalidGoal
+        //case invalidGoal
         case invalidPageLogic
         case savingError
         
@@ -25,14 +25,14 @@ class BooksViewModel: ObservableObject {
             switch self {
             case .invalidTitle:
                 return "Insira um título válido."
-//            case .invalidAuthor:
-//                return "Insira um autor válido."
+            case .invalidAuthor:
+                return "Insira um autor válido."
             case .invalidTotalPages:
                 return "Número de páginas inválido."
             case .invalidCurrentPage:
                 return "Página atual inválida."
-            case .invalidGoal:
-                return "Escolha uma meta de leitura."
+//            case .invalidGoal:
+//                return "Escolha uma meta de leitura."
             case .invalidPageLogic:
                 return "Página atual deve ser menor que o total de páginas."
             case .savingError:
@@ -77,30 +77,35 @@ class BooksViewModel: ObservableObject {
     func addBook(bookTitle: String, bookAuthor: String, bookCover: Data, bookCategory: String, bookTotalPages: Int16, bookCurrentPage: Int16, bookGoal: Int16) throws{
         
         let cleanTitle = bookTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanAuthor = bookAuthor.trimmingCharacters(in: .whitespacesAndNewlines)
                 
         if cleanTitle.isEmpty {
             throw BookError.invalidTitle
+        }
+        
+        if cleanAuthor.isEmpty {
+            throw BookError.invalidAuthor
         }
         
         if bookTotalPages <= 0 {
             throw BookError.invalidTotalPages
         }
         
-        if bookCurrentPage < 0{
-            throw BookError.invalidCurrentPage
-        }
+//        if bookCurrentPage < 0{
+//            throw BookError.invalidCurrentPage
+//        }
+//        
+//        if bookCurrentPage > bookTotalPages {
+//            throw BookError.invalidPageLogic
+//        }
         
-        if bookCurrentPage > bookTotalPages {
-            throw BookError.invalidPageLogic
-        }
-        
-        if bookGoal <= 0{
-            throw BookError.invalidGoal
-        }
+//        if bookGoal <= 0{
+//            throw BookError.invalidGoal
+//        }
         
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = cleanTitle
-        newBook.bookAuthor = bookAuthor.isEmpty ? "Desconhecido" : bookAuthor
+        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
         newBook.bookCover = bookCover
         newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
         newBook.bookTotalPages = bookTotalPages
@@ -156,9 +161,9 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidPageLogic
         }
         
-        if finalGoal <= 0 {
-            throw BookError.invalidGoal
-        }
+//        if finalGoal <= 0 {
+//            throw BookError.invalidGoal
+//        }
         
         // só aplica as mudanças se passou em todas as validações
         book.bookTitle = finalTitle
