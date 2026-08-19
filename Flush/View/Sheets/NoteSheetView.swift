@@ -1,20 +1,14 @@
-
 //
 //  SheetNotes.swift
 //  CH4-Books
 //
 //  Created by Lucas on 14/08/26.
 //
- 
+
 import SwiftUI
 import PhotosUI
 import CoreData
 
-struct SelectableImage: Identifiable {
-    let id = UUID()
-    let image: UIImage
-}
- 
 struct NoteSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
@@ -33,19 +27,13 @@ struct NoteSheetView: View {
     @State private var selectedBook: Books? = nil
     
     @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var selectedImages: [SelectableImage] = []
-    
     @State private var showCameraPicker = false
     @State private var capturedImage: UIImage? = nil
     @State private var showMediaSourceMenu = false
-    
     @State private var showPhotoPicker = false
     
-    //descomentar e adicionar em to: book
-    // essa variável é pra quando a sheet for aberta direto da view de um livro
     var book: Books
    
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -58,7 +46,6 @@ struct NoteSheetView: View {
                             noteContentHeader
                             titleField
                             noteTextEditor
-                            //bookPickerSection
                             selectedImagePreview
                             mediaSection
                             categorySection
@@ -84,7 +71,8 @@ struct NoteSheetView: View {
                 Text(errorMessage)
             }
             .onChange(of: selectedItems) { newItems in
-                loadPickedItems(newItems)
+                photoLibraryViewModel.loadPickedItems(newItems)
+                selectedItems.removeAll()
             }
             .fullScreenCover(isPresented: $showCameraPicker) {
                 CameraPicker(selectedImage: $capturedImage)
@@ -93,16 +81,15 @@ struct NoteSheetView: View {
             .photosPicker(
                 isPresented: $showPhotoPicker,
                 selection: $selectedItems,
-                maxSelectionCount: 3 - selectedImages.count,
+                maxSelectionCount: 3 - photoLibraryViewModel.noteImages.count,
                 matching: .images
             )
             .onChange(of: capturedImage) { newImage in
-                appendCapturedImage(newImage)
+                photoLibraryViewModel.appendCapturedImage(newImage)
+                capturedImage = nil
             }
         }
     }
-    
-    // MARK: - Ações
     
     private func handleConfirm() {
         do {
@@ -110,11 +97,11 @@ struct NoteSheetView: View {
                 noteTitle: titleText,
                 noteDescription: noteText,
                 noteCategory: selectedCategory,
-                notePhotos: selectedImages.map(\.image),
-                //a antiga variavel nao estava permitindo adicionar uma nota 
+                notePhotos: photoLibraryViewModel.noteImages.map(\.image),
                 to: book
             )
             
+            photoLibraryViewModel.resetNoteImages()
             dismiss()
             
         } catch let error as LocalizedError {
@@ -125,34 +112,6 @@ struct NoteSheetView: View {
             showErrorAlert = true
         }
     }
-    
-    private func loadPickedItems(_ newItems: [PhotosPickerItem]) {
-        Task {
-            for item in newItems {
-                guard selectedImages.count < 3 else { break }
-                
-                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
-                guard let uiImage = UIImage(data: data) else { continue }
-                
-                selectedImages.append(SelectableImage(image: uiImage))
-            }
-            selectedItems.removeAll()
-        }
-    }
-    
-    private func appendCapturedImage(_ newImage: UIImage?) {
-        guard let newImage, selectedImages.count < 3 else { return }
-        selectedImages.append(SelectableImage(image: newImage))
-        capturedImage = nil
-    }
-    
-    private func removeImage(id: UUID) {
-        withAnimation {
-            selectedImages.removeAll { $0.id == id }
-        }
-    }
-    
-    // MARK: - Seções (extraídas para aliviar o type-checker)
     
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -175,11 +134,7 @@ struct NoteSheetView: View {
     }
     
     private var titleField: some View {
-//        let placeholder = Text("Adicionar título")
-//            .font(.system(.body, weight: .regular))
-//            .foregroundColor(.white.opacity(0.7))
-        
-        return TextFieldSheets(
+        TextFieldSheets(
             text: $titleText,
             placeholder: "Adicionar título",
             label: nil
@@ -212,50 +167,6 @@ struct NoteSheetView: View {
         }
     }
     
-    // depois muda pra sheet receber o livro como parâmetro
-//    private var bookPickerSection: some View {
-//        // valores pré-calculados fora da view builder: isso é o que mais ajuda
-//        // o type-checker, já que ele não precisa inferir ternário + optional junto
-//        // com os modificadores de uma vez só.
-//        let bookTitle: String = selectedBook?.bookTitle ?? "Selecione um livro"
-//        let bookTextColor: Color = selectedBook == nil ? .white.opacity(0.7) : .white
-//        
-//        return VStack(alignment: .leading, spacing: 0) {
-//            Text("Livro relacionado")
-//                .font(.system(.title3, weight: .medium))
-//                .foregroundColor(.white)
-//                .padding(.bottom, 6)
-//                .padding(.leading, 4)
-//            
-//            Menu {
-//                ForEach(booksViewModel.savedBooks, id: \.self) { book in
-//                    Button(book.bookTitle ?? "Sem título") {
-//                        selectedBook = book
-//                    }
-//                }
-//            } label: {
-//                HStack {
-//                    Text(bookTitle)
-//                        .font(.system(.body, weight: .regular))
-//                        .foregroundColor(bookTextColor)
-//                    
-//                    Spacer()
-//                    
-//                    Image(systemName: "chevron.up.chevron.down")
-//                        .font(.footnote.weight(.semibold))
-//                        .foregroundColor(.white)
-//                }
-//                .padding()
-//                .contentShape(Rectangle())
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 10)
-//                        .stroke(Color.white, lineWidth: 1)
-//                )
-//            }
-//            .buttonStyle(.plain)
-//        }
-//    }
-    
     @ViewBuilder
     private var selectedImagePreview: some View {
         if let selectedImage = photoLibraryViewModel.selectedImage {
@@ -277,7 +188,7 @@ struct NoteSheetView: View {
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
             
-            if !selectedImages.isEmpty {
+            if !photoLibraryViewModel.noteImages.isEmpty {
                 mediaThumbnailsRow
             }
             
@@ -292,9 +203,9 @@ struct NoteSheetView: View {
     private var mediaThumbnailsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(selectedImages) { item in
+                ForEach(photoLibraryViewModel.noteImages) { item in
                     MediaThumbnailView(image: item.image) {
-                        removeImage(id: item.id)
+                        photoLibraryViewModel.removeNoteImage(id: item.id)
                     }
                 }
             }
@@ -302,12 +213,11 @@ struct NoteSheetView: View {
     }
     
     private var mediaPickerMenu: some View {
-        // isolar o texto condicional (ternário + interpolação) numa constante
-        // evita que o type-checker precise resolver tudo dentro do Text()
-        let isLimitReached = selectedImages.count >= 3
-        let mediaButtonText: String = selectedImages.isEmpty
+        let imagesCount = photoLibraryViewModel.noteImages.count
+        let isLimitReached = imagesCount >= 3
+        let mediaButtonText: String = imagesCount == 0
             ? "Adicionar fotos"
-            : "Adicionar mais fotos (\(selectedImages.count)/3)"
+            : "Adicionar mais fotos (\(imagesCount)/3)"
         
         return Menu {
             Button {

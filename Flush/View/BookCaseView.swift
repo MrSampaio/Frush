@@ -15,6 +15,11 @@ struct BookCaseView: View {
         booksViewModel.savedBooks
     }
     
+    let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    
     
     //@State var books = self.booksViewModel.savedBooks
     
@@ -49,17 +54,15 @@ struct BookCaseView: View {
                         }
                         .padding(.top, 28)
                         
-                        CardTotalPages(totalPages: 100)
+                        CardTotalPages(totalPages: booksViewModel.countReadedPages())
                         
-                        ForEach(books) { book in
-                            BookCardView(book: book)
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(books) { book in
+                                BookCardView(book: book)
+                            }
                         }
-                        
-                                                
-                        //lista de livros
-                        //FAZER
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                 }
                 
                 //.navigationTitle("Meus livros")

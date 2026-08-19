@@ -12,6 +12,8 @@ import Combine
 class BooksViewModel: ObservableObject {
     @Published var savedBooks: [Books] = []
     
+    
+    
     enum BookError: LocalizedError {
         case invalidTitle
         case invalidAuthor
@@ -50,11 +52,21 @@ class BooksViewModel: ObservableObject {
         self.fetchBooks()
     }
     
+    func countReadedPages() -> Int16{
+        var totalReadedPages: Int16 = 0
+        for book in self.savedBooks{
+            totalReadedPages += book.bookCurrentPage
+        }
+        
+        return totalReadedPages
+    }
+    
     // funcao que carrega todos os livros do banco e atrbui na lista books
     func fetchBooks(){
         let request = NSFetchRequest<Books>(entityName: "Books")
         do{
             try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
+            countReadedPages()
 
         } catch let error{
             fatalError("Error when trying to fetch books data: \(error)")

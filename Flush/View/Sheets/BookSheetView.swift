@@ -126,7 +126,7 @@ struct BookSheetView: View {
                                     
                                     let lastPageInt = Int16(bookLastPage) ?? 0
                                     
-                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 1) ?? Data()
+                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.7) ?? Data()
                                     
                                     let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
                                     
