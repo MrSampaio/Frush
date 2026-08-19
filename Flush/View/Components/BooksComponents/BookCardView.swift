@@ -87,7 +87,7 @@ struct BookCardView: View {
         .cornerRadius(12)
         
         .sheet(isPresented: $isEditingSheetPresented) {
-                    BookSheetView(book: book)
+                    BookSheetView(bookToEdit: book)
                 }
     }
 }

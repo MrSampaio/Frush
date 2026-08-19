@@ -33,6 +33,7 @@ struct BookDetailView: View {
                         VStack(spacing: 24) {
                             
                             BookInstanceDetailView(book: currentBook)
+                                .environmentObject(PhotoLibraryViewModel())
                             
                             CardTotalPages(totalPages: 100)
                             .padding(.horizontal)
@@ -102,7 +103,7 @@ struct BookDetailView: View {
                 }
             }
             .sheet(isPresented: $isPresentedEditBook){
-                BookSheetView(book: book)
+                BookSheetView(bookToEdit: book)
                     .environmentObject(PhotoLibraryViewModel())
                     .environmentObject(BooksViewModel())
             }

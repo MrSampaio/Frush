@@ -8,6 +8,7 @@ import SwiftUI
 
 struct BookInstanceDetailView: View {
     var book: Books
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var readingProgress: Double {
         guard book.bookTotalPages > 0 else { return 0.0 }
@@ -34,14 +35,14 @@ struct BookInstanceDetailView: View {
             
             TitleComponent(title: book.bookTitle ?? "Título desconhecido")
             
-            if let coverData = book.bookCover, let uiImage = UIImage(data: coverData) {
-                Image(uiImage: uiImage)
+            if let coverData = photoLibraryViewModel.getCoverImage(for: book){
+                Image(uiImage: coverData)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 200, height: 300)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .shadow(radius: 5)
-            } else {
+            } else{
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(.systemGray2))
@@ -53,6 +54,26 @@ struct BookInstanceDetailView: View {
                 .frame(width: 200, height: 300)
                 .shadow(radius: 5)
             }
+            
+//            if let coverData = book.bookCover, let uiImage = UIImage(data: coverData) {
+//                Image(uiImage: uiImage)
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: 200, height: 300)
+//                    .clipShape(RoundedRectangle(cornerRadius: 12))
+//                    .shadow(radius: 5)
+//            } else {
+//                ZStack {
+//                    RoundedRectangle(cornerRadius: 12)
+//                        .fill(Color(.systemGray2))
+//                    
+//                    Image("defaultBook")
+//                        .font(.system(size: 40))
+//                        .foregroundColor(.gray)
+//                }
+//                .frame(width: 200, height: 300)
+//                .shadow(radius: 5)
+//            }
             
             Text("Autor: \(book.bookAuthor ?? "Erro")")
                 .font(.body)
