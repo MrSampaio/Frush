@@ -46,6 +46,7 @@ struct BookSearchView: View {
                 }
                 
                 if !filteredNotes.isEmpty {
+            
                     Section("Notas") {
                         ForEach(filteredNotes, id: \.self) { note in
                             NoteCellView(note: note)

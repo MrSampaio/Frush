@@ -16,7 +16,6 @@ struct BookDetailView: View {
     
     var book: Books? = nil
     
-    
     private var currentBook: Books? {
         book ?? viewModel.savedBooks.first
     }
