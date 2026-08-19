@@ -14,7 +14,15 @@ struct BookSheetView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     
-    @State var book: Books?
+    @State var bookToEdit: Books? 
+    
+    private var toolbarTitle: String{
+        if bookToEdit != nil {
+            return "Editar livro"
+        } else {
+            return "Adicionar livro"
+        }
+    }
     
     @State private var showingDiscardAlert: Bool = false
     @State private var showErrorAlert = false
@@ -29,14 +37,14 @@ struct BookSheetView: View {
     
     @ViewBuilder
     private var SelectCategoryField: some View {
-        if let currentBook = book {
+        if let currentBook = bookToEdit {
             MenuSheetPicker(
                     title: "Categoria",
                     placeholder: "Adicione a categoria",
                     selectedValue: Binding(
-                        get: { book != nil ? (book?.bookCategory ?? "") : selectedCategory },
+                        get: { bookToEdit != nil ? (bookToEdit?.bookCategory ?? "") : selectedCategory },
                         set: { newValue in
-                            if book != nil { book?.bookCategory = newValue }
+                            if bookToEdit != nil { bookToEdit?.bookCategory = newValue }
                             else { selectedCategory = newValue }
                         }
                     ),
@@ -48,11 +56,11 @@ struct BookSheetView: View {
     
     @ViewBuilder
     private var TitleField: some View {
-        if let currentBook = book {
+        if let currentBook = bookToEdit {
             TextFieldSheets(
                 text: Binding(
                     get: { currentBook.bookTitle ?? "" },
-                    set: { book?.bookTitle = $0 }
+                    set: { bookToEdit?.bookTitle = $0 }
                 ),
                 placeholder: "Edite o título",
                 label: "Título"
@@ -68,11 +76,11 @@ struct BookSheetView: View {
     
     @ViewBuilder
     private var AuthorField: some View {
-        if let currentBook = book {
+        if let currentBook = bookToEdit {
             TextFieldSheets(
                 text: Binding(
                     get: { currentBook.bookAuthor ?? "" },
-                    set: { book?.bookAuthor = $0 }
+                    set: { bookToEdit?.bookAuthor = $0 }
                 ),
                 placeholder: "Edite o título",
                 label: "Título"
@@ -88,11 +96,11 @@ struct BookSheetView: View {
     
     @ViewBuilder
     private var TotalPagesField: some View {
-        if let currentBook = book {
+        if let currentBook = bookToEdit {
             TextFieldSheets(
                 text: Binding(
                     get: { String(currentBook.bookTotalPages) },
-                    set: { if let value = Int16($0) { book?.bookTotalPages = value } }
+                    set: { if let value = Int16($0) { bookToEdit?.bookTotalPages = value } }
                 ),
                 placeholder: "Edite a quantidade de páginas",
                 label: "Páginas"
@@ -206,30 +214,28 @@ struct BookSheetView: View {
               
                     .toolbar {
                         SheetHeaderView(
-                            title: "Cadastrar Livro",
+                            title: toolbarTitle,
                             actionIcon: "checkmark",
                             showingDiscardAlert: $showingDiscardAlert,
                             onCancel: {},
                             onConfirm: {
                                 
                                 do{
-                                    let pagesInt = Int16(bookTotalPages) ?? 0
+
+//                                    
+//                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.7) ?? Data()
                                     
-                                    let lastPageInt = Int16(bookLastPage) ?? 0
+//                                    let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
                                     
-                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.7) ?? Data()
-                                    
-                                    let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
-                                    
-                                    try booksViewModel.addBook(
-                                        bookTitle: bookTitle,
-                                        bookAuthor: bookAuthor,
-                                        bookCover: coverData,
-                                        bookCategory: selectedCategory,
-                                        bookTotalPages: pagesInt,
-                                        bookCurrentPage: lastPageInt,
-                                        bookGoal: goalInt
-                                    )
+//                                    try booksViewModel.addBook(
+//                                        bookTitle: bookTitle,
+//                                        bookAuthor: bookAuthor,
+//                                        bookCover: photoLibraryViewModel.selectedImage,
+//                                        bookCategory: selectedCategory,
+//                                        bookTotalPages: bookTotalPages,
+//                                        bookCurrentPage: lastPageInt,
+//                                        bookGoal: goalInt
+//                                    )
                                     
                                     booksViewModel.fetchBooks()
                                     dismiss()
@@ -252,7 +258,7 @@ struct BookSheetView: View {
                         Text(errorMessage)
                     }
                     .onAppear {
-                        if let book = book {
+                        if let book = bookToEdit {
                             bookTitle = book.bookTitle ?? ""
                             bookAuthor = book.bookAuthor ?? ""
                             selectedCategory = book.bookCategory ?? ""
@@ -270,7 +276,7 @@ struct BookSheetView: View {
 }
 
 #Preview {
-    BookSheetView(book: nil)
+    BookSheetView(bookToEdit: nil)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }
