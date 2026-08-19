@@ -8,7 +8,20 @@
 import SwiftUI
 
 struct BookCaseView: View {
+    @ObservedObject var booksViewModel: BooksViewModel
     @State private var isShowingSheet = false
+    
+    var books: [Books] {
+        booksViewModel.savedBooks
+    }
+    
+    let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    
+    
+    //@State var books = self.booksViewModel.savedBooks
     
     var body: some View {
         
@@ -41,11 +54,15 @@ struct BookCaseView: View {
                         }
                         .padding(.top, 28)
                         
-                        CardTotalPages(totalPages: 100)
-                        //lista de livros
-                        //FAZER
+                        CardTotalPages(totalPages: booksViewModel.countReadedPages())
+                        
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(books) { book in
+                                BookCardView(book: book)
+                            }
+                        }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                 }
                 
                 //.navigationTitle("Meus livros")
@@ -60,12 +77,13 @@ struct BookCaseView: View {
         
         .sheet(isPresented: $isShowingSheet) {
             BookSheetView()
+                .environmentObject(booksViewModel)
         }
     }
 }
 
 #Preview {
-    BookCaseView()
+    BookCaseView(booksViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }
