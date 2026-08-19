@@ -49,7 +49,7 @@ struct NotesSectionView: View {
 struct NoteRowView: View {
     var note: Notes
     
-    private var thumbnailImage: UIImage? {
+    private var photo: UIImage? {
         if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
             return UIImage(data: firstData)
         }
@@ -59,17 +59,17 @@ struct NoteRowView: View {
     var body: some View {
         HStack(spacing: 16) {
             Group {
-                if let image = thumbnailImage {
+                if let image = photo {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
                 } else {
                     Image("defaultBook")
-                        .font(.system(size: 20))
-                        .foregroundColor(.orange)
+                        .resizable()
+                        .scaledToFill()
                 }
             }
-            .frame(width: 50, height: 50)
+            .frame(width: 50, height: 70)
             .background(Color.gray.opacity(0.2))
             .cornerRadius(8)
             .clipped()
