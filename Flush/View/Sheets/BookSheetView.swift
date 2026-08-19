@@ -14,6 +14,8 @@ struct BookSheetView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     
+    @State var book: Books?
+    
     @State private var showingDiscardAlert: Bool = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
@@ -24,6 +26,88 @@ struct BookSheetView: View {
     @State private var bookTotalPages: String = ""
     @State private var bookLastPage: String = ""
     @State private var bookAuthor: String = ""
+    
+    @ViewBuilder
+    private var SelectCategoryField: some View {
+        if let currentBook = book {
+            MenuSheetPicker(
+                    title: "Categoria",
+                    placeholder: "Adicione a categoria",
+                    selectedValue: Binding(
+                        get: { book != nil ? (book?.bookCategory ?? "") : selectedCategory },
+                        set: { newValue in
+                            if book != nil { book?.bookCategory = newValue }
+                            else { selectedCategory = newValue }
+                        }
+                    ),
+                    options: booksViewModel.bookCategories
+                )
+        }
+    }
+    
+    
+    @ViewBuilder
+    private var TitleField: some View {
+        if let currentBook = book {
+            TextFieldSheets(
+                text: Binding(
+                    get: { currentBook.bookTitle ?? "" },
+                    set: { book?.bookTitle = $0 }
+                ),
+                placeholder: "Edite o título",
+                label: "Título"
+            )
+        } else {
+            TextFieldSheets(
+                text: $bookTitle,
+                placeholder: "Adicione o título",
+                label: "Título"
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var AuthorField: some View {
+        if let currentBook = book {
+            TextFieldSheets(
+                text: Binding(
+                    get: { currentBook.bookAuthor ?? "" },
+                    set: { book?.bookAuthor = $0 }
+                ),
+                placeholder: "Edite o título",
+                label: "Título"
+            )
+        } else {
+            TextFieldSheets(
+                text: $bookAuthor,
+                placeholder: "Adicione o título",
+                label: "Título"
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var TotalPagesField: some View {
+        if let currentBook = book {
+            TextFieldSheets(
+                text: Binding(
+                    get: { String(currentBook.bookTotalPages) },
+                    set: { if let value = Int16($0) { book?.bookTotalPages = value } }
+                ),
+                placeholder: "Edite a quantidade de páginas",
+                label: "Páginas"
+            )
+            .keyboardType(.numberPad)
+        } else {
+            TextFieldSheets(
+                text: $bookTotalPages,
+                placeholder: "Adicione a quantidade de páginas",
+                label: "Páginas"
+            )
+            .keyboardType(.numberPad)
+        }
+    }
+
     
     var body: some View {
         NavigationStack {
@@ -70,9 +154,6 @@ struct BookSheetView: View {
                                             )
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 6)
-                                            
-                            
-            
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -94,17 +175,17 @@ struct BookSheetView: View {
                             }
                             
                             //detalhes do livro
+
                             TextFieldSheets(text: $bookTitle, placeholder: "Adicione o título", label: "Título")
-                            
                             TextFieldSheets(text: $bookAuthor, placeholder: "Adicione o autor(a)", label: "Autor(a)")
-                            
+
                             MenuSheetPicker(
                                 title: "Categoria",
                                 placeholder: "Adicione a categoria",
                                 selectedValue: $selectedCategory,
                                 options: booksViewModel.bookCategories
                             )
-                        
+
                             TextFieldSheets(text: $bookTotalPages, placeholder: "Adicione a quantidade de páginas", label: "Páginas")
                                 .keyboardType(.numberPad)
                             
@@ -170,6 +251,18 @@ struct BookSheetView: View {
                     } message: {
                         Text(errorMessage)
                     }
+                    .onAppear {
+                        if let book = book {
+                            bookTitle = book.bookTitle ?? ""
+                            bookAuthor = book.bookAuthor ?? ""
+                            selectedCategory = book.bookCategory ?? ""
+                            bookTotalPages = book.bookTotalPages > 0 ? String(book.bookTotalPages) : ""
+                            
+                            if let imageData = book.bookCover, let image = UIImage(data: imageData) {
+                                photoLibraryViewModel.selectedImage = image
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -177,7 +270,7 @@ struct BookSheetView: View {
 }
 
 #Preview {
-    BookSheetView()
+    BookSheetView(book: nil)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }

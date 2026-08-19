@@ -24,6 +24,19 @@ struct BookCaseToolbar: ToolbarContent {
             .buttonBorderShape(.circle)
             .tint(Color("ActionColor"))
         }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                //onAddClick()
+            }) {
+                Image(systemName: "ellipsis")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .buttonStyle(.plain)
+            .buttonBorderShape(.circle)
+            //.tint(Color("ActionColor"))
+        }
     }
 }
 

@@ -11,6 +11,8 @@ import CoreData
 struct BookCardView: View {
     let book: Books
     
+    @State private var isEditingSheetPresented = false
+    
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     private var percentageRead: Int {
@@ -63,8 +65,30 @@ struct BookCardView: View {
                     .environment(\.colorScheme, .dark)
             )
         }
+        .contextMenu {
+            Button() {
+                isEditingSheetPresented = true
+            } label: {
+                Label("Editar Livro", systemImage: "pencil")
+                    .foregroundColor(.blue)
+                    .font(.body)
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                //showDeleteAlert = true
+            } label: {
+                Label("Apagar Livro", systemImage: "trash")
+                    .font(.body)
+            }
+        }
         .frame(width: 170)
         .cornerRadius(12)
+        
+        .sheet(isPresented: $isEditingSheetPresented) {
+                    BookSheetView(book: book)
+                }
     }
 }
 //#Preview {
