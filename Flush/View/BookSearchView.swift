@@ -10,9 +10,10 @@ import SwiftUI
 struct BookSearchView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
-    
     @State private var searchText = ""
     @State private var isSearchPresented = false
+    @State private var selectedBook: Books?
+    @State private var selectedNote: Notes?
 
     var filteredBooks: [Books] {
         if searchText.isEmpty {
@@ -40,16 +41,25 @@ struct BookSearchView: View {
                 if !filteredBooks.isEmpty {
                     Section("Livros") {
                         ForEach(filteredBooks, id: \.self) { book in
-                            BookCellView(book: book)
+                            Button {
+                                selectedBook = book
+                            } label: {
+                                BookCellView(book: book)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
                 
                 if !filteredNotes.isEmpty {
-            
                     Section("Notas") {
                         ForEach(filteredNotes, id: \.self) { note in
-                            NoteCellView(note: note)
+                            Button {
+                                selectedNote = note
+                            } label: {
+                                NoteCellView(note: note)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -72,10 +82,21 @@ struct BookSearchView: View {
             )
             .onAppear {
                 isSearchPresented = true
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }
+            .sheet(item: $selectedBook, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { book in
+                BookDetailView(viewModel: booksViewModel, book: book)
+            }
+            .sheet(item: $selectedNote, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { note in
+                NoteDetailSheetView(note: note)
             }
         }
     }
 }
-
-
-
