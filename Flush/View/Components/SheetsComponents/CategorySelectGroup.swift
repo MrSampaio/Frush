@@ -17,7 +17,7 @@ struct CategoryMenuView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.system(.title3, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color("LinesColor"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
 
@@ -31,19 +31,19 @@ struct CategoryMenuView: View {
                 HStack {
                     Text(selectedCategory.isEmpty ? "Selecione uma categoria" : selectedCategory)
                         .font(.system(.body, weight: .regular))
-                        .foregroundColor(selectedCategory.isEmpty ? .white.opacity(0.7) : .white)
+                        .foregroundColor(selectedCategory.isEmpty ?  Color("TextFieldPlaceholderColor2") : .white)
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.footnote.weight(.semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color("TextFieldPlaceholderColor2"))
                 }
                 .padding()
                 .contentShape(Rectangle())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 100)
+                        .stroke(Color("LinesColor"), lineWidth: 0.5)
                 )
             }
             .buttonStyle(.plain)

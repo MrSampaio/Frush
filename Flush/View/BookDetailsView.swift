@@ -122,5 +122,4 @@ struct BookDetailView: View {
     BookDetailView(viewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
-    
 }

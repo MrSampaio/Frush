@@ -19,7 +19,7 @@ struct MenuSheetPicker: View {
             if let title = title, !title.isEmpty {
                 Text(title)
                     .font(.system(.title3, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("LinesColor"))
                     .padding(.leading, 4)
             }
 
@@ -33,23 +33,25 @@ struct MenuSheetPicker: View {
                 HStack {
                     Text(selectedValue.isEmpty ? placeholder : formatOption(selectedValue))
                         .font(.system(.body, weight: .regular))
-                        .foregroundColor(selectedValue.isEmpty ? .white.opacity(0.7) : .white)
+                        .foregroundColor(selectedValue.isEmpty ? Color("TextFieldPlaceholderColor") : .white)
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.footnote.weight(.semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color("LinesColor"))
                 }
                 .padding()
                 .contentShape(Rectangle())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 100)
+                        .stroke(Color("LinesColor"), lineWidth: 0.5)
                 )
             }
             .buttonStyle(.plain)
         }
     }
 }
+
+
 

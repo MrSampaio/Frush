@@ -52,28 +52,19 @@ struct NoteDetailSheetView: View {
                         
                         VStack(alignment: .leading, spacing: 16) {
                             Text(note.noteTitle ?? "Sem título")
-                                .font(.system(size: 34, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
+                                .font(.system(.title, weight: .medium))
+                                .foregroundColor(.title)
                                 .multilineTextAlignment(.leading)
                             
-                            Text("Referência")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
-                                .background(Color(.blue))
-                                .opacity(0.8)
-                                .clipShape(Capsule())
-                            
                             Text(note.noteDescription ?? "Sem descrição")
-                                .font(.system(size: 16))
-                                .foregroundColor(.black)
+                                .font(.system(.body, weight: .light))
+                                .foregroundColor(Color(.title))
                                 .lineSpacing(5)
                                 .multilineTextAlignment(.leading)
                         }
                         .padding(.horizontal, 24)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading) 
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 40)
                 }
             }

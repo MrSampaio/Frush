@@ -16,7 +16,7 @@ class NotesViewModel: ObservableObject {
     enum NoteError: LocalizedError {
         case invalidTitle
         case invalidDescription
-        case invalidCategory
+        //case invalidCategory
         case invalidBook
         case savingError
         
@@ -26,8 +26,8 @@ class NotesViewModel: ObservableObject {
                 return "Insira um título válido."
             case .invalidDescription:
                 return "Escreva o conteúdo da nota."
-            case .invalidCategory:
-                return "Escolha uma categoria para a nota."
+            //case .invalidCategory:
+              //  return "Escolha uma categoria para a nota."
             case .invalidBook:
                 return "Selecione o livro relacionado a essa nota."
             case .savingError:
@@ -72,7 +72,7 @@ class NotesViewModel: ObservableObject {
         
         if cleanTitle.isEmpty { throw NoteError.invalidTitle }
         if cleanDescription.isEmpty { throw NoteError.invalidDescription }
-        if noteCategory.isEmpty { throw NoteError.invalidCategory }
+        //if noteCategory.isEmpty { throw NoteError.invalidCategory }
         guard let book else { throw NoteError.invalidBook }
         
         let newNote = Notes(context: CoreDataManager.shared.viewContext)

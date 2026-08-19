@@ -9,9 +9,11 @@ import SwiftUI
 
 struct BookSearchView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var notesViewModel: NotesViewModel
+    
     @State private var searchText = ""
     @State private var isSearchPresented = false
-    //depois colocar na booksViewModel
+
     var filteredBooks: [Books] {
         if searchText.isEmpty {
             return booksViewModel.savedBooks
@@ -22,49 +24,42 @@ struct BookSearchView: View {
         }
     }
     
+    var filteredNotes: [Notes] {
+        if searchText.isEmpty {
+            return notesViewModel.savedNotes
+        } else {
+            return notesViewModel.savedNotes.filter { note in
+                note.noteTitle?.localizedCaseInsensitiveContains(searchText) ?? false
+            }
+        }
+    }
+    
     var body: some View {
         NavigationStack {
-            List(filteredBooks, id: \.self) { book in
-                HStack(spacing: 16) {
-                    if let coverData = book.bookCover, let uiImage = UIImage(data: coverData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 60, height: 90)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else {
-                        Image("defaultBook")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 60, height: 90)
-                            .background(Color(uiColor: .systemGray4))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+            List {
+                if !filteredBooks.isEmpty {
+                    Section("Livros") {
+                        ForEach(filteredBooks, id: \.self) { book in
+                            BookCellView(book: book)
+                        }
                     }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(book.bookTitle ?? "Sem Título")
-                            .font(.headline)
-                            .lineLimit(2)
-                        
-                        Text(book.bookAuthor ?? "Desconhecido")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(book.bookCurrentPage) / \(book.bookTotalPages) páginas")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    Spacer()
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
+                
+                if !filteredNotes.isEmpty {
+                    Section("Notas") {
+                        ForEach(filteredNotes, id: \.self) { note in
+                            NoteCellView(note: note)
+                        }
+                    }
+                }
             }
             .overlay {
-                if filteredBooks.isEmpty {
+                if filteredBooks.isEmpty && filteredNotes.isEmpty {
                     ContentUnavailableView(
-                        "Nenhum livro encontrado",
+                        "Nenhum resultado encontrado",
                         systemImage: "magnifyingglass",
-                        description: Text("Tente buscar por outro título ou autor.")
+                        description: Text("Tente buscar por outro título de livro ou nota.")
+                            .font(.custom("Bitter-Regular", size: 15))
                     )
                 }
             }
@@ -72,7 +67,7 @@ struct BookSearchView: View {
             .searchable(
                 text: $searchText,
                 isPresented: $isSearchPresented,
-                prompt: "Buscar por título"
+                prompt: "Buscar livros ou notas"
             )
             .onAppear {
                 isSearchPresented = true
@@ -80,3 +75,6 @@ struct BookSearchView: View {
         }
     }
 }
+
+
+
