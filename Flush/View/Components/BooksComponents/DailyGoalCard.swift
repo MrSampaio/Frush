@@ -12,62 +12,55 @@ struct DailyGoalCardView: View {
     let targetPages: Int
     var onEditAction: () -> Void
     
-    // Cálculo do progresso entre 0.0 e 1.0
     private var progress: Double {
         guard targetPages > 0 else { return 0 }
         return min(Double(pagesReadToday) / Double(targetPages), 1.0)
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Cabeçalho: Ícone, Título e Botão de Editar
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "target")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(.body, weight: .bold))
                         .foregroundColor(.orange)
                     
                     Text("Meta diária de leitura")
                         .font(.system(.body, weight: .regular))
                         .foregroundColor(.white)
                 }
-                
+
                 Spacer()
                 
-                // Botão de Editar (Lápis com fundo circular escuro)
                 Button(action: onEditAction) {
                     Image(systemName: "pencil")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.12))
-                        )
+                        .font(.system(.title2))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                        .padding(6)
                 }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .padding(.trailing, 0)
             }
             
-            // Valor da Meta (30 páginas)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("\(targetPages)")
                     .font(.bitter(.medium, style: .largeTitle))
-                    
                     .foregroundColor(.white)
                 
                 Text("páginas")
-                    .font(.bitter(.regular, style: .title3)) // Usando sua fonte Bitter ou .serif
-                    .foregroundColor(.white.opacity(0.9))
+                    .font(.bitter(.regular, style: .title3))
+                    .foregroundColor(.white)
             }
+            .padding(.bottom, 4)
             
-            // Barra de Progresso Customizada com Gradiente
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Trilha de fundo
                     Capsule()
                         .fill(Color.white.opacity(0.15))
                         .frame(height: 8)
                     
-                    // Progresso preenchido
                     Capsule()
                         .fill(
                             LinearGradient(
@@ -81,33 +74,47 @@ struct DailyGoalCardView: View {
             }
             .frame(height: 8)
             .padding(.vertical, 2)
+            .padding(.bottom, 6)
             
-            // Rodapé: Páginas lidas hoje vs Meta
+            
             HStack {
                 HStack(spacing: 4) {
                     Text("\(pagesReadToday)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(.callout))
                         .foregroundColor(.orange)
                     
                     Text("páginas lidas hoje")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.white.opacity(0.7))
+                        .font(.system(.callout))
+                        .foregroundColor(Color("TextPagesColor"))
                 }
                 
                 Spacer()
                 
                 Text("\(targetPages)")
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(Color("TextPagesColor"))
             }
         }
-        .padding(18)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
         .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial) // Ou .thinMaterial / .regularMaterial
+                
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color("DailyGoalCardColor"))
+            }
+        )
+        .overlay(
             RoundedRectangle(cornerRadius: 24)
-                .fill(Color(white: 0.12)) // Fundo escuro do card
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
                 )
         )
     }
@@ -115,7 +122,8 @@ struct DailyGoalCardView: View {
 
 #Preview {
     ZStack {
-        Color.black.ignoresSafeArea()
+        Color("BackgroundColorViews")
+            .ignoresSafeArea()
         
         DailyGoalCardView(
             pagesReadToday: 12,
