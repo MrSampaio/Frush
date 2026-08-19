@@ -14,6 +14,8 @@ struct BookSheetView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     
+    let book: Books?
+    
     @State private var showingDiscardAlert: Bool = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
@@ -70,9 +72,6 @@ struct BookSheetView: View {
                                             )
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 6)
-                                            
-                            
-            
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -177,7 +176,7 @@ struct BookSheetView: View {
 }
 
 #Preview {
-    BookSheetView()
+    BookSheetView(book: nil)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }

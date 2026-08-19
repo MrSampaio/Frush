@@ -90,7 +90,7 @@ struct BookCaseView: View {
             }
         }
         .sheet(isPresented: $isShowingSheet) {
-            BookSheetView()
+            BookSheetView(book: nil)
                 .environmentObject(booksViewModel)
         }
     }

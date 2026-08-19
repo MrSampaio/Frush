@@ -102,7 +102,7 @@ struct BookDetailView: View {
                 }
             }
             .sheet(isPresented: $isPresentedEditBook){
-                BookSheetView()
+                BookSheetView(book: nil)
                     .environmentObject(PhotoLibraryViewModel())
                     .environmentObject(BooksViewModel())
             }
