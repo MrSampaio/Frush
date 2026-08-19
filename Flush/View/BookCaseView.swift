@@ -11,6 +11,10 @@ struct BookCaseView: View {
     @ObservedObject var booksViewModel: BooksViewModel
     @State private var isShowingSheet = false
     
+    // controla a "sheet falsa" de detalhes do livro
+    @State private var selectedBookForDetail: Books? = nil
+    @State private var isShowingBookDetail = false
+    
     var books: [Books] {
         booksViewModel.savedBooks
     }
@@ -58,7 +62,13 @@ struct BookCaseView: View {
                         
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(books) { book in
-                                BookCardView(book: book)
+                                Button {
+                                    selectedBookForDetail = book
+                                    isShowingBookDetail = true
+                                } label: {
+                                    BookCardView(book: book)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -74,7 +84,11 @@ struct BookCaseView: View {
                 }
             }
         }
-        
+        .fakeSheet(isPresented: $isShowingBookDetail) {
+            if let selectedBookForDetail {
+                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
+            }
+        }
         .sheet(isPresented: $isShowingSheet) {
             BookSheetView()
                 .environmentObject(booksViewModel)
