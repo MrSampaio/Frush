@@ -15,6 +15,7 @@ struct BookCaseView: View {
     @State private var selectedBookForDetail: Books? = nil
     @State private var isShowingBookDetail = false
     
+    
     var books: [Books] {
         booksViewModel.savedBooks
     }
@@ -68,6 +69,7 @@ struct BookCaseView: View {
                                 } label: {
                                     BookCardView(book: book)
                                 }
+
                                 .buttonStyle(.plain)
                             }
                         }
@@ -90,7 +92,7 @@ struct BookCaseView: View {
             }
         }
         .sheet(isPresented: $isShowingSheet) {
-            BookSheetView()
+            BookSheetView(book: nil)
                 .environmentObject(booksViewModel)
         }
     }
