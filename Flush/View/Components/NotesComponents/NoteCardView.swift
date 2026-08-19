@@ -18,32 +18,35 @@ struct NotesCardView: View {
             Image(imageName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 80, height: 95)
+                .frame(width: 87, height: 80)
                 .cornerRadius(16)
                 .clipped()
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text(tagText)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(Color("TagNoteColor"))
-                    .clipShape(Capsule())
-                
+            VStack(alignment: .leading, spacing: 8) {
+
                 Text(title)
-                    .font(.headline)
+                    .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                 
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(Color("Texts").opacity(0.6))
                     .lineLimit(2)
             }
             
             Spacer()
+            
+            Button(action: {
+                //acao
+            }) {
+                Image(systemName: "chevron.forward")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .buttonStyle(.plain)
+            .buttonBorderShape(.circle)
+            .padding(.trailing, 6)
         }
         .padding(16)
         .background(Color("CardNoteColor"))
