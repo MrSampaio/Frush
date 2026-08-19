@@ -28,7 +28,7 @@ class PhotoLibraryViewModel: ObservableObject {
     
     //@Published var selectedImage: UIImage? = UIImage(named: "defaultBook")
     
-    @Published var selectedImage: UIImage? = nil
+    @Published var selectedImage: UIImage?
     
     @Published var noteImages: [SelectableImage] = []
     

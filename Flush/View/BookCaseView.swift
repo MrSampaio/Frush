@@ -62,7 +62,7 @@ struct BookCaseView: View {
                         
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(books) { book in
-                                NavigationLink(destination: BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)){
+                                NavigationLink(destination: BookDetailView(viewModel: booksViewModel, book: book)){
                                     BookCardView(book: book)
                                 }
                                 .buttonStyle(.plain)
@@ -87,7 +87,7 @@ struct BookCaseView: View {
 //            }
 //        }
         .sheet(isPresented: $isShowingSheet) {
-            BookSheetView(book: nil)
+            BookSheetView(bookToEdit: nil)
                 .environmentObject(booksViewModel)
         }
     }
