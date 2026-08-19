@@ -82,11 +82,19 @@ struct BookSearchView: View {
             )
             .onAppear {
                 isSearchPresented = true
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
             }
-            .sheet(item: $selectedBook) { book in
+            .sheet(item: $selectedBook, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { book in
                 BookDetailView(viewModel: booksViewModel, book: book)
             }
-            .sheet(item: $selectedNote) { note in
+            .sheet(item: $selectedNote, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { note in
                 NoteDetailSheetView(note: note)
             }
         }
