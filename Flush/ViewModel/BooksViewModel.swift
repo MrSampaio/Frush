@@ -140,7 +140,6 @@ class BooksViewModel: ObservableObject {
         CoreDataManager.shared.viewContext.delete(book)
         
         try self.saveBook()
-        
         self.fetchBooks()
 
     }
@@ -178,6 +177,7 @@ class BooksViewModel: ObservableObject {
 //        }
         
         // só aplica as mudanças se passou em todas as validações
+//        book.id = UUID()
         book.bookTitle = finalTitle
         book.bookAuthor = bookAuthor ?? book.bookAuthor
         book.bookCover = bookCover ?? book.bookCover
