@@ -12,14 +12,13 @@ struct MyNotesListView: View {
     @StateObject private var viewModel = NotesViewModel()
     @Environment(\.dismiss) var dismiss
     @State private var selectedNote: Notes?
+    @State private var isPresentedAddNote: Bool = false
+    
     var book: Books?
-    let backgroundColor = Color(.backgroundColorViews)
-    let accentOrange = Color(.action)
-    let buttonBackground = Color.white.opacity(0.2)
     
     var body: some View {
         ZStack {
-            backgroundColor.ignoresSafeArea()
+            Color(.backgroundColorViews).ignoresSafeArea()
             VStack(alignment: .leading, spacing: 20) {
                 TitleComponent(title: "Minhas notas")
                     .padding(.horizontal, 24)
@@ -45,7 +44,7 @@ struct MyNotesListView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             MyNotesToolBar(onBackClick: { dismiss() }, onAddClick: {
-                print("Adicionar nova nota")
+                isPresentedAddNote = true
             })
         }
         .onAppear {
@@ -53,6 +52,14 @@ struct MyNotesListView: View {
         }
         .sheet(item: $selectedNote) { note in
             NoteDetailSheetView(note: note)
+        }
+        .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+            viewModel.fetchNotes(for: book)
+        }) {
+            if let book = book {
+                NoteSheetView(book: book)
+                    .environmentObject(viewModel)
+            }
         }
     }
 }
