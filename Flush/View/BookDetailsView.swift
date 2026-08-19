@@ -16,7 +16,7 @@ struct BookDetailView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var book: Books? = nil
-    
+    //apagar assim que possivel
     private var currentBook: Books? {
         book ?? viewModel.savedBooks.first
     }
@@ -35,14 +35,23 @@ struct BookDetailView: View {
                             BookInstanceDetailView(book: currentBook)
                             
                             CardTotalPages(totalPages: 100)
-                            .padding(.horizontal)
-                            
+                                .padding(.horizontal)
+
                             VStack(spacing: 16) {
                                 NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
-                                NotesSectionView(notes: notesViewModel.savedNotes)
+                                
+                                NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3)))
+                                
+                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+                                    
+                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Color(.action))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal)
+                                }
                             }
                             .padding(.horizontal)
-                            
                             VStack(spacing: 16) {
                                 Button(action: {
                                 }) {
