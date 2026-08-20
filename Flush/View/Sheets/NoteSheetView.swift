@@ -53,7 +53,8 @@ struct NoteSheetView: View {
                         .padding(.horizontal)
                     }
                 }
-                
+                .padding(.top, 20)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     SheetHeaderView(
                         title: "Adicionar nota",

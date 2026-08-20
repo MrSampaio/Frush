@@ -211,7 +211,8 @@ struct BookSheetView: View {
                         }
                         .padding(.horizontal)
                     }
-              
+                    .padding(.top, 20)
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         SheetHeaderView(
                             title: toolbarTitle,

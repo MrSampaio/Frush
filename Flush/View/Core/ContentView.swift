@@ -18,7 +18,7 @@ struct ContentView: View {
                     .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-                StopwatchView()
+               // StopwatchInicialView()
             }
             Tab(role: .search){
                 BookSearchView()

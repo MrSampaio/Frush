@@ -49,7 +49,7 @@ struct DailyGoalCardView: View {
                     .font(.bitter(.medium, style: .largeTitle))
                     .foregroundColor(.white)
                 
-                Text("páginas")
+                Text("minutos")
                     .font(.bitter(.regular, style: .title3))
                     .foregroundColor(.white)
             }
@@ -83,7 +83,7 @@ struct DailyGoalCardView: View {
                         .font(.system(.callout))
                         .foregroundColor(.orange)
                     
-                    Text("páginas lidas hoje")
+                    Text("minutos de leitura hoje")
                         .font(.system(.callout))
                         .foregroundColor(Color("TextPagesColor"))
                 }
