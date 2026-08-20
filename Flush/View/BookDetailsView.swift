@@ -57,6 +57,7 @@ struct BookDetailView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            // só pra falar que mexi
                             VStack(spacing: 16) {
                                 /*
                                 Button(action: {
@@ -102,14 +103,14 @@ struct BookDetailView: View {
             .onDisappear {
                 bookViewModel.fetchBooks()
             }
-            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                notesViewModel.fetchNotes(for: currentBook)
-            }) {
-                if let currentBook {
-                    NoteSheetView(book: currentBook)
-                        .environmentObject(notesViewModel)
-                }
-            }
+//            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+//                notesViewModel.fetchNotes(for: currentBook)
+//            }) {
+//                if let currentBook {
+//                    NoteSheetView(book: currentBook)
+//                        .environmentObject(notesViewModel)
+//                }
+//            }
             .sheet(isPresented: $isPresentedEditBook, onDismiss: {
                 bookViewModel.fetchBooks()
             }){

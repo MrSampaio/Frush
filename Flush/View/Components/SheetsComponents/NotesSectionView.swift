@@ -26,22 +26,28 @@ struct NotesSectionView: View {
                     .padding(.vertical, 24)
             } else {
                 LazyVStack(spacing: 0) {
-                    ForEach(notes, id: \.objectID) { note in
-                        Button {
-                            selectedNote = note
-                        } label: {
-                            NoteRowView(note: note)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
+                    NavigationStack{
+                        ForEach(notes, id: \.objectID) { note in
+                            NavigationLink(destination: NoteDetailSheetView(note: note)){
+                                NoteRowView(note: note)
+                            }
+    //                        Button {
+    //                            selectedNote = note
+    //                        } label: {
+    //
+    //                        }
+    //                        .buttonStyle(.plain)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
 
-                        if note.objectID != notes.last?.objectID {
-                            Divider()
-                                .background(Color.white.opacity(0.1))
-                                .padding(.leading, 16)
+                            if note.objectID != notes.last?.objectID {
+                                Divider()
+                                    .background(Color.white.opacity(0.1))
+                                    .padding(.leading, 16)
+                            }
                         }
                     }
+
                 }
             }
         }

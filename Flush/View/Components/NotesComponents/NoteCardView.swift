@@ -18,7 +18,7 @@ struct NotesCardView: View {
             Image(imageName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 87, height: 80)
+                .frame(width: 90, height: 120)
                 .cornerRadius(16)
                 .clipped()
             

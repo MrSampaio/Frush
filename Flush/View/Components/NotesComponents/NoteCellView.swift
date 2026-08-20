@@ -4,7 +4,6 @@
 //
 //  Created by Lucas on 18/08/26.
 //
-
 import SwiftUI
 
 struct NoteCellView: View {
@@ -33,6 +32,27 @@ struct NoteCellView: View {
                     .lineLimit(2)
             }
         }
+        .contentShape(Rectangle())
+        .contextMenu {
+            Button() {
+//                isEditingSheetPresented = true
+            } label: {
+                Label("Editar Nota", systemImage: "pencil")
+                    .foregroundColor(.blue)
+                    .font(.body)
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+//                isShowingDeleteAlert = true
+            } label: {
+                Label("Apagar Nota", systemImage: "trash")
+                    .font(.body)
+            }
+        }
+        .frame(width: 170)
+        .cornerRadius(12)
         .padding(.vertical, 4)
     }
 }
