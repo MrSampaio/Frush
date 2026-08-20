@@ -9,7 +9,7 @@ import SwiftUI
 import CoreData
 
 struct BookDetailView: View {
-    @ObservedObject var viewModel: BooksViewModel
+    @ObservedObject var bookViewModel: BooksViewModel
     @StateObject private var notesViewModel = NotesViewModel()
     @State private var isPresentedAddNote: Bool = false
     @State private var isPresentedEditBook: Bool = false
@@ -18,7 +18,7 @@ struct BookDetailView: View {
     var book: Books? = nil
     //apagar assim que possivel
     private var currentBook: Books? {
-        book ?? viewModel.savedBooks.first
+        book ?? bookViewModel.savedBooks.first
     }
     
     var body: some View {
@@ -29,11 +29,13 @@ struct BookDetailView: View {
                     .ignoresSafeArea()
                 
                 if let currentBook = currentBook {
+                    
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 24) {
                             
                             BookInstanceDetailView(book: currentBook)
                                 .environmentObject(PhotoLibraryViewModel())
+                                .id(currentBook.bookCover ?? Data())
                             
                             CardTotalPages(totalPages: 100)
                                 .padding(.horizontal)
@@ -103,6 +105,9 @@ struct BookDetailView: View {
             .onAppear {
                 notesViewModel.fetchNotes(for: currentBook)
             }
+            .onDisappear {
+                bookViewModel.fetchBooks()
+            }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
                 notesViewModel.fetchNotes(for: currentBook)
             }) {
@@ -111,10 +116,12 @@ struct BookDetailView: View {
                         .environmentObject(notesViewModel)
                 }
             }
-            .sheet(isPresented: $isPresentedEditBook){
+            .sheet(isPresented: $isPresentedEditBook, onDismiss: {
+                bookViewModel.fetchBooks()
+            }){
                 BookSheetView(bookToEdit: book)
-                    .environmentObject(PhotoLibraryViewModel())
-                    .environmentObject(BooksViewModel())
+                    .environmentObject(photoLibraryViewModel)
+                    .environmentObject(bookViewModel)
             }
             .toolbar{
                 BooksDetailsToolbar(onEdit: {
@@ -127,7 +134,7 @@ struct BookDetailView: View {
     }
 }
 #Preview {
-    BookDetailView(viewModel: BooksViewModel())
+    BookDetailView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
 }

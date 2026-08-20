@@ -89,7 +89,7 @@ struct BookSearchView: View {
                 booksViewModel.fetchBooks()
                 notesViewModel.fetchNotes()
             }) { book in
-                BookDetailView(viewModel: booksViewModel, book: book)
+                BookDetailView(bookViewModel: booksViewModel, book: book)
             }
             .sheet(item: $selectedNote, onDismiss: {
                 booksViewModel.fetchBooks()
