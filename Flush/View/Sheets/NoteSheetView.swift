@@ -12,15 +12,17 @@ import CoreData
 struct NoteSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
-    @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    
+    @State private var hasLoaded = false
     
     @State var showingDiscardAlert: Bool = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     
-    @State private var titleText: String = ""
-    @State private var noteText: String = ""
+    @State private var noteTitle: String = ""
+    @State private var noteDescription: String = ""
     @State var image: UIImage? = nil
     @State var selectedCategory: String = ""
     
@@ -33,7 +35,16 @@ struct NoteSheetView: View {
     @State private var showPhotoPicker = false
     
     var book: Books
-   
+    var noteToEdit: Notes?
+    
+    private var toolbarTitle: String {
+        if noteToEdit != nil {
+            return "Editar nota"
+        } else {
+            return "Adicionar nota"
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -56,15 +67,21 @@ struct NoteSheetView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     SheetHeaderView(
-                        title: "Adicionar nota",
+                        title: toolbarTitle,
                         actionIcon: "checkmark",
                         showingDiscardAlert: $showingDiscardAlert,
-                        onCancel: { dismiss() },
+                        onCancel: {
+                            // Força a remoção do foco do teclado antes de fechar a sheet
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            dismiss()
+                        },
                         onConfirm: handleConfirm,
-                        onDiscard: { dismiss() }
+                        onDiscard: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            dismiss()
+                        }
                     )
                 }
-  
             }
             .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
                 Button("Tentar novamente", role: .cancel) { }
@@ -89,20 +106,60 @@ struct NoteSheetView: View {
                 photoLibraryViewModel.appendCapturedImage(newImage)
                 capturedImage = nil
             }
+            
+            .confirmationDialog("Selecione a origem da imagem", isPresented: $showMediaSourceMenu, titleVisibility: .hidden) {
+                Button("Tirar foto com a Câmera") {
+                    showCameraPicker = true
+                }
+                Button("Escolher da Galeria") {
+                    showPhotoPicker = true
+                }
+                Button("Cancelar", role: .cancel) { }
+            }
+            
+            .onAppear {
+                guard !hasLoaded else { return }
+                hasLoaded = true
+                
+                photoLibraryViewModel.resetNoteImages()
+                
+                photoLibraryViewModel.resetNoteImages()
+                
+                if let note = noteToEdit {
+                    noteTitle = note.noteTitle ?? ""
+                    noteDescription = note.noteDescription ?? ""
+                    
+                    if let photosData = note.notePhoto as? [Data] {
+                        let existingImages = photosData.compactMap { UIImage(data: $0) }
+                        photoLibraryViewModel.loadExistingImages(existingImages)
+                    }
+                }
+            }
         }
     }
     
     private func handleConfirm() {
         do {
-            try notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: selectedCategory,
-                notePhotos: photoLibraryViewModel.noteImages.map(\.image),
-                to: book
-            )
+            if let note = noteToEdit {
+                try notesViewModel.updateNote(
+                    note: note,
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    notePhotos: photoLibraryViewModel.noteImages.map(\.image)
+                )
+            } else {
+                try notesViewModel.addNote(
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    noteCategory: selectedCategory,
+                    notePhotos: photoLibraryViewModel.noteImages.map(\.image),
+                    to: book
+                )
+            }
             
+            notesViewModel.fetchNotes(for: book)
             photoLibraryViewModel.resetNoteImages()
+            
             dismiss()
             
         } catch let error as LocalizedError {
@@ -135,8 +192,10 @@ struct NoteSheetView: View {
     }
     
     private var titleField: some View {
+        
+        //        var let titleText = noteToEdit != nil ?? noteToEdit?.noteTitle : "Adicione o título"
         TextFieldSheets(
-            text: $titleText,
+            text: $noteTitle,
             placeholder: "Adicione o título",
             label: nil
         )
@@ -144,7 +203,7 @@ struct NoteSheetView: View {
     
     private var noteTextEditor: some View {
         ZStack(alignment: .topLeading) {
-            if noteText.isEmpty {
+            if noteDescription.isEmpty {
                 Text("Escreva sua nota...")
                     .foregroundColor(Color("TextFieldPlaceholderColor"))
                     .padding(.horizontal, 16)
@@ -154,7 +213,7 @@ struct NoteSheetView: View {
                     .font(.system(.body, weight: .regular))
             }
             
-            TextEditor(text: $noteText)
+            TextEditor(text: $noteDescription)
                 .padding(8)
                 .scrollContentBackground(.hidden)
                 .cornerRadius(10)
@@ -212,24 +271,23 @@ struct NoteSheetView: View {
         let imagesCount = photoLibraryViewModel.noteImages.count
         let isLimitReached = imagesCount >= 3
         let mediaButtonText: String = imagesCount == 0
-            ? "Adicionar fotos"
-            : "Adicionar mais fotos (\(imagesCount)/3)"
+        ? "Adicionar fotos"
+        : "Adicionar mais fotos (\(imagesCount)/3)"
         
         return Menu {
             Button {
+                // Ação da Câmera (ajuste com a sua flag/método)
                 showCameraPicker = true
             } label: {
-                Label("Tirar foto com a Câmera", systemImage: "camera")
+                Label("Tirar Foto", systemImage: "camera")
             }
-            .disabled(isLimitReached)
             
             Button {
-                showPhotoPicker = true
+                // Ação da Galeria (ajuste com a sua flag/método)
+                //showPhotoLibraryPicker = true
             } label: {
-                Label("Escolher da Galeria", systemImage: "photo.on.rectangle")
+                Label("Escolher da Biblioteca", systemImage: "photo.on.rectangle")
             }
-            .disabled(isLimitReached)
-            
         } label: {
             HStack {
                 Image(systemName: "camera.viewfinder")
@@ -245,7 +303,7 @@ struct NoteSheetView: View {
                     .foregroundColor(Color("AddNoteImage"))
             }
             .padding()
-            .cornerRadius(10)
+            .contentShape(Rectangle())
             .overlay(
                 RoundedRectangle(cornerRadius: 100)
                     .stroke(Color("LinesColor"), lineWidth: 0.5)
@@ -254,12 +312,7 @@ struct NoteSheetView: View {
         .disabled(isLimitReached)
         .opacity(isLimitReached ? 0.5 : 1.0)
     }
-    
-    
-
-     
 }
-
 #Preview {
     NoteSheetView(book: PreviewProviderHelper.sampleBook)
         .environmentObject(PhotoLibraryViewModel())

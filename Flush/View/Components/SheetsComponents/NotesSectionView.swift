@@ -43,6 +43,8 @@ struct NotesSectionView: View {
         .cornerRadius(20)
         .sheet(item: $selectedNote) { note in
             NoteDetailSheetView(note: note)
+                .environmentObject(PhotoLibraryViewModel())
+                .environmentObject(NotesViewModel())
         }
     }
 }

@@ -53,6 +53,24 @@ class NotesViewModel: ObservableObject {
         }
     }
     
+    //depois avaliar se realemtne e necessaria
+    func fetchNotes(for book: Books?) {
+        guard let book = book else {
+            self.savedNotes = []
+            return
+        }
+        
+        let request = NSFetchRequest<Notes>(entityName: "Notes")
+        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
+        request.predicate = NSPredicate(format: "book == %@", book)
+        
+        do {
+            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
+        } catch let error {
+            print("Erro ao buscar anotações do livro: \(error)")
+        }
+    }
+    
     // funcao para salvar notas (chama ela sempre que quer subir efetivamente para o banco)
     func saveNote() throws {
         do {
@@ -95,6 +113,56 @@ class NotesViewModel: ObservableObject {
         self.fetchNotes()
     }
     
+    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage]) throws {
+
+        
+//        let totalPagesInt = Int16(bookTotalPages) ?? 0
+        
+        
+        
+//        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//        
+//        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+
+        let finalTitle = (noteTitle.trimmingCharacters(in: .whitespacesAndNewlines))
+        let finalDescription = (noteDescription.trimmingCharacters(in: .whitespacesAndNewlines))
+        
+        if finalTitle.isEmpty {
+            throw NoteError.invalidTitle
+        }
+        
+        if finalDescription.isEmpty {
+            throw NoteError.invalidDescription
+        }
+        
+        if(note.noteTitle != finalTitle){
+            note.noteTitle = finalTitle
+        }
+        
+        if(note.noteDescription != noteDescription){
+            note.noteDescription = noteDescription
+        }
+        
+        var photosDataArray: [Data] = []
+        for photo in notePhotos {
+            if let data = photo.jpegData(compressionQuality: 0.8) {
+                photosDataArray.append(data)
+            }
+        }
+        
+        if(note.notePhoto != photosDataArray as NSObject){
+            note.notePhoto = photosDataArray as NSObject
+        }
+        
+        
+//        if(book.bookCover != coverData){
+//            book.bookCover = coverData
+//        }
+        
+        try self.saveNote()
+        self.fetchNotes()
+    }
+    
     // funcao para deletar notas
     func deleteNote(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
@@ -110,38 +178,25 @@ class NotesViewModel: ObservableObject {
         
         self.fetchNotes()
     }
-    
-    private func savePhotoToDisk(_ image: UIImage?) -> String? {
-        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
-        
-        let fileName = "\(UUID().uuidString).jpg"
-        let url = FileManager.default
-            .urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(fileName)
-        
-        do {
-            try data.write(to: url)
-            return fileName
-        } catch {
-            print("Erro ao salvar imagem no disco: \(error)")
-            return nil
-        }
-    }
-    //depois avaliar se realemtne e necessaria
-    func fetchNotes(for book: Books?) {
-        guard let book = book else {
-            self.savedNotes = []
-            return
-        }
-        
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
-        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
-        request.predicate = NSPredicate(format: "book == %@", book)
-        
-        do {
-            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
-        } catch let error {
-            print("Erro ao buscar anotações do livro: \(error)")
-        }
-    }
 }
+
+    
+
+    
+//    private func savePhotoToDisk(_ image: UIImage?) -> String? {
+//        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+//        
+//        let fileName = "\(UUID().uuidString).jpg"
+//        let url = FileManager.default
+//            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+//            .appendingPathComponent(fileName)
+//        
+//        do {
+//            try data.write(to: url)
+//            return fileName
+//        } catch {
+//            print("Erro ao salvar imagem no disco: \(error)")
+//            return nil
+//        }
+//    }
+    

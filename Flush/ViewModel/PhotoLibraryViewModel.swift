@@ -46,6 +46,12 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
+    func loadExistingImages(_ images: [UIImage]) {
+        for image in images.prefix(maxNoteImages) {
+            noteImages.append(SelectableImage(image: image))
+        }
+    }
+    
     func saveImageToCoreData(image: UIImage){
         let newPhoto = Books(context: CoreDataManager.shared.viewContext)
         
