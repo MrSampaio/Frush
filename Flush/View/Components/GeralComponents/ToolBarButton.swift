@@ -15,6 +15,7 @@ import SwiftUI
 struct ToolBarButton: ToolbarContent {
     var action: () -> Void
     var icon: String
+    var colorName: String?
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
@@ -22,13 +23,16 @@ struct ToolBarButton: ToolbarContent {
             Button(action: {
                 action()
             }) {
-            Image(systemName: icon)
-                    .font(icon == "note.text.badge.plus" ? .subheadline : .body)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                Image(systemName: icon)
+                        .font(icon == "note.text.badge.plus" ? .subheadline : .body)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
+            .tint(colorName != nil ? Color(colorName!) : Color(""))
+            
+          
         }
     }
 }
