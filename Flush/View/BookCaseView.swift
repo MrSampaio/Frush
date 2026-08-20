@@ -94,4 +94,5 @@ struct BookCaseView: View {
     BookCaseView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
+        .environmentObject(NotesViewModel())
 }

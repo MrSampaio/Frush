@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct NoteDetailSheetView: View {
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var notesViewModel: NotesViewModel
+    
     var note: Notes
     
     @Environment(\.dismiss) var dismiss
@@ -70,7 +73,10 @@ struct NoteDetailSheetView: View {
                 .toolbar{
                     NotesToolBar(
                         title: "Nota",
-                        onClose: { dismiss() },
+                        onClose: {
+                            notesViewModel.fetchNotes(for: note.book)
+                            dismiss()
+                        },
                         onEdit: {
                             isShowingEditSheet.toggle()
                         }

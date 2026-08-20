@@ -220,10 +220,10 @@ struct BookSheetView: View {
                             onCancel: {},
                             onConfirm: {
                                 
-                                if(bookToEdit != nil){
+                                if let book = bookToEdit {
                                     do{
                                         try booksViewModel.updateBook(
-                                            book: bookToEdit!,
+                                            book: book,
                                             bookTitle: bookTitle,
                                             bookAuthor: bookAuthor,
                                             bookCover: photoLibraryViewModel.selectedCoverImage,
