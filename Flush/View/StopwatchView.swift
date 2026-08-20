@@ -150,7 +150,6 @@ struct StopwatchView: View {
                         NoteSheetView(book: PreviewProviderHelper.sampleBook)
                     }
                     
-                    
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, geometry.safeAreaInsets.top > 0 ? 8 : 16),

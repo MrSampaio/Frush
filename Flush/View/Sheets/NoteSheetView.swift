@@ -1,5 +1,5 @@
 //
-//  SheetNotes.swift
+//  NoteSheetView.swift
 //  CH4-Books
 //
 //  Created by Lucas on 14/08/26.
@@ -10,167 +10,116 @@ import PhotosUI
 import CoreData
 
 struct NoteSheetView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
-    @EnvironmentObject var notesViewModel: NotesViewModel
-    @EnvironmentObject var booksViewModel: BooksViewModel
-    
-    @State private var hasLoaded = false
-    
-    @State var showingDiscardAlert: Bool = false
+
+    // MARK: - Ambiente
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var notesViewModel: NotesViewModel
+
+    // MARK: - Entradas
+    let book: Books
+    let noteToEdit: Notes?
+
+    @State private var noteTitle: String
+    @State private var noteDescription: String
+    @State private var noteImages: [SelectableImage]
+    @State private var selectedCategory: String
+
+    // MARK: - Fluxo de mídia
+    @State private var pickedItems: [PhotosPickerItem] = []
+    @State private var isShowingPhotoPicker = false
+    @State private var isShowingCamera = false
+
+    // MARK: - Alertas
+    @State private var showingDiscardAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    
-    @State private var noteTitle: String = ""
-    @State private var noteDescription: String = ""
-    @State var image: UIImage? = nil
-    @State var selectedCategory: String = ""
-    
-    @State private var selectedBook: Books? = nil
-    
-    @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var showCameraPicker = false
-    @State private var capturedImage: UIImage? = nil
-    @State private var showMediaSourceMenu = false
-    @State private var showPhotoPicker = false
-    
-    var book: Books
-    var noteToEdit: Notes?
-    
-    private var toolbarTitle: String {
-        if noteToEdit != nil {
-            return "Editar nota"
-        } else {
-            return "Adicionar nota"
-        }
+
+    private static let maxImages = 3
+
+    // MARK: - Init
+    init(book: Books, noteToEdit: Notes? = nil) {
+        self.book = book
+        self.noteToEdit = noteToEdit
+
+        _noteTitle = State(initialValue: noteToEdit?.noteTitle ?? "")
+        _noteDescription = State(initialValue: noteToEdit?.noteDescription ?? "")
+        _selectedCategory = State(initialValue: noteToEdit?.noteCategory ?? "")
+
+        let existingImages = ((noteToEdit?.notePhoto as? [Data]) ?? [])
+            .compactMap { UIImage(data: $0) }
+            .prefix(Self.maxImages)
+            .map { SelectableImage(image: $0) }
+
+        _noteImages = State(initialValue: Array(existingImages))
     }
-    
+
+    private var toolbarTitle: String {
+        noteToEdit != nil ? "Editar nota" : "Adicionar nota"
+    }
+
+    private var isLimitReached: Bool {
+        noteImages.count >= Self.maxImages
+    }
+
+    private var remainingSlots: Int {
+        max(1, Self.maxImages - noteImages.count)
+    }
+
+    private var isCameraAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
+
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             ZStack {
                 Color("BackgroundColorViews")
                     .ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 17) {
-                            noteContentHeader
-                            titleField
-                            noteTextEditor
-                            selectedImagePreview
-                            mediaSection
-                        }
-                        .padding(.horizontal)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 17) {
+                        noteContentHeader
+                        titleField
+                        noteTextEditor
+                        mediaSection
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
                 }
-                .padding(.top, 20)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    SheetHeaderView(
-                        title: toolbarTitle,
-                        actionIcon: "checkmark",
-                        showingDiscardAlert: $showingDiscardAlert,
-                        onCancel: {
-                            // Força a remoção do foco do teclado antes de fechar a sheet
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            dismiss()
-                        },
-                        onConfirm: handleConfirm,
-                        onDiscard: {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            dismiss()
-                        }
-                    )
+                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                    Button("Tentar novamente", role: .cancel) { }
+                } message: {
+                    Text(errorMessage)
                 }
             }
-            .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
-                Button("Tentar novamente", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
-            }
-            .onChange(of: selectedItems) { newItems in
-                photoLibraryViewModel.loadPickedItems(newItems)
-                selectedItems.removeAll()
-            }
-            .fullScreenCover(isPresented: $showCameraPicker) {
-                CameraPicker(selectedImage: $capturedImage)
-                    .ignoresSafeArea()
-            }
-            .photosPicker(
-                isPresented: $showPhotoPicker,
-                selection: $selectedItems,
-                maxSelectionCount: 3 - photoLibraryViewModel.noteImages.count,
-                matching: .images
-            )
-            .onChange(of: capturedImage) { newImage in
-                photoLibraryViewModel.appendCapturedImage(newImage)
-                capturedImage = nil
-            }
-            
-            .confirmationDialog("Selecione a origem da imagem", isPresented: $showMediaSourceMenu, titleVisibility: .hidden) {
-                Button("Tirar foto com a Câmera") {
-                    showCameraPicker = true
-                }
-                Button("Escolher da Galeria") {
-                    showPhotoPicker = true
-                }
-                Button("Cancelar", role: .cancel) { }
-            }
-            
-            .onAppear {
-                guard !hasLoaded else { return }
-                hasLoaded = true
-                
-                photoLibraryViewModel.resetNoteImages()
-                
-                photoLibraryViewModel.resetNoteImages()
-                
-                if let note = noteToEdit {
-                    noteTitle = note.noteTitle ?? ""
-                    noteDescription = note.noteDescription ?? ""
-                    
-                    if let photosData = note.notePhoto as? [Data] {
-                        let existingImages = photosData.compactMap { UIImage(data: $0) }
-                        photoLibraryViewModel.loadExistingImages(existingImages)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                SheetHeaderView(
+                    title: toolbarTitle,
+                    actionIcon: "checkmark",
+                    showingDiscardAlert: $showingDiscardAlert,
+                    onCancel: {
+                        hideKeyboard()
+                        dismiss()
+                    },
+                    onConfirm: handleConfirm,
+                    onDiscard: {
+                        hideKeyboard()
+                        dismiss()
                     }
+                )
+            }
+
+            .fullScreenCover(isPresented: $isShowingCamera) {
+                CameraPicker { image in
+                    appendImage(image)
                 }
+                .ignoresSafeArea()
             }
         }
     }
-    
-    private func handleConfirm() {
-        do {
-            if let note = noteToEdit {
-                try notesViewModel.updateNote(
-                    note: note,
-                    noteTitle: noteTitle,
-                    noteDescription: noteDescription,
-                    notePhotos: photoLibraryViewModel.noteImages.map(\.image)
-                )
-            } else {
-                try notesViewModel.addNote(
-                    noteTitle: noteTitle,
-                    noteDescription: noteDescription,
-                    noteCategory: selectedCategory,
-                    notePhotos: photoLibraryViewModel.noteImages.map(\.image),
-                    to: book
-                )
-            }
-            
-            notesViewModel.fetchNotes(for: book)
-            photoLibraryViewModel.resetNoteImages()
-            
-            dismiss()
-            
-        } catch let error as LocalizedError {
-            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-            showErrorAlert = true
-        } catch {
-            errorMessage = "Erro inesperado."
-            showErrorAlert = true
-        }
-    }
-    
+
+    // MARK: - Cabeçalho
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Livro: \(book.bookTitle ?? "Sem título")")
@@ -178,29 +127,27 @@ struct NoteSheetView: View {
                 .foregroundColor(Color("TextFieldPlaceholderColor"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
-            
+
             Text("Conteúdo da nota")
                 .font(.system(.title, weight: .medium))
                 .foregroundColor(Color("Texts"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
-            
+
             TipsComponent(
                 content: "Adicione um título e um conteúdo para a sua nota."
             )
         }
     }
-    
+
     private var titleField: some View {
-        
-        //        var let titleText = noteToEdit != nil ?? noteToEdit?.noteTitle : "Adicione o título"
         TextFieldSheets(
             text: $noteTitle,
             placeholder: "Adicione o título",
             label: nil
         )
     }
-    
+
     private var noteTextEditor: some View {
         ZStack(alignment: .topLeading) {
             if noteDescription.isEmpty {
@@ -212,7 +159,7 @@ struct NoteSheetView: View {
                     .allowsHitTesting(false)
                     .font(.system(.body, weight: .regular))
             }
-            
+
             TextEditor(text: $noteDescription)
                 .padding(8)
                 .scrollContentBackground(.hidden)
@@ -226,82 +173,73 @@ struct NoteSheetView: View {
                 )
         }
     }
-    
-    @ViewBuilder
-    private var selectedImagePreview: some View {
-        if let selectedImage = photoLibraryViewModel.selectedImage {
-            Image(uiImage: selectedImage)
-                .resizable()
-                .scaledToFill()
-                .frame(height: 200)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .cornerRadius(10)
-        }
-    }
-    
+
+    // MARK: - Mídia
     private var mediaSection: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            
-            if !photoLibraryViewModel.noteImages.isEmpty {
+        VStack(alignment: .leading, spacing: 12) {
+
+            if !noteImages.isEmpty {
                 mediaThumbnailsRow
             }
-            
-            mediaPickerMenu
-            
+
+            mediaSourceMenu
+
             TipsComponent(
                 content: "Você pode adicionar até 3 fotos em uma mesma nota."
             )
         }
+        .photosPicker(
+            isPresented: $isShowingPhotoPicker,
+            selection: $pickedItems,
+            maxSelectionCount: remainingSlots,
+            matching: .images,
+            photoLibrary: .shared()
+        )
+        .onChange(of: pickedItems) { _, newItems in
+            guard !newItems.isEmpty else { return }
+            Task { await loadPickedItems(newItems) }
+        }
     }
-    
+
     private var mediaThumbnailsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(photoLibraryViewModel.noteImages) { item in
+                ForEach(noteImages) { item in
                     MediaThumbnailView(image: item.image) {
-                        photoLibraryViewModel.removeNoteImage(id: item.id)
+                        noteImages.removeAll { $0.id == item.id }
                     }
                 }
             }
         }
     }
     
-    private var mediaPickerMenu: some View {
-        let imagesCount = photoLibraryViewModel.noteImages.count
-        let isLimitReached = imagesCount >= 3
-        let mediaButtonText: String = imagesCount == 0
-        ? "Adicionar fotos"
-        : "Adicionar mais fotos (\(imagesCount)/3)"
-        
-        return Menu {
+    private var mediaSourceMenu: some View {
+        Menu {
             Button {
-                // Ação da Câmera (ajuste com a sua flag/método)
-                showCameraPicker = true
+                isShowingCamera = true
             } label: {
-                Label("Tirar Foto", systemImage: "camera")
+                Label("Tirar foto", systemImage: "camera")
             }
-            
+            .disabled(!isCameraAvailable)
+
             Button {
-                // Ação da Galeria (ajuste com a sua flag/método)
-                //showPhotoLibraryPicker = true
+                isShowingPhotoPicker = true
             } label: {
-                Label("Escolher da Biblioteca", systemImage: "photo.on.rectangle")
+                Label("Escolher da galeria", systemImage: "photo.on.rectangle")
             }
         } label: {
             HStack {
                 Image(systemName: "camera.viewfinder")
-                    .foregroundColor(Color("AddNoteImage"))
-                
+
                 Text(mediaButtonText)
-                    .foregroundColor(Color("AddNoteImage"))
                     .font(.system(.body, weight: .regular))
-                
+
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(Color("AddNoteImage"))
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote.weight(.semibold))
             }
+            .foregroundColor(Color("AddNoteImage"))
             .padding()
             .contentShape(Rectangle())
             .overlay(
@@ -309,13 +247,83 @@ struct NoteSheetView: View {
                     .stroke(Color("LinesColor"), lineWidth: 0.5)
             )
         }
+        .menuOrder(.fixed)
+        .buttonStyle(.plain)
         .disabled(isLimitReached)
         .opacity(isLimitReached ? 0.5 : 1.0)
     }
+
+    private var mediaButtonText: String {
+        if noteImages.isEmpty {
+            return "Adicionar fotos"
+        } else {
+            return "Adicionar mais fotos (\(noteImages.count)/\(Self.maxImages))"
+        }
+    }
+
+    // MARK: - Ações de mídia
+    @MainActor
+    private func loadPickedItems(_ items: [PhotosPickerItem]) async {
+        for item in items {
+            guard noteImages.count < Self.maxImages else { break }
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else { continue }
+
+            noteImages.append(SelectableImage(image: image))
+        }
+        pickedItems.removeAll()
+    }
+
+    private func appendImage(_ image: UIImage?) {
+        guard let image, noteImages.count < Self.maxImages else { return }
+        noteImages.append(SelectableImage(image: image))
+    }
+
+    // MARK: - Salvar
+    private func handleConfirm() {
+        hideKeyboard()
+
+        do {
+            if let note = noteToEdit {
+                try notesViewModel.updateNote(
+                    note: note,
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    notePhotos: noteImages.map(\.image)
+                )
+            } else {
+                try notesViewModel.addNote(
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    noteCategory: selectedCategory,
+                    notePhotos: noteImages.map(\.image),
+                    to: book
+                )
+            }
+
+            notesViewModel.fetchNotes(for: book)
+            dismiss()
+
+        } catch let error as LocalizedError {
+            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+            showErrorAlert = true
+        } catch {
+            errorMessage = "Erro inesperado."
+            showErrorAlert = true
+        }
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
 }
+
 #Preview {
     NoteSheetView(book: PreviewProviderHelper.sampleBook)
-        .environmentObject(PhotoLibraryViewModel())
-        .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
 }
