@@ -14,14 +14,29 @@ struct BookSheetView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     
-    @State var bookToEdit: Books? 
+    @State var bookToEdit: Books?
+    @State private var initialCoverImage: UIImage? = nil
     
-    private var toolbarTitle: String{
-        if bookToEdit != nil {
-            return "Editar livro"
+    private var hasChanges: Bool {
+        if let book = bookToEdit {
+            let titleChanged = bookTitle != (book.bookTitle ?? "")
+            let authorChanged = bookAuthor != (book.bookAuthor ?? "")
+            let categoryChanged = selectedCategory != (book.bookCategory ?? "")
+            let pagesChanged = bookTotalPages != (book.bookTotalPages > 0 ? String(book.bookTotalPages) : "")
+            let imageChanged = photoLibraryViewModel.selectedCoverImage != initialCoverImage
+            
+            return titleChanged || authorChanged || categoryChanged || pagesChanged || imageChanged
         } else {
-            return "Adicionar livro"
+            return !bookTitle.isEmpty
+                || !bookAuthor.isEmpty
+                || !selectedCategory.isEmpty
+                || !bookTotalPages.isEmpty
+                || photoLibraryViewModel.selectedCoverImage != nil
         }
+    }
+    
+    private var toolbarTitle: String {
+        bookToEdit != nil ? "Editar livro" : "Adicionar livro"
     }
     
     @State private var showingDiscardAlert: Bool = false
@@ -29,94 +44,10 @@ struct BookSheetView: View {
     @State private var errorMessage = ""
     
     @State private var bookTitle = ""
-//    @State private var selectedGoal: String = ""
     @State private var selectedCategory: String = ""
     @State private var bookTotalPages: String = ""
-//    @State private var bookLastPage: String = ""
     @State private var bookAuthor: String = ""
-    
-    @ViewBuilder
-    private var SelectCategoryField: some View {
-        if let currentBook = bookToEdit {
-            MenuSheetPicker(
-                    title: "Categoria",
-                    placeholder: "Adicione a categoria",
-                    selectedValue: Binding(
-                        get: { bookToEdit != nil ? (bookToEdit?.bookCategory ?? "") : selectedCategory },
-                        set: { newValue in
-                            if bookToEdit != nil { bookToEdit?.bookCategory = newValue }
-                            else { selectedCategory = newValue }
-                        }
-                    ),
-                    options: booksViewModel.bookCategories
-                )
-        }
-    }
-    
-    
-    @ViewBuilder
-    private var TitleField: some View {
-        if let currentBook = bookToEdit {
-            TextFieldSheets(
-                text: Binding(
-                    get: { currentBook.bookTitle ?? "" },
-                    set: { bookToEdit?.bookTitle = $0 }
-                ),
-                placeholder: "Edite o título",
-                label: "Título"
-            )
-        } else {
-            TextFieldSheets(
-                text: $bookTitle,
-                placeholder: "Adicione o título",
-                label: "Título"
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private var AuthorField: some View {
-        if let currentBook = bookToEdit {
-            TextFieldSheets(
-                text: Binding(
-                    get: { currentBook.bookAuthor ?? "" },
-                    set: { bookToEdit?.bookAuthor = $0 }
-                ),
-                placeholder: "Edite o título",
-                label: "Título"
-            )
-        } else {
-            TextFieldSheets(
-                text: $bookAuthor,
-                placeholder: "Adicione o título",
-                label: "Título"
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private var TotalPagesField: some View {
-        if let currentBook = bookToEdit {
-            TextFieldSheets(
-                text: Binding(
-                    get: { String(currentBook.bookTotalPages) },
-                    set: { if let value = Int16($0) { bookToEdit?.bookTotalPages = value } }
-                ),
-                placeholder: "Edite a quantidade de páginas",
-                label: "Páginas"
-            )
-            .keyboardType(.numberPad)
-        } else {
-            TextFieldSheets(
-                text: $bookTotalPages,
-                placeholder: "Adicione a quantidade de páginas",
-                label: "Páginas"
-            )
-            .keyboardType(.numberPad)
-        }
-    }
 
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -124,10 +55,10 @@ struct BookSheetView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    ScrollView(showsIndicators: false){
+                    ScrollView(showsIndicators: false) {
                         VStack(spacing: 17) {
                             
-                            //capa do livro
+                            // Capa do livro
                             VStack {
                                 PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images) {
                                     ZStack(alignment: .bottomTrailing) {
@@ -148,7 +79,6 @@ struct BookSheetView: View {
                                             }
                                         }
                                         
-                                        
                                         Image(systemName: "plus")
                                             .font(.title2)
                                             .fontWeight(.semibold)
@@ -157,8 +87,8 @@ struct BookSheetView: View {
                                             .background(.ultraThinMaterial, in: Circle())
                                             .clipShape(Circle())
                                             .overlay(
-                                                    Circle()
-                                                        .stroke(Color.white.opacity(0.2), lineWidth: 1) 
+                                                Circle()
+                                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                             )
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 6)
@@ -182,8 +112,7 @@ struct BookSheetView: View {
                                 }
                             }
                             
-                            //detalhes do livro
-
+                            // Detalhes do livro
                             TextFieldSheets(text: $bookTitle, placeholder: "Adicione o título", label: "Título")
                             TextFieldSheets(text: $bookAuthor, placeholder: "Adicione o autor(a)", label: "Autor(a)")
 
@@ -196,18 +125,6 @@ struct BookSheetView: View {
 
                             TextFieldSheets(text: $bookTotalPages, placeholder: "Adicione a quantidade de páginas", label: "Páginas")
                                 .keyboardType(.numberPad)
-                            
-//                            TextFieldSheets(text: $bookLastPage, placeholder: "Exemplo: 125", label: "Última página lida")
-//                                .keyboardType(.numberPad)
-                            
-//                            MenuSheetPicker(
-//                                title: "Objetivo diário",
-//                                placeholder: "Objetivo diário (minutos)",
-//                                selectedValue: $selectedGoal,
-//                                options: booksViewModel.goalOptions,
-//                                formatOption: { "\($0) minutos" }
-//                            )
-                            
                         }
                         .padding(.horizontal)
                     }
@@ -217,58 +134,15 @@ struct BookSheetView: View {
                         SheetHeaderView(
                             title: toolbarTitle,
                             actionIcon: "checkmark",
+                            hasChanges: hasChanges,
                             showingDiscardAlert: $showingDiscardAlert,
-                            onCancel: {},
+                            onCancel: { dismiss() },
                             onConfirm: {
-                                
-                                if let book = bookToEdit {
-                                    do{
-                                        try booksViewModel.updateBook(
-                                            book: book,
-                                            bookTitle: bookTitle,
-                                            bookAuthor: bookAuthor,
-                                            bookCover: photoLibraryViewModel.selectedCoverImage,
-                                            bookCategory: selectedCategory,
-                                            bookTotalPages: bookTotalPages
-                                        )
-                                        
-                                        booksViewModel.fetchBooks()
-                                        dismiss()
-                                        
-                                    } catch let error as LocalizedError{
-                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                        showErrorAlert = true
-                                    } catch {
-                                        errorMessage = "Erro inesperado."
-                                        showErrorAlert = true
-                                    }
-                                } else{
-                                    do{
-                                        try booksViewModel.addBook(
-                                            bookTitle: bookTitle,
-                                            bookAuthor: bookAuthor,
-                                            bookCover: photoLibraryViewModel.selectedCoverImage,
-                                            bookCategory: selectedCategory,
-                                            bookTotalPages: bookTotalPages
-                                        )
-                                        
-                                        booksViewModel.fetchBooks()
-                                        dismiss()
-                                        
-                                    } catch let error as LocalizedError{
-                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                        showErrorAlert = true
-                                    } catch {
-                                        errorMessage = "Erro inesperado."
-                                        showErrorAlert = true
-                                    }
-                                }
-
+                                handleSave()
                             },
                             onDiscard: { dismiss() }
                         )
                     }
-                    
                     .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
                         Button("Tentar novamente", role: .cancel) { }
                     } message: {
@@ -283,15 +157,61 @@ struct BookSheetView: View {
                             
                             if let imageData = book.bookCover, let image = UIImage(data: imageData) {
                                 photoLibraryViewModel.selectedCoverImage = image
+                                initialCoverImage = image
+                            } else {
+                                photoLibraryViewModel.selectedCoverImage = nil
+                                initialCoverImage = nil
                             }
+                        } else {
+                            photoLibraryViewModel.selectedCoverImage = nil
+                            initialCoverImage = nil
                         }
                     }
                 }
             }
         }
     }
+    private func handleSave() {
+        if let book = bookToEdit {
+            do {
+                try booksViewModel.updateBook(
+                    book: book,
+                    bookTitle: bookTitle,
+                    bookAuthor: bookAuthor,
+                    bookCover: photoLibraryViewModel.selectedCoverImage,
+                    bookCategory: selectedCategory,
+                    bookTotalPages: bookTotalPages
+                )
+                booksViewModel.fetchBooks()
+                dismiss()
+            } catch let error as LocalizedError {
+                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                showErrorAlert = true
+            } catch {
+                errorMessage = "Erro inesperado."
+                showErrorAlert = true
+            }
+        } else {
+            do {
+                try booksViewModel.addBook(
+                    bookTitle: bookTitle,
+                    bookAuthor: bookAuthor,
+                    bookCover: photoLibraryViewModel.selectedCoverImage,
+                    bookCategory: selectedCategory,
+                    bookTotalPages: bookTotalPages
+                )
+                booksViewModel.fetchBooks()
+                dismiss()
+            } catch let error as LocalizedError {
+                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                showErrorAlert = true
+            } catch {
+                errorMessage = "Erro inesperado."
+                showErrorAlert = true
+            }
+        }
+    }
 }
-
 #Preview {
     BookSheetView(bookToEdit: nil)
         .environmentObject(PhotoLibraryViewModel())
