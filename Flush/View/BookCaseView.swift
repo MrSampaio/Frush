@@ -44,6 +44,14 @@ struct BookCaseView: View {
                         
                         CardTotalPages(totalPages: bookViewModel.countReadedPages())
                         
+                        DailyGoalCardView(
+                            pagesReadToday: 12,
+                            targetPages: 30,
+                            onEditAction: {
+                                print("Editar meta clicado")
+                            }
+                        )
+                        
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(books) { book in
                                 NavigationLink(destination: BookDetailView(bookViewModel: bookViewModel, book: book)){
