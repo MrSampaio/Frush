@@ -86,9 +86,13 @@ struct BookCaseView: View {
 //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
 //            }
 //        }
-        .sheet(isPresented: $isShowingSheet) {
+        .sheet(isPresented: $isShowingSheet, onDismiss: {
+            booksViewModel.fetchBooks()
+        }) {
             BookSheetView(bookToEdit: nil)
-                .environmentObject(booksViewModel)
+                .environmentObject(PhotoLibraryViewModel())
+                .environmentObject(BooksViewModel())
+                
         }
     }
 }

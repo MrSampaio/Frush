@@ -29,10 +29,10 @@ struct BookSheetView: View {
     @State private var errorMessage = ""
     
     @State private var bookTitle = ""
-    @State private var selectedGoal: String = ""
+//    @State private var selectedGoal: String = ""
     @State private var selectedCategory: String = ""
     @State private var bookTotalPages: String = ""
-    @State private var bookLastPage: String = ""
+//    @State private var bookLastPage: String = ""
     @State private var bookAuthor: String = ""
     
     @ViewBuilder
@@ -132,7 +132,7 @@ struct BookSheetView: View {
                                 PhotosPicker(selection: $photoLibraryViewModel.selectedItem, matching: .images) {
                                     ZStack(alignment: .bottomTrailing) {
                                         Group {
-                                            if let selectedImage = photoLibraryViewModel.selectedImage {
+                                            if let selectedImage = photoLibraryViewModel.selectedCoverImage {
                                                 Image(uiImage: selectedImage)
                                                     .resizable()
                                                     .scaledToFill()
@@ -149,7 +149,7 @@ struct BookSheetView: View {
                                         }
                                         
                                         
-                                        Image(systemName: photoLibraryViewModel.selectedImage == nil ? "plus" : "trash")
+                                        Image(systemName: "plus")
                                             .font(.title2)
                                             .fontWeight(.semibold)
                                             .foregroundColor(.title)
@@ -169,10 +169,10 @@ struct BookSheetView: View {
                                 .padding(.trailing, 12)
                             }
                             
-                            if photoLibraryViewModel.selectedImage != nil {
+                            if photoLibraryViewModel.selectedCoverImage != nil {
                                 Button(action: {
                                     withAnimation {
-                                        photoLibraryViewModel.selectedImage = nil
+                                        photoLibraryViewModel.selectedCoverImage = nil
                                         photoLibraryViewModel.selectedItem = nil
                                     }
                                 }) {
@@ -227,15 +227,13 @@ struct BookSheetView: View {
                                     
 //                                    let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
                                     
-//                                    try booksViewModel.addBook(
-//                                        bookTitle: bookTitle,
-//                                        bookAuthor: bookAuthor,
-//                                        bookCover: photoLibraryViewModel.selectedImage,
-//                                        bookCategory: selectedCategory,
-//                                        bookTotalPages: bookTotalPages,
-//                                        bookCurrentPage: lastPageInt,
-//                                        bookGoal: goalInt
-//                                    )
+                                    try booksViewModel.addBook(
+                                        bookTitle: bookTitle,
+                                        bookAuthor: bookAuthor,
+                                        bookCover: photoLibraryViewModel.selectedImage,
+                                        bookCategory: selectedCategory,
+                                        bookTotalPages: bookTotalPages
+                                    )
                                     
                                     booksViewModel.fetchBooks()
                                     dismiss()
@@ -265,7 +263,7 @@ struct BookSheetView: View {
                             bookTotalPages = book.bookTotalPages > 0 ? String(book.bookTotalPages) : ""
                             
                             if let imageData = book.bookCover, let image = UIImage(data: imageData) {
-                                photoLibraryViewModel.selectedImage = image
+                                photoLibraryViewModel.selectedCoverImage = image
                             }
                         }
                     }

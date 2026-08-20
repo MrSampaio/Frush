@@ -6,14 +6,15 @@
 //
 // test
 import Foundation
+import SwiftUI
 import CoreData
 import Combine
 import PhotosUI
 
 class BooksViewModel: ObservableObject {
+    
+//    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @Published var savedBooks: [Books] = []
-    
-    
     
     enum BookError: LocalizedError {
         case invalidTitle
@@ -87,11 +88,11 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, bookCurrentPage: String) throws{
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws{
         
         
         let totalPagesInt = Int16(bookTotalPages) ?? 0
-        let currentePageInt = Int16(bookCurrentPage) ?? 0
+//        let currentePageInt = Int16(bookCurrentPage) ?? 0
         //let lastPageInt = Int16(bookLastPage) ?? 0
         
         let cleanTitle = bookTitle.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -109,9 +110,24 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidTotalPages
         }
         
-        if currentePageInt <= 0 {
-            throw BookError.invalidCurrentPage
-        }
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        
+        let newBook = Books(context: CoreDataManager.shared.viewContext)
+        newBook.bookTitle = cleanTitle
+        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
+        newBook.bookCover = coverData
+        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
+        newBook.bookTotalPages = totalPagesInt
+//        newBook.bookCurrentPage = bookCurrentPage
+//        newBook.bookGoal = bookGoal
+        newBook.isTimerRunning = false
+        newBook.wasLastPageAdded = true
+
+        
+//        if currentePageInt <= 0 {
+//            throw BookError.invalidCurrentPage
+//        }
         
         
 //        if bookCurrentPage < 0{
@@ -125,17 +141,7 @@ class BooksViewModel: ObservableObject {
 //        if bookGoal <= 0{
 //            throw BookError.invalidGoal
 //        }
-        
-//        let newBook = Books(context: CoreDataManager.shared.viewContext)
-//        newBook.bookTitle = cleanTitle
-//        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
-//        newBook.bookCover = bookCover
-//        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
-//        newBook.bookTotalPages = bookTotalPages
-//        newBook.bookCurrentPage = bookCurrentPage
-//        newBook.bookGoal = bookGoal
-//        newBook.isTimerRunning = false
-//        newBook.wasLastPageAdded = true
+
         
         try self.saveBook()
         

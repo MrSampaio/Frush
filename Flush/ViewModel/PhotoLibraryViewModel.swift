@@ -28,7 +28,9 @@ class PhotoLibraryViewModel: ObservableObject {
     
     //@Published var selectedImage: UIImage? = UIImage(named: "defaultBook")
     
-    @Published var selectedImage: UIImage?
+    @Published var selectedCoverImage: UIImage? = UIImage(named: "defaultBook") ?? UIImage()
+    
+    @Published var selectedImage: UIImage? = nil
     
     @Published var noteImages: [SelectableImage] = []
     
@@ -39,7 +41,7 @@ class PhotoLibraryViewModel: ObservableObject {
         if let data = try? await item.loadTransferable(type: Data.self),
            let image = UIImage(data: data) {
             DispatchQueue.main.async {
-                self.selectedImage = image
+                self.selectedCoverImage = image
             }
         }
     }
@@ -47,17 +49,25 @@ class PhotoLibraryViewModel: ObservableObject {
     func saveImageToCoreData(image: UIImage){
         let newPhoto = Books(context: CoreDataManager.shared.viewContext)
         
-        if let imageData = image.jpegData(compressionQuality: 1){
-            newPhoto.bookCover = imageData
-        }
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+        
+        newPhoto.bookCover = imageData
         
         do {
             try CoreDataManager.shared.viewContext.save()
-            print("Success when trying to save book cover")
-        } catch let error{
-            print("Success when trying to save book cover \(error)")
+            print("Sucesso ao salvar a capa do livro.")
+        } catch let error {
+            print("Erro ao tentar salvar a capa do livro: \(error)")
         }
+    }
+    
+    func convertImageToData(image: UIImage) -> Data?{
 
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+        
+        return imageData
     }
     
     func getCoverImage(for book: Books) -> UIImage? {

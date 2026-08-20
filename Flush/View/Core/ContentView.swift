@@ -15,6 +15,7 @@ struct ContentView: View {
         TabView {
             Tab("Estante", systemImage: "book"){
                 BookCaseView(booksViewModel: BooksViewModel())
+                    .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
                 StopwatchView()
