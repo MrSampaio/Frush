@@ -43,7 +43,9 @@ struct BookDetailView: View {
                             VStack(spacing: 16) {
                                 NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
                                 
-                                NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3)))
+                                NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
+                                    notesViewModel.fetchNotes(for: currentBook)
+                                }
                                 
                                 NavigationLink(destination: MyNotesListView(book: currentBook)) {
                                     

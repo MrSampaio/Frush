@@ -9,9 +9,16 @@
 import Combine
 import Foundation
 
+enum TimerState {
+    case stopped
+    case running
+    case paused
+}
+
 class StopwatchViewModel: ObservableObject {
-    @Published var elapsedTime: TimeInterval = 10
-    @Published var totalTime: TimeInterval = 10
+    @Published var timerState: TimerState = .stopped
+    @Published var elapsedTime: TimeInterval = 0
+    @Published var totalTime: TimeInterval = 0
     @Published var isRunning: Bool = false
     @Published var timer: Timer? = nil
     
@@ -30,33 +37,71 @@ class StopwatchViewModel: ObservableObject {
         guard totalPages > 0 else { return 0 }
         return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
     }
+    
+    // configura a duração inicial (chamado ao rolar o Picker)
+    func setDuration(_ duration: TimeInterval) {
+        self.totalTime = duration
+        self.elapsedTime = duration
+    }
         
-    func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+    func startTimer() {
+        timerState = .running
+        isRunning = true
+        
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
             if self.elapsedTime > 0 {
                 self.elapsedTime -= 0.1
             } else {
                 self.stop()
             }
-            
         }
     }
     
-    func stop() {
+    func pauseTimer() {
+        timerState = .paused
         isRunning = false
         timer?.invalidate()
         timer = nil
+    }
+    
+    // para a contagem ao finalizar o tempo
+    func stop() {
+        timerState = .stopped
+        isRunning = false
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    // Abandona a leitura e reseta o cronômetro para o valor original
+    func abandonTimer() {
+        stop()
+        elapsedTime = totalTime
     }
     
     func updatePage(to newPage: Int) {
         self.currentPage = newPage
     }
     
+    /*
     func timerFormater() -> String{
         let current = max(0, Int(elapsedTime))
         return String(format: "%02d:%02d", current / 60, current % 60)
     }
-    
+    */
+    func timerFormater() -> String {
+        let current = max(0, Int(elapsedTime))
+        let hours = current / 3600
+        let minutes = (current % 3600) / 60
+        let seconds = current % 60
+        
+        if hours > 0 {
+            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            return String(format: "%02d:%02d", minutes, seconds)
+        }
+    }
 }
  ⁠
 
@@ -71,66 +116,66 @@ class StopwatchViewModel: ObservableObject {
 //  Created by Julio Sampaio on 13/08/26.
 //
 
-import Foundation
-import CoreData
-
-class CoreDataManager{
-    let persistentContainer: NSPersistentContainer
-    static let shared = CoreDataManager()
-    
-    var viewContext: NSManagedObjectContext{
-        return self.persistentContainer.viewContext
-    }
-    
-    init(){
-        self.persistentContainer = NSPersistentContainer(name: "Database")
-        self.persistentContainer.loadPersistentStores { (description, error) in
-            if let error = error{
-                print("Error loading persistent stores: \(error)")
-            }
-        }
-        
-        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-    }
-}
-
-////
-////  CoreDataManager.swift
-////  CH4-Books
-////
-////  Created by Julio Sampaio on 13/08/26.
-////
-//
 //import Foundation
 //import CoreData
 //
-//class CoreDataManager {
+//class CoreDataManager{
 //    let persistentContainer: NSPersistentContainer
 //    static let shared = CoreDataManager()
 //    
-//    var viewContext: NSManagedObjectContext {
+//    var viewContext: NSManagedObjectContext{
 //        return self.persistentContainer.viewContext
 //    }
 //    
-//    init() {
+//    init(){
 //        self.persistentContainer = NSPersistentContainer(name: "Database")
-//        
-//        // Configurar para usar memória RAM
-//        let description = NSPersistentStoreDescription()
-//        description.type = NSInMemoryStoreType  // ← Aqui é a mágica
-//        self.persistentContainer.persistentStoreDescriptions = [description]
-//        
 //        self.persistentContainer.loadPersistentStores { (description, error) in
-//            if let error = error {
+//            if let error = error{
 //                print("Error loading persistent stores: \(error)")
-//            } else {
-//                print("Core Data loaded in memory ✅")
 //            }
 //        }
 //        
 //        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
 //    }
 //}
+
+//
+//  CoreDataManager.swift
+//  CH4-Books
+//
+//  Created by Julio Sampaio on 13/08/26.
+//
+
+import Foundation
+import CoreData
+
+class CoreDataManager {
+    let persistentContainer: NSPersistentContainer
+    static let shared = CoreDataManager()
+    
+    var viewContext: NSManagedObjectContext {
+        return self.persistentContainer.viewContext
+    }
+    
+    init() {
+        self.persistentContainer = NSPersistentContainer(name: "Database")
+        
+        // Configurar para usar memória RAM
+        let description = NSPersistentStoreDescription()
+        description.type = NSInMemoryStoreType  // ← Aqui é a mágica
+        self.persistentContainer.persistentStoreDescriptions = [description]
+        
+        self.persistentContainer.loadPersistentStores { (description, error) in
+            if let error = error {
+                print("Error loading persistent stores: \(error)")
+            } else {
+                print("Core Data loaded in memory ✅")
+            }
+        }
+        
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+    }
+}
 
  ⁠
 
@@ -193,6 +238,24 @@ class NotesViewModel: ObservableObject {
         }
     }
     
+    //depois avaliar se realemtne e necessaria
+    func fetchNotes(for book: Books?) {
+        guard let book = book else {
+            self.savedNotes = []
+            return
+        }
+        
+        let request = NSFetchRequest<Notes>(entityName: "Notes")
+        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
+        request.predicate = NSPredicate(format: "book == %@", book)
+        
+        do {
+            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
+        } catch let error {
+            print("Erro ao buscar anotações do livro: \(error)")
+        }
+    }
+    
     // funcao para salvar notas (chama ela sempre que quer subir efetivamente para o banco)
     func saveNote() throws {
         do {
@@ -235,6 +298,56 @@ class NotesViewModel: ObservableObject {
         self.fetchNotes()
     }
     
+    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage]) throws {
+
+        
+//        let totalPagesInt = Int16(bookTotalPages) ?? 0
+        
+        
+        
+//        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//        
+//        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+
+        let finalTitle = (noteTitle.trimmingCharacters(in: .whitespacesAndNewlines))
+        let finalDescription = (noteDescription.trimmingCharacters(in: .whitespacesAndNewlines))
+        
+        if finalTitle.isEmpty {
+            throw NoteError.invalidTitle
+        }
+        
+        if finalDescription.isEmpty {
+            throw NoteError.invalidDescription
+        }
+        
+        if(note.noteTitle != finalTitle){
+            note.noteTitle = finalTitle
+        }
+        
+        if(note.noteDescription != noteDescription){
+            note.noteDescription = noteDescription
+        }
+        
+        var photosDataArray: [Data] = []
+        for photo in notePhotos {
+            if let data = photo.jpegData(compressionQuality: 0.8) {
+                photosDataArray.append(data)
+            }
+        }
+        
+        if(note.notePhoto != photosDataArray as NSObject){
+            note.notePhoto = photosDataArray as NSObject
+        }
+        
+        
+//        if(book.bookCover != coverData){
+//            book.bookCover = coverData
+//        }
+        
+        try self.saveNote()
+        self.fetchNotes()
+    }
+    
     // funcao para deletar notas
     func deleteNote(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
@@ -250,41 +363,28 @@ class NotesViewModel: ObservableObject {
         
         self.fetchNotes()
     }
-    
-    private func savePhotoToDisk(_ image: UIImage?) -> String? {
-        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
-        
-        let fileName = "\(UUID().uuidString).jpg"
-        let url = FileManager.default
-            .urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(fileName)
-        
-        do {
-            try data.write(to: url)
-            return fileName
-        } catch {
-            print("Erro ao salvar imagem no disco: \(error)")
-            return nil
-        }
-    }
-    //depois avaliar se realemtne e necessaria
-    func fetchNotes(for book: Books?) {
-        guard let book = book else {
-            self.savedNotes = []
-            return
-        }
-        
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
-        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
-        request.predicate = NSPredicate(format: "book == %@", book)
-        
-        do {
-            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
-        } catch let error {
-            print("Erro ao buscar anotações do livro: \(error)")
-        }
-    }
 }
+
+    
+
+    
+//    private func savePhotoToDisk(_ image: UIImage?) -> String? {
+//        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+//        
+//        let fileName = "\(UUID().uuidString).jpg"
+//        let url = FileManager.default
+//            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+//            .appendingPathComponent(fileName)
+//        
+//        do {
+//            try data.write(to: url)
+//            return fileName
+//        } catch {
+//            print("Erro ao salvar imagem no disco: \(error)")
+//            return nil
+//        }
+//    }
+    
  ⁠
 
 ---
@@ -392,6 +492,12 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
+    func loadExistingImages(_ images: [UIImage]) {
+        for image in images.prefix(maxNoteImages) {
+            noteImages.append(SelectableImage(image: image))
+        }
+    }
+    
     func saveImageToCoreData(image: UIImage){
         let newPhoto = Books(context: CoreDataManager.shared.viewContext)
         
@@ -485,7 +591,7 @@ import PhotosUI
 
 class BooksViewModel: ObservableObject {
     
-    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+//    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @Published var savedBooks: [Books] = []
     
     enum BookError: LocalizedError {
@@ -582,8 +688,8 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidTotalPages
         }
         
-        let coverData = photoLibraryViewModel.convertImageToData(image: bookCover!)
-        
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
         
         let newBook = Books(context: CoreDataManager.shared.viewContext)
         newBook.bookTitle = cleanTitle
@@ -621,45 +727,60 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao para deletar livros
-    func deleteBook(indexSet: IndexSet) throws{
+    func deleteBook(book: Books) throws{
 
-        guard let index = indexSet.first else { return }
-        let book = self.savedBooks[index]
+//        guard let index = indexSet.first else { return }
+//        let book = self.savedBooks[index]
         
         CoreDataManager.shared.viewContext.delete(book)
+        self.savedBooks.removeAll(where: { $0.objectID == book.objectID })
         
         try self.saveBook()
         self.fetchBooks()
 
     }
     
-    func updateBook(IndexSet: IndexSet, bookTitle: String?, bookAuthor: String?, bookCover: Data?, bookCategory: String?, bookTotalPages: Int16?, bookCurrentPage: Int16?, bookGoal: Int16?) throws {
+    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws {
         
-        guard let index = IndexSet.first else { return }
+//        guard let index = IndexSet.first else { return }
+//        
+//        let book = self.savedBooks[index]
         
-        let book = self.savedBooks[index]
+        let totalPagesInt = Int16(bookTotalPages) ?? 0
         
-        // valores finais que serão aplicados (novo valor, ou o valor atual se nil)
-        let finalTitle = (bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)) ?? book.bookTitle
-        let finalTotalPages = bookTotalPages ?? book.bookTotalPages
-        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
-        let finalGoal = bookGoal ?? book.bookGoal
+        let finalTitle = (bookTitle.trimmingCharacters(in: .whitespacesAndNewlines))
         
-        if let finalTitle, finalTitle.isEmpty {
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        
+        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+
+        if finalTitle.isEmpty {
             throw BookError.invalidTitle
         }
         
-        if finalTotalPages <= 0 {
+        if totalPagesInt <= 0 {
             throw BookError.invalidTotalPages
         }
         
-        if finalCurrentPage < 0 {
-            throw BookError.invalidCurrentPage
-        }
         
-        if finalCurrentPage > finalTotalPages {
-            throw BookError.invalidPageLogic
-        }
+        //let finalTotalPages = bookTotalPages ?? book.bookTotalPages
+        
+
+//        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
+//        let finalGoal = bookGoal ?? book.bookGoal
+        
+//        if finalTotalPages <= 0 {
+//            throw BookError.invalidTotalPages
+//        }
+       
+        
+//        if finalCurrentPage < 0 {
+//            throw BookError.invalidCurrentPage
+//        }
+//        
+//        if finalCurrentPage > finalTotalPages {
+//            throw BookError.invalidPageLogic
+//        }
         
 //        if finalGoal <= 0 {
 //            throw BookError.invalidGoal
@@ -667,13 +788,26 @@ class BooksViewModel: ObservableObject {
         
         // só aplica as mudanças se passou em todas as validações
 //        book.id = UUID()
-        book.bookTitle = finalTitle
-        book.bookAuthor = bookAuthor ?? book.bookAuthor
-        book.bookCover = bookCover ?? book.bookCover
-        book.bookCategory = bookCategory ?? book.bookCategory
-        book.bookTotalPages = finalTotalPages
-        book.bookCurrentPage = finalCurrentPage
-        book.bookGoal = finalGoal
+        
+        if(book.bookTitle != finalTitle){
+            book.bookTitle = finalTitle
+        }
+        
+        if(book.bookAuthor != bookAuthor){
+            book.bookAuthor = bookAuthor
+        }
+        
+        if(book.bookCategory != bookCategory){
+            book.bookCategory = bookCategory
+        }
+        
+        if(book.bookTotalPages != totalPagesInt){
+            book.bookTotalPages = totalPagesInt
+        }
+        
+        if(book.bookCover != coverData){
+            book.bookCover = coverData
+        }
         
         try self.saveBook()
         self.fetchBooks()
@@ -833,9 +967,10 @@ import SwiftUI
 struct BookSearchView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
-    
     @State private var searchText = ""
     @State private var isSearchPresented = false
+    @State private var selectedBook: Books?
+    @State private var selectedNote: Notes?
 
     var filteredBooks: [Books] {
         if searchText.isEmpty {
@@ -863,16 +998,25 @@ struct BookSearchView: View {
                 if !filteredBooks.isEmpty {
                     Section("Livros") {
                         ForEach(filteredBooks, id: \.self) { book in
-                            BookCellView(book: book)
+                            Button {
+                                selectedBook = book
+                            } label: {
+                                BookCellView(book: book)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
                 
                 if !filteredNotes.isEmpty {
-            
                     Section("Notas") {
                         ForEach(filteredNotes, id: \.self) { note in
-                            NoteCellView(note: note)
+                            Button {
+                                selectedNote = note
+                            } label: {
+                                NoteCellView(note: note)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -895,13 +1039,136 @@ struct BookSearchView: View {
             )
             .onAppear {
                 isSearchPresented = true
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }
+            .sheet(item: $selectedBook, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { book in
+                BookDetailView(bookViewModel: booksViewModel, book: book)
+            }
+            .sheet(item: $selectedNote, onDismiss: {
+                booksViewModel.fetchBooks()
+                notesViewModel.fetchNotes()
+            }) { note in
+                NoteDetailSheetView(note: note)
+            }
+        }
+    }
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Sheets/SelectBookSheetView.swift\ ⁠
+⁠ swift
+//
+//  SelectBookSheetView.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
+//
+
+import SwiftUI
+import CoreData
+
+struct SelectBookSheetView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    
+    // Binding do livro selecionado enviado de volta para a view chamadora
+    @Binding var selectedBook: Books?
+    
+    @State private var showingDiscardAlert = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color("BackgroundColorViews")
+                    .ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(booksViewModel.savedBooks, id: \.objectID) { book in
+                            let isSelected = selectedBook == book
+                            
+                            Button(action: {
+                                selectedBook = book
+                                dismiss()
+                            }) {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    HStack {
+                                        Text(book.bookTitle ?? "Sem título")
+                                            .font(.body)
+                                            .fontWeight(isSelected ? .semibold : .regular)
+                                            .foregroundColor(isSelected ? Color("ActionColor") : Color("Texts"))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                                    }
+
+                                    Rectangle()
+                                        .fill(Color.white.opacity(0.15))
+                                        .frame(height: 1)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.top, 14)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.top, 16)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                SheetHeaderView(
+                    title: "Livros salvos",
+                    actionIcon: "checkmark",
+                    showingDiscardAlert: $showingDiscardAlert,
+                    onCancel: { dismiss() },
+                    onConfirm: { dismiss() },
+                    onDiscard: { dismiss() }
+                )
+            }
+            .onAppear {
+                booksViewModel.fetchBooks()
             }
         }
     }
 }
 
+// Extension para dados fictícios no Preview
+extension BooksViewModel {
+    static var preview: BooksViewModel {
+        let viewModel = BooksViewModel()
+        let context = CoreDataManager.shared.viewContext
+        
+        // Cria instâncias temporárias para exibir no Canvas
+        let book1 = Books(context: context)
+        book1.bookTitle = "Hush, Hush"
+        book1.bookAuthor = "Becca Fitzpatrick"
+        
+        let book2 = Books(context: context)
+        book2.bookTitle = "É Assim que Acaba"
+        book2.bookAuthor = "Colleen Hoover"
+        
+        let book3 = Books(context: context)
+        book3.bookTitle = "O Hobbit"
+        book3.bookAuthor = "J.R.R. Tolkien"
+        
+        viewModel.savedBooks = [book1, book2, book3]
+        return viewModel
+    }
+}
 
-
+#Preview {
+    let previewVM = BooksViewModel.preview
+    
+    // Passa o primeiro livro do mock como selecionado para testar o indicador visual
+    SelectBookSheetView(selectedBook: .constant(previewVM.savedBooks.first))
+        .environmentObject(previewVM)
+}
  ⁠
 
 ---
@@ -922,15 +1189,17 @@ import CoreData
 struct NoteSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
-    @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    
+    @State private var hasLoaded = false
     
     @State var showingDiscardAlert: Bool = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     
-    @State private var titleText: String = ""
-    @State private var noteText: String = ""
+    @State private var noteTitle: String = ""
+    @State private var noteDescription: String = ""
     @State var image: UIImage? = nil
     @State var selectedCategory: String = ""
     
@@ -943,7 +1212,16 @@ struct NoteSheetView: View {
     @State private var showPhotoPicker = false
     
     var book: Books
-   
+    var noteToEdit: Notes?
+    
+    private var toolbarTitle: String {
+        if noteToEdit != nil {
+            return "Editar nota"
+        } else {
+            return "Adicionar nota"
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -962,18 +1240,25 @@ struct NoteSheetView: View {
                         .padding(.horizontal)
                     }
                 }
-                
+                .padding(.top, 20)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     SheetHeaderView(
-                        title: "Adicionar nota",
+                        title: toolbarTitle,
                         actionIcon: "checkmark",
                         showingDiscardAlert: $showingDiscardAlert,
-                        onCancel: { dismiss() },
+                        onCancel: {
+                            // Força a remoção do foco do teclado antes de fechar a sheet
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            dismiss()
+                        },
                         onConfirm: handleConfirm,
-                        onDiscard: { dismiss() }
+                        onDiscard: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            dismiss()
+                        }
                     )
                 }
-  
             }
             .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
                 Button("Tentar novamente", role: .cancel) { }
@@ -998,20 +1283,58 @@ struct NoteSheetView: View {
                 photoLibraryViewModel.appendCapturedImage(newImage)
                 capturedImage = nil
             }
+            
+            .confirmationDialog("Selecione a origem da imagem", isPresented: $showMediaSourceMenu, titleVisibility: .hidden) {
+                Button("Tirar foto com a Câmera") {
+                    showCameraPicker = true
+                }
+                Button("Escolher da Galeria") {
+                    showPhotoPicker = true
+                }
+                Button("Cancelar", role: .cancel) { }
+            }
+            
+            .onAppear {
+                guard !hasLoaded else { return }
+                hasLoaded = true
+                
+                photoLibraryViewModel.resetNoteImages()
+                
+                if let note = noteToEdit {
+                    noteTitle = note.noteTitle ?? ""
+                    noteDescription = note.noteDescription ?? ""
+                    
+                    if let photosData = note.notePhoto as? [Data] {
+                        let existingImages = photosData.compactMap { UIImage(data: $0) }
+                        photoLibraryViewModel.loadExistingImages(existingImages)
+                    }
+                }
+            }
         }
     }
     
     private func handleConfirm() {
         do {
-            try notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: selectedCategory,
-                notePhotos: photoLibraryViewModel.noteImages.map(\.image),
-                to: book
-            )
+            if let note = noteToEdit {
+                try notesViewModel.updateNote(
+                    note: note,
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    notePhotos: photoLibraryViewModel.noteImages.map(\.image)
+                )
+            } else {
+                try notesViewModel.addNote(
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    noteCategory: selectedCategory,
+                    notePhotos: photoLibraryViewModel.noteImages.map(\.image),
+                    to: book
+                )
+            }
             
+            notesViewModel.fetchNotes(for: book)
             photoLibraryViewModel.resetNoteImages()
+            
             dismiss()
             
         } catch let error as LocalizedError {
@@ -1044,8 +1367,10 @@ struct NoteSheetView: View {
     }
     
     private var titleField: some View {
+        
+        //        var let titleText = noteToEdit != nil ?? noteToEdit?.noteTitle : "Adicione o título"
         TextFieldSheets(
-            text: $titleText,
+            text: $noteTitle,
             placeholder: "Adicione o título",
             label: nil
         )
@@ -1053,7 +1378,7 @@ struct NoteSheetView: View {
     
     private var noteTextEditor: some View {
         ZStack(alignment: .topLeading) {
-            if noteText.isEmpty {
+            if noteDescription.isEmpty {
                 Text("Escreva sua nota...")
                     .foregroundColor(Color("TextFieldPlaceholderColor"))
                     .padding(.horizontal, 16)
@@ -1063,7 +1388,7 @@ struct NoteSheetView: View {
                     .font(.system(.body, weight: .regular))
             }
             
-            TextEditor(text: $noteText)
+            TextEditor(text: $noteDescription)
                 .padding(8)
                 .scrollContentBackground(.hidden)
                 .cornerRadius(10)
@@ -1121,24 +1446,11 @@ struct NoteSheetView: View {
         let imagesCount = photoLibraryViewModel.noteImages.count
         let isLimitReached = imagesCount >= 3
         let mediaButtonText: String = imagesCount == 0
-            ? "Adicionar fotos"
-            : "Adicionar mais fotos (\(imagesCount)/3)"
+        ? "Adicionar fotos"
+        : "Adicionar mais fotos (\(imagesCount)/3)"
         
-        return Menu {
-            Button {
-                showCameraPicker = true
-            } label: {
-                Label("Tirar foto com a Câmera", systemImage: "camera")
-            }
-            .disabled(isLimitReached)
-            
-            Button {
-                showPhotoPicker = true
-            } label: {
-                Label("Escolher da Galeria", systemImage: "photo.on.rectangle")
-            }
-            .disabled(isLimitReached)
-            
+        return Button {
+            showMediaSourceMenu = true
         } label: {
             HStack {
                 Image(systemName: "camera.viewfinder")
@@ -1154,7 +1466,7 @@ struct NoteSheetView: View {
                     .foregroundColor(Color("AddNoteImage"))
             }
             .padding()
-            .cornerRadius(10)
+            .contentShape(Rectangle())
             .overlay(
                 RoundedRectangle(cornerRadius: 100)
                     .stroke(Color("LinesColor"), lineWidth: 0.5)
@@ -1163,17 +1475,113 @@ struct NoteSheetView: View {
         .disabled(isLimitReached)
         .opacity(isLimitReached ? 0.5 : 1.0)
     }
-    
-    
-
-     
 }
-
 #Preview {
     NoteSheetView(book: PreviewProviderHelper.sampleBook)
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Sheets/NoteDetailSheetView.swift\ ⁠
+⁠ swift
+//
+//  NoteDetailSheetView.swift
+//  CH4-Books
+//
+//  Created by Lucas on 18/08/26.
+//
+
+import SwiftUI
+
+struct NoteDetailSheetView: View {
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var notesViewModel: NotesViewModel
+    
+    var note: Notes
+    
+    @Environment(\.dismiss) var dismiss
+    
+    @State var isShowingEditSheet: Bool = false
+    
+    private var noteImages: [UIImage] {
+        if let photosData = note.notePhoto as? [Data] {
+            return photosData.compactMap { UIImage(data: $0) }
+        }
+        return []
+    }
+    
+    var body: some View {
+        
+        NavigationStack{
+            ZStack(alignment: .top) {
+                Color(.backgroundColorViews)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 24) {
+                            
+                            if !noteImages.isEmpty {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
+                                        ForEach(0..<noteImages.count, id: \.self) { index in
+                                            Image(uiImage: noteImages[index])
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 240, height: 300)
+                                                .cornerRadius(16)
+                                                .clipped()
+                                        }
+                                    }
+                                    .padding(.horizontal, 24)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text(note.noteTitle ?? "Sem título")
+                                    .font(.system(.title, weight: .medium))
+                                    .foregroundColor(.title)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Text(note.noteDescription ?? "Sem descrição")
+                                    .font(.system(.body, weight: .light))
+                                    .foregroundColor(Color(.title))
+                                    .lineSpacing(5)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 40)
+                    }
+                }
+                .toolbar{
+                    NotesToolBar(
+                        title: "Nota",
+                        onClose: {
+                            notesViewModel.fetchNotes(for: note.book)
+                            dismiss()
+                        },
+                        onEdit: {
+                            isShowingEditSheet.toggle()
+                        }
+                    ) 
+                }
+                
+                .sheet(isPresented: $isShowingEditSheet, onDismiss: {
+                    
+                }){
+                    NoteSheetView(book: note.book!, noteToEdit: note)
+                }
+            }
+        }
+
+    }
 }
  ⁠
 
@@ -1394,7 +1802,8 @@ struct BookSheetView: View {
                         }
                         .padding(.horizontal)
                     }
-              
+                    .padding(.top, 20)
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         SheetHeaderView(
                             title: toolbarTitle,
@@ -1403,31 +1812,49 @@ struct BookSheetView: View {
                             onCancel: {},
                             onConfirm: {
                                 
-                                do{
-
-//                                    
-//                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.7) ?? Data()
-                                    
-//                                    let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
-                                    
-                                    try booksViewModel.addBook(
-                                        bookTitle: bookTitle,
-                                        bookAuthor: bookAuthor,
-                                        bookCover: photoLibraryViewModel.selectedImage,
-                                        bookCategory: selectedCategory,
-                                        bookTotalPages: bookTotalPages
-                                    )
-                                    
-                                    booksViewModel.fetchBooks()
-                                    dismiss()
-                                    
-                                } catch let error as LocalizedError{
-                                    errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                    showErrorAlert = true
-                                } catch {
-                                    errorMessage = "Erro inesperado."
-                                    showErrorAlert = true
+                                if let book = bookToEdit {
+                                    do{
+                                        try booksViewModel.updateBook(
+                                            book: book,
+                                            bookTitle: bookTitle,
+                                            bookAuthor: bookAuthor,
+                                            bookCover: photoLibraryViewModel.selectedCoverImage,
+                                            bookCategory: selectedCategory,
+                                            bookTotalPages: bookTotalPages
+                                        )
+                                        
+                                        booksViewModel.fetchBooks()
+                                        dismiss()
+                                        
+                                    } catch let error as LocalizedError{
+                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                        showErrorAlert = true
+                                    } catch {
+                                        errorMessage = "Erro inesperado."
+                                        showErrorAlert = true
+                                    }
+                                } else{
+                                    do{
+                                        try booksViewModel.addBook(
+                                            bookTitle: bookTitle,
+                                            bookAuthor: bookAuthor,
+                                            bookCover: photoLibraryViewModel.selectedCoverImage,
+                                            bookCategory: selectedCategory,
+                                            bookTotalPages: bookTotalPages
+                                        )
+                                        
+                                        booksViewModel.fetchBooks()
+                                        dismiss()
+                                        
+                                    } catch let error as LocalizedError{
+                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                        showErrorAlert = true
+                                    } catch {
+                                        errorMessage = "Erro inesperado."
+                                        showErrorAlert = true
+                                    }
                                 }
+
                             },
                             onDiscard: { dismiss() }
                         )
@@ -1484,11 +1911,11 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Estante", systemImage: "book"){
-                BookCaseView(booksViewModel: BooksViewModel())
+                BookCaseView(bookViewModel: BooksViewModel())
                     .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-                StopwatchView()
+               // StopwatchInicialView()
             }
             Tab(role: .search){
                 BookSearchView()
@@ -1522,16 +1949,16 @@ import SwiftUI
 import CoreData
 
 struct BookDetailView: View {
-    @ObservedObject var viewModel: BooksViewModel
+    @ObservedObject var bookViewModel: BooksViewModel
     @StateObject private var notesViewModel = NotesViewModel()
     @State private var isPresentedAddNote: Bool = false
     @State private var isPresentedEditBook: Bool = false
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var book: Books? = nil
-    
+    //apagar assim que possivel
     private var currentBook: Books? {
-        book ?? viewModel.savedBooks.first
+        book ?? bookViewModel.savedBooks.first
     }
     
     var body: some View {
@@ -1542,21 +1969,32 @@ struct BookDetailView: View {
                     .ignoresSafeArea()
                 
                 if let currentBook = currentBook {
+                    
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 24) {
                             
                             BookInstanceDetailView(book: currentBook)
                                 .environmentObject(PhotoLibraryViewModel())
+                                .id(currentBook.bookCover ?? Data())
                             
                             CardTotalPages(totalPages: 100)
-                            .padding(.horizontal)
-                            
+                                .padding(.horizontal)
+
                             VStack(spacing: 16) {
                                 NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
-                                NotesSectionView(notes: notesViewModel.savedNotes)
+                                
+                                NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3)))
+                                
+                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+                                    
+                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Color(.action))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal)
+                                }
                             }
                             .padding(.horizontal)
-                            
                             VStack(spacing: 16) {
                                 Button(action: {
                                 }) {
@@ -1607,6 +2045,9 @@ struct BookDetailView: View {
             .onAppear {
                 notesViewModel.fetchNotes(for: currentBook)
             }
+            .onDisappear {
+                bookViewModel.fetchBooks()
+            }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
                 notesViewModel.fetchNotes(for: currentBook)
             }) {
@@ -1615,10 +2056,12 @@ struct BookDetailView: View {
                         .environmentObject(notesViewModel)
                 }
             }
-            .sheet(isPresented: $isPresentedEditBook){
+            .sheet(isPresented: $isPresentedEditBook, onDismiss: {
+                bookViewModel.fetchBooks()
+            }){
                 BookSheetView(bookToEdit: book)
-                    .environmentObject(PhotoLibraryViewModel())
-                    .environmentObject(BooksViewModel())
+                    .environmentObject(photoLibraryViewModel)
+                    .environmentObject(bookViewModel)
             }
             .toolbar{
                 BooksDetailsToolbar(onEdit: {
@@ -1631,7 +2074,7 @@ struct BookDetailView: View {
     }
 }
 #Preview {
-    BookDetailView(viewModel: BooksViewModel())
+    BookDetailView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
 }
@@ -1751,6 +2194,117 @@ private struct RoundedCorner: Shape {
 
 ---
 
+### Arquivo: \⁠ ./View/PageProgressSheet.swift\ ⁠
+⁠ swift
+//
+//  PageProgressSheet.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 20/08/26.
+//
+
+import SwiftUI
+
+struct PageProgressSheetView: View {
+    let bookTitle: String
+    let totalPages: Int
+    
+    @Binding var currentPage: Int
+    @State private var tempPage: Int
+    @State private var showAlert = false
+    
+    var onDismiss: () -> Void = {}
+    var onSave: (Int) -> Void = { _ in }
+    
+    init(bookTitle: String, totalPages: Int, currentPage: Binding<Int>, onDismiss: @escaping () -> Void = {}, onSave: @escaping (Int) -> Void = { _ in }) {
+        self.bookTitle = bookTitle
+        self.totalPages = max(totalPages, 1)
+        self._currentPage = currentPage
+        self._tempPage = State(initialValue: currentPage.wrappedValue)
+        self.onDismiss = onDismiss
+        self.onSave = onSave
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                VStack(spacing: 6) {
+                    Text("Em qual página você parou no livro")
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+
+                    Text("“\(bookTitle)”?")
+                        .font(.title3.weight(.semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+
+                TextFieldSheets(
+                    text: .constant(""),
+                    placeholder: "Digite o número da página...",
+                )
+                .padding(.horizontal)
+
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .padding(.horizontal, 20)
+            .toolbar {
+                SheetHeaderView(
+                    title: "",
+                    actionIcon: "checkmark",
+                    showingDiscardAlert: $showAlert,
+                    onCancel: { onDismiss() },
+                    onConfirm: {
+                        currentPage = tempPage
+                        onSave(tempPage)
+                        onDismiss()
+                    },
+                    onDiscard: { onDismiss() }
+                )
+            }
+        }
+    }
+}
+
+#Preview("Page Progress Sheet") {
+    struct PreviewWrapper: View {
+        @State private var isPresented = true
+        @State private var page = 42
+
+        var body: some View {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                Button("Abrir Mini Sheet") {
+                    isPresented = true
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .sheet(isPresented: $isPresented) {
+                PageProgressSheetView(
+                    bookTitle: "Hush, Hush",
+                    totalPages: 384,
+                    currentPage: $page,
+                    onDismiss: { isPresented = false },
+                    onSave: { newPage in
+                        print("Nova página salva: \(newPage)")
+                    }
+                )
+                .presentationDetents([.height(220)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color("BackgroundColorViews"))
+            }
+        }
+    }
+
+    return PreviewWrapper()
+}
+ ⁠
+
+---
+
 ### Arquivo: \⁠ ./View/Components/StopwatchComponents/ConcentricRingsView.swift\ ⁠
 ⁠ swift
 //
@@ -1838,32 +2392,35 @@ struct NotesCardView: View {
             Image(imageName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 80, height: 95)
+                .frame(width: 87, height: 80)
                 .cornerRadius(16)
                 .clipped()
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text(tagText)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(Color("TagNoteColor"))
-                    .clipShape(Capsule())
-                
+            VStack(alignment: .leading, spacing: 8) {
+
                 Text(title)
-                    .font(.headline)
+                    .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                 
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(Color("Texts").opacity(0.6))
                     .lineLimit(2)
             }
             
             Spacer()
+            
+            Button(action: {
+                //acao
+            }) {
+                Image(systemName: "chevron.forward")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .buttonStyle(.plain)
+            .buttonBorderShape(.circle)
+            .padding(.trailing, 6)
         }
         .padding(16)
         .background(Color("CardNoteColor"))
@@ -1923,6 +2480,123 @@ struct NoteCellView: View {
         .padding(.vertical, 4)
     }
 }
+
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Components/NotesComponents/MyNotesToolBar.swift\ ⁠
+⁠ swift
+//
+//  MyNotesTollBar.swift
+//  CH4-Books
+//
+//  Created by Lucas on 19/08/26.
+//
+
+import SwiftUI
+
+struct MyNotesToolBar: ToolbarContent {
+    var onBackClick: () -> Void
+    var onAddClick: () -> Void
+    
+    var body: some ToolbarContent {
+        
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: {
+                onBackClick()
+            }) {
+                Image(systemName: "chevron.left")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(.plain)
+            .buttonBorderShape(.circle)
+            .tint(Color.white.opacity(0.2))
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                onAddClick()
+            }) {
+                Image(systemName: "plus")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .tint(Color("ActionColor"))
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+        }
+    }
+}
+
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Components/MenuSheetPickerOnboarding.swift\ ⁠
+⁠ swift
+//
+//  MenuSheetPickerOnboarding.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 20/08/26.
+//
+
+import SwiftUI
+
+struct MenuSheetPickerOnboarding: View {
+    var title: String? = nil
+    var placeholder: String
+    @Binding var selectedValue: String
+    var options: [String]
+    var formatOption: (String) -> String = { $0 }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let title = title, !title.isEmpty {
+                Text(title)
+                    .font(.system(.title3, weight: .medium))
+                    .foregroundColor(Color("LinesColor"))
+                    .padding(.leading, 4)
+            }
+
+            Menu {
+                ForEach(options, id: \.self) { option in
+                    Button(formatOption(option)) {
+                        selectedValue = option
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedValue.isEmpty ? placeholder : formatOption(selectedValue))
+                        .font(.system(.body, weight: .regular))
+                        .foregroundColor(selectedValue.isEmpty ? Color("TextFieldPlaceholderColor") : .white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(Color("ActionColor"))
+                }
+                .padding()
+                .background(
+                    Capsule()
+                        .fill(Color("StopwatchSelectors").opacity(0.20))
+                )
+                .contentShape(Rectangle())
+                .overlay(
+                    RoundedRectangle(cornerRadius: 100)
+                        .stroke(Color("LinesColor"), lineWidth: 0.5)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+
+
 
  ⁠
 
@@ -2033,11 +2707,13 @@ import SwiftUI
 import CoreData
 
 struct BookCardView: View {
-    let book: Books
+    @ObservedObject var book: Books
     
     @State private var isEditingSheetPresented = false
+    @State private var isShowingDeleteAlert = false
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var bookViewModel: BooksViewModel
     
     private var percentageRead: Int {
         guard book.bookTotalPages > 0 else { return 0 }
@@ -2101,7 +2777,7 @@ struct BookCardView: View {
             Divider()
             
             Button(role: .destructive) {
-                //showDeleteAlert = true
+                isShowingDeleteAlert = true
             } label: {
                 Label("Apagar Livro", systemImage: "trash")
                     .font(.body)
@@ -2110,9 +2786,29 @@ struct BookCardView: View {
         .frame(width: 170)
         .cornerRadius(12)
         
-        .sheet(isPresented: $isEditingSheetPresented) {
-                    BookSheetView(bookToEdit: book)
+        .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
+        }) {
+            BookSheetView(bookToEdit: book)
+        }
+        
+        .alert("Apagar Livro", isPresented: $isShowingDeleteAlert) {
+            Button("Cancelar", role: .cancel) { }
+            
+            Button("Apagar", role: .destructive) {
+                withAnimation {
+                    do {
+                        try bookViewModel.deleteBook(book: book)
+                    } catch {
+                        print("Erro ao tentar apagar o livro: \(error.localizedDescription)")
+                    }
                 }
+            }
+        } message: {
+            Text("Tem certeza que deseja apagar o livro '\(book.bookTitle ?? "Sem título")'? Essa ação não pode ser desfeita.")
+        }
     }
 }
 //#Preview {
@@ -2274,6 +2970,149 @@ struct BookCaseToolbar: ToolbarContent {
 
 ---
 
+### Arquivo: \⁠ ./View/Components/BooksComponents/DailyGoalCard.swift\ ⁠
+⁠ swift
+//
+//  DailyGoalCard.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
+//
+
+import SwiftUI
+
+struct DailyGoalCardView: View {
+    let pagesReadToday: Int
+    let targetPages: Int
+    var onEditAction: () -> Void
+    
+    private var progress: Double {
+        guard targetPages > 0 else { return 0 }
+        return min(Double(pagesReadToday) / Double(targetPages), 1.0)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "target")
+                        .font(.system(.body, weight: .bold))
+                        .foregroundColor(.orange)
+                    
+                    Text("Meta diária de leitura")
+                        .font(.system(.body, weight: .regular))
+                        .foregroundColor(.white)
+                }
+
+                Spacer()
+                
+                Button(action: onEditAction) {
+                    Image(systemName: "pencil")
+                        .font(.system(.title2))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                        .padding(6)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .padding(.trailing, 0)
+            }
+            
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(targetPages)")
+                    .font(.bitter(.medium, style: .largeTitle))
+                    .foregroundColor(.white)
+                
+                Text("minutos")
+                    .font(.bitter(.regular, style: .title3))
+                    .foregroundColor(.white)
+            }
+            .padding(.bottom, 4)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(height: 8)
+                    
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.yellow, Color.orange],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * CGFloat(progress), height: 8)
+                }
+            }
+            .frame(height: 8)
+            .padding(.vertical, 2)
+            .padding(.bottom, 6)
+            
+            
+            HStack {
+                HStack(spacing: 4) {
+                    Text("\(pagesReadToday)")
+                        .font(.system(.callout))
+                        .foregroundColor(.orange)
+                    
+                    Text("minutos de leitura hoje")
+                        .font(.system(.callout))
+                        .foregroundColor(Color("TextPagesColor"))
+                }
+                
+                Spacer()
+                
+                Text("\(targetPages)")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(Color("TextPagesColor"))
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial) // Ou .thinMaterial / .regularMaterial
+                
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color("DailyGoalCardColor"))
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+        )
+    }
+}
+
+#Preview {
+    ZStack {
+        Color("BackgroundColorViews")
+            .ignoresSafeArea()
+        
+        DailyGoalCardView(
+            pagesReadToday: 12,
+            targetPages: 30,
+            onEditAction: {
+                print("Editar meta clicado")
+            }
+        )
+        .padding()
+    }
+}
+ ⁠
+
+---
+
 ### Arquivo: \⁠ ./View/Components/BooksDetailsComponents/BooksDetailsToolbar.swift\ ⁠
 ⁠ swift
 //
@@ -2339,7 +3178,7 @@ struct BooksDetailsToolbar: ToolbarContent {
 import SwiftUI
 
 struct BookInstanceDetailView: View {
-    var book: Books
+    @ObservedObject var book: Books
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var readingProgress: Double {
@@ -2563,85 +3402,6 @@ struct NoteFieldView: View {
 
 ---
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/NoteDetailSheetView.swift\ ⁠
-⁠ swift
-//
-//  NoteDetailSheetView.swift
-//  CH4-Books
-//
-//  Created by Lucas on 18/08/26.
-//
-
-import SwiftUI
-
-struct NoteDetailSheetView: View {
-    var note: Notes
-    
-    @Environment(\.dismiss) var dismiss
-    
-    private var noteImages: [UIImage] {
-        if let photosData = note.notePhoto as? [Data] {
-            return photosData.compactMap { UIImage(data: $0) }
-        }
-        return []
-    }
-    
-    var body: some View {
-        ZStack(alignment: .top) {
-            Color(.backgroundColorViews)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                NotesHeaderEditView(
-                    title: "Nota",
-                    onClose: { dismiss() },
-                    onEdit: { }
-                )
-                
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 24) {
-                        
-                        if !noteImages.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(0..<noteImages.count, id: \.self) { index in
-                                        Image(uiImage: noteImages[index])
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 240, height: 300)
-                                            .cornerRadius(16)
-                                            .clipped()
-                                    }
-                                }
-                                .padding(.horizontal, 24)
-                            }
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text(note.noteTitle ?? "Sem título")
-                                .font(.system(.title, weight: .medium))
-                                .foregroundColor(.title)
-                                .multilineTextAlignment(.leading)
-                            
-                            Text(note.noteDescription ?? "Sem descrição")
-                                .font(.system(.body, weight: .light))
-                                .foregroundColor(Color(.title))
-                                .lineSpacing(5)
-                                .multilineTextAlignment(.leading)
-                        }
-                        .padding(.horizontal, 24)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 40)
-                }
-            }
-        }
-    }
-}
- ⁠
-
----
-
 ### Arquivo: \⁠ ./View/Components/SheetsComponents/TextFieldSheets.swift\ ⁠
 ⁠ swift
 //
@@ -2812,7 +3572,7 @@ struct MediaThumbnailView: View {
 
 ---
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/NotesHeaderEditView.swift\ ⁠
+### Arquivo: \⁠ ./View/Components/SheetsComponents/NotesToolBar.swift\ ⁠
 ⁠ swift
 //
 //  NotesHeaderEditView.swift
@@ -2823,43 +3583,67 @@ struct MediaThumbnailView: View {
 
 import SwiftUI
 
-struct NotesHeaderEditView: View {
-    var title: String = "Nota"
+struct NotesToolBar: ToolbarContent {
+    var title: String
     var onClose: () -> Void
     var onEdit: () -> Void
     
-    var body: some View {
-        HStack {
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .bold))
+    
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: {
+                onClose()
+            }) {
+                Image(systemName: "chevron.left")
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.white.opacity(0.15))
-                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .buttonBorderShape(.circle)
+            .tint(Color.white.opacity(0.2))
+        }
+        
+        ToolbarItem(placement: .principal) {
+            Text(title)
+                .foregroundColor(Color("LinesColor"))
+                .font(.bitter(.semibold, style: .title2))
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                onEdit()
+            }) {
+                Image(systemName: "pencil")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                   
             }
             
-            Spacer()
-            
-            Text(title)
-                .font(.bitter(.semibold, style: .title2))
-                .foregroundColor(Color("LinesColor"))
-            
-            Spacer()
-            
-            Button(action: onEdit) {
-                Image(systemName: "pencil")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.orange)
-                    .clipShape(Circle())
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.circle)
+            .tint(Color("ActionColor"))
+        }
+    }
+}
+
+
+#Preview {
+    struct PreviewWrapper: View {
+        @State private var showAlert = false
+        
+        var body: some View {
+            NavigationStack {
+                Text("Conteúdo da sua Sheet aqui")
+                    .toolbar {
+                        NotesToolBar(
+                            title: "Notas", onClose: {}, onEdit: {}
+                        )
+                    }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 16)
-        .padding(.bottom, 24)
     }
+    
+    return PreviewWrapper()
 }
  ⁠
 
@@ -2983,13 +3767,15 @@ struct NotesSectionView: View {
         .cornerRadius(20)
         .sheet(item: $selectedNote) { note in
             NoteDetailSheetView(note: note)
+                .environmentObject(PhotoLibraryViewModel())
+                .environmentObject(NotesViewModel())
         }
     }
 }
 struct NoteRowView: View {
     var note: Notes
     
-    private var thumbnailImage: UIImage? {
+    private var photo: UIImage? {
         if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
             return UIImage(data: firstData)
         }
@@ -2999,17 +3785,17 @@ struct NoteRowView: View {
     var body: some View {
         HStack(spacing: 16) {
             Group {
-                if let image = thumbnailImage {
+                if let image = photo {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
                 } else {
                     Image("defaultBook")
-                        .font(.system(size: 20))
-                        .foregroundColor(.orange)
+                        .resizable()
+                        .scaledToFill()
                 }
             }
-            .frame(width: 50, height: 50)
+            .frame(width: 50, height: 70)
             .background(Color.gray.opacity(0.2))
             .cornerRadius(8)
             .clipped()
@@ -3135,6 +3921,52 @@ struct SheetHeaderView: ToolbarContent {
 
 ---
 
+### Arquivo: \⁠ ./View/Components/GeralComponents/ButtonAction.swift\ ⁠
+⁠ swift
+//
+//  ButtonAction.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
+//
+
+import SwiftUI
+
+struct ButtonAction: View {
+    var text: String
+    var action: (() -> Void)? = nil
+    
+    var body: some View {
+        Button(action: {
+                    action?()
+        }) {
+            Text(text)
+                .font(.body)
+                .frame(maxWidth: .infinity)
+                .fontWeight(.medium)
+                .padding(.vertical, 14)
+                .background(Color("ActionColor"))
+                .foregroundColor(.white)
+                .clipShape(Capsule())
+        }
+        
+    }
+}
+
+#Preview {
+    VStack(spacing: 16) {
+            ButtonAction(text: "Teste Sem Ação")
+            
+            ButtonAction(text: "Teste Com Ação") {
+                print("Botão pressionado!")
+            }
+        }
+        .padding()
+}
+ ⁠
+
+---
+
 ### Arquivo: \⁠ ./View/Components/GeralComponents/TipsComponent.swift\ ⁠
 ⁠ swift
 //
@@ -3168,6 +4000,60 @@ struct TipsComponent: View {
 
 ---
 
+### Arquivo: \⁠ ./View/Components/GeralComponents/ToolBarButton.swift\ ⁠
+⁠ swift
+//
+//  StopwatchToolbar.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
+//
+
+//
+//  StopwatchToolbar.swift
+//  CH4-Books
+//
+
+import SwiftUI
+
+struct ToolBarButton: ToolbarContent {
+    var action: () -> Void
+    var icon: String
+    var colorName: String?
+
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            
+            Button(action: {
+                action()
+            }) {
+                Image(systemName: icon)
+                        .font(icon == "note.text.badge.plus" ? .subheadline : .body)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+            }
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.circle)
+            .tint(colorName != nil ? Color(colorName!) : Color(""))
+            
+          
+        }
+    }
+}
+
+#Preview {
+    NavigationStack {
+        Text("Preview")
+            .toolbar {
+                ToolBarButton(action: {}, icon: "note.text.badge.plus")
+            }
+    }
+    .preferredColorScheme(.dark)
+}
+ ⁠
+
+---
+
 ### Arquivo: \⁠ ./View/BookCaseView.swift\ ⁠
 ⁠ swift
 //
@@ -3180,7 +4066,7 @@ struct TipsComponent: View {
 import SwiftUI
 
 struct BookCaseView: View {
-    @ObservedObject var booksViewModel: BooksViewModel
+    @ObservedObject var bookViewModel: BooksViewModel
     @State private var isShowingSheet = false
     
     @State private var selectedBookForDetail: Books? = nil
@@ -3188,14 +4074,13 @@ struct BookCaseView: View {
     
     
     var books: [Books] {
-        booksViewModel.savedBooks
+        bookViewModel.savedBooks
     }
     
     let columns = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
     ]
-    
     
     //@State var books = self.booksViewModel.savedBooks
     
@@ -3211,35 +4096,29 @@ struct BookCaseView: View {
                         //título e botão "+"
                         HStack {
                             TitleComponent(title: "Meus Livros")
-                            
-                            
-    //                        Spacer()
-    //
-    //                        Button(action: {
-    //                            // Ação do botão
-    //                        }) {
-    //                            Image(systemName: "plus")
-    //                                .font(.system(.title, weight: .semibold))
-    //                                .foregroundStyle(Color("TitleColor"))
-    //                                .frame(width: 48, height: 48)
-    //                                .background(Color.black.opacity(0.3), in: Circle())
-    //                        }
-    //                        .glassEffect(.regular, in: Circle())
-                            
                                 
                         }
                         .padding(.top, 28)
                         
-                        CardTotalPages(totalPages: booksViewModel.countReadedPages())
+                        CardTotalPages(totalPages: bookViewModel.countReadedPages())
+                        
+                        DailyGoalCardView(
+                            pagesReadToday: 12,
+                            targetPages: 30,
+                            onEditAction: {
+                                print("Editar meta clicado")
+                            }
+                        )
                         
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(books) { book in
-                                NavigationLink(destination: BookDetailView(viewModel: booksViewModel, book: book)){
+                                NavigationLink(destination: BookDetailView(bookViewModel: bookViewModel, book: book)){
                                     BookCardView(book: book)
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
+                        .environmentObject(bookViewModel)
                     }
                     .padding(.horizontal, 24)
                 }
@@ -3253,24 +4132,35 @@ struct BookCaseView: View {
                 }
             }
         }
+        .onAppear {
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
+        }
 //        .fakeSheet(isPresented: $isShowingBookDetail) {
 //            if let selectedBookForDetail {
 //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
 //            }
 //        }
-        .sheet(isPresented: $isShowingSheet) {
+        .sheet(isPresented: $isShowingSheet, onDismiss: {
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
+            
+        }) {
             BookSheetView(bookToEdit: nil)
                 .environmentObject(PhotoLibraryViewModel())
-                .environmentObject(BooksViewModel())
+                .environmentObject(bookViewModel)
                 
         }
     }
 }
 
 #Preview {
-    BookCaseView(booksViewModel: BooksViewModel())
+    BookCaseView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
+        .environmentObject(NotesViewModel())
 }
  ⁠
 
@@ -3459,7 +4349,7 @@ struct StopwatchView: View {
                                 stopwatchViewModel.isRunning.toggle()
                                 
                                 if stopwatchViewModel.isRunning {
-                                    stopwatchViewModel.start()
+                                    stopwatchViewModel.startTimer()
                                     
                                 }
                                 else{
@@ -3518,7 +4408,6 @@ struct StopwatchView: View {
                         NoteSheetView(book: PreviewProviderHelper.sampleBook)
                     }
                     
-                    
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, geometry.safeAreaInsets.top > 0 ? 8 : 16),
@@ -3540,6 +4429,628 @@ struct StopwatchView: View {
 
 ---
 
+### Arquivo: \⁠ ./View/SplashView.swift\ ⁠
+⁠ swift
+//
+//  SplashView.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 20/08/26.
+//
+
+import SwiftUI
+
+struct SplashView: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color(hex: "FEF4C7"), location: 0.00),
+                    .init(color: Color(hex: "FEF0B8"), location: 0.05),
+                    .init(color: Color(hex: "FEE78F"), location: 0.20),
+                    .init(color: Color(hex: "FEDF6C"), location: 0.35),
+                    .init(color: Color(hex: "FED952"), location: 0.51),
+                    .init(color: Color(hex: "FED53F"), location: 0.66),
+                    .init(color: Color(hex: "FED233"), location: 0.83),
+                    .init(color: Color(hex: "FFD230"), location: 1.00)
+                ]),
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Image("FrushLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 222, height: 184)
+                    .foregroundColor(Color(red: 0.15, green: 0.10, blue: 0.05))
+                
+            }
+        }
+    }
+}
+
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r, g, b: UInt64
+        switch hex.count {
+        case 6: // RGB (24-bit)
+            (r, g, b) = (int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (r, g, b) = (1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: 1
+        )
+    }
+}
+
+#Preview {
+    SplashView()
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/MyNotesListView.swift\ ⁠
+⁠ swift
+//
+//  NoteListView.swift
+//  CH4-Books
+//
+//  Created by Lucas on 19/08/26.
+//
+
+import SwiftUI
+import CoreData
+
+struct MyNotesListView: View {
+    @StateObject private var viewModel = NotesViewModel()
+    @Environment(\.dismiss) var dismiss
+    @State private var selectedNote: Notes?
+    @State private var isPresentedAddNote: Bool = false
+    
+    var book: Books?
+    
+    var body: some View {
+        ZStack {
+            Color(.backgroundColorViews).ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 20) {
+                TitleComponent(title: "Minhas notas")
+                    .padding(.horizontal, 24)
+                    .padding(.top, 10)
+                
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 24) {
+                        ForEach(viewModel.savedNotes, id: \.self) { note in
+                            
+                            Button(action: {
+                                selectedNote = note
+                            }) {
+                                NoteRowView(note: note)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 30)
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            MyNotesToolBar(onBackClick: { dismiss() }, onAddClick: {
+                isPresentedAddNote = true
+            })
+        }
+        .onAppear {
+            viewModel.fetchNotes(for: book)
+        }
+        .sheet(item: $selectedNote) { note in
+            NoteDetailSheetView(note: note)
+        }
+        .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+            viewModel.fetchNotes(for: book)
+        }) {
+            if let book = book {
+                NoteSheetView(book: book)
+                    .environmentObject(viewModel)
+            }
+        }
+    }
+}
+
+struct NotesListView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            MyNotesListView(book: nil)
+        }
+    }
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/StopwatchInicialView.swift\ ⁠
+⁠ swift
+//
+//  StopwatchInicialView.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
+//
+
+import SwiftUI
+
+struct StopwatchInitialView: View {
+    var namespace: Namespace.ID
+    @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    
+    @Binding var selectedBook: Books?
+    
+    @State private var isShowingNoteSheet = false
+    @State private var isShowingSelectBookSheet = false
+    @State private var isShowingTimerPicker = false
+    
+    @State private var selectedDuration: TimeInterval = 15 * 60
+
+    var body: some View {
+        NavigationStack {
+            GeometryReader { geometry in
+                ZStack {
+                    Color("BackgroundColorViews")
+                        .ignoresSafeArea()
+                    
+                    // Fundo com a capa do livro e gradiente
+                    Group {
+                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                        } else {
+                            Image("bookTest2")
+                                .resizable()
+                        }
+                    }
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .opacity(0.20)
+                    .overlay(
+                        ZStack {
+                            Color("BackgroundColorViews").opacity(0.70)
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    Color("BackgroundColorViews").opacity(0.80),
+                                    Color("BackgroundColorViews")
+                                ],
+                                startPoint: .center,
+                                endPoint: .bottom
+                            )
+                        }
+                    )
+                    .clipped()
+                    .ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        // Campo de Seleção do Tempo
+                        VStack(spacing: 8) {
+                            Text("Selecione o tempo de leitura")
+                                .font(.body)
+                                .foregroundColor(.white)
+                            
+                            Button(action: {
+                                isShowingTimerPicker = true
+                            }) {
+                                Text(stopwatchViewModel.timerFormater())
+                                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .monospacedDigit()
+                                    .matchedGeometryEffect(id: "timerText", in: namespace)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        ZStack {
+                                            // vidro claro (branco a 20%)
+                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                                .fill(Color("StopwatchSelectors").opacity(0.2))
+                                        }
+                                    )
+                                    .overlay(
+                                        // borda reluzente com brilho no topo
+                                        RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 0.5
+                                            )
+                                    )
+                                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        
+                        // Card de Seleção do Livro
+                        VStack(spacing: 24) {
+                            VStack(spacing: 8) {
+                                Text("Selecione o livro")
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                
+                                Button(action: {
+                                    isShowingSelectBookSheet = true
+                                }) {
+                                    HStack(spacing: 12) {
+                                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 40, height: 52)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        } else {
+                                            Image("defaultBook")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 40, height: 52)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                .padding(.leading, 8)
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(selectedBook?.bookTitle ?? "Hush, Hush")
+                                                .font(.body)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.white)
+                                                .lineLimit(1)
+                                            
+                                            Text(selectedBook?.bookAuthor ?? "Becca Fitzpatrick")
+                                                .font(.system(size: 13))
+                                                .foregroundColor(Color.white.opacity(0.8))
+                                                .lineLimit(1)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 8)
+                                    }
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        ZStack {
+                                            // vidro claro
+                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                                .fill(Color("StopwatchSelectors").opacity(0.20))
+                                        }
+                                    )
+                                    .overlay(
+                                        // Borda reluzente
+                                        RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 0.5
+                                            )
+                                    )
+                                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            
+                            //  Progresso do Livro
+                            VStack(spacing: 10) {
+                                HStack {
+                                    Text("Progresso do livro")
+                                        .font(.body)
+                                        .foregroundColor(.white)
+                                    Text("\(Int(stopwatchViewModel.bookProgress * 100))%")
+                                        .font(.body)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color("ActionColor"))
+                                }
+                                
+                                GeometryReader { barGeo in
+                                    ZStack(alignment: .leading) {
+                                        Capsule()
+                                            .fill(Color.white.opacity(0.15))
+                                        Capsule()
+                                            .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing))
+                                            .frame(width: barGeo.size.width * CGFloat(stopwatchViewModel.bookProgress))
+                                    }
+                                }
+                                .frame(height: 10)
+                                .padding(.horizontal, 28)
+                            }
+                            
+                           
+                            VStack(spacing: 12) {
+                                // botão Principal: Iniciar / Pausar / Continuar
+                                ButtonAction(text: buttonTitle){
+                                    if stopwatchViewModel.timerState == .running {
+                                        stopwatchViewModel.pauseTimer()
+                                    } else {
+                                        stopwatchViewModel.startTimer()
+                                    }
+                                }
+                                .padding(.top, 8)
+
+                                // botão Secundário: abandonar Leitura (exibido apenas se a leitura começou ou está pausada)
+                                if stopwatchViewModel.timerState != .stopped {
+                                    Button(action: {
+                                        stopwatchViewModel.abandonTimer()
+                                    }) {
+                                        Text("Abandonar leitura")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.red)
+                                            .padding(.vertical, 8)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+
+                            // Computada auxiliar para o rótulo do botão
+                            var buttonTitle: String {
+                                switch stopwatchViewModel.timerState {
+                                case .running:
+                                    return "Pausar leitura"
+                                case .paused:
+                                    return "Continuar leitura"
+                                case .stopped:
+                                    return "Iniciar leitura"
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                }
+                .toolbar {
+                    ToolBarButton(
+                        action: { isShowingNoteSheet = true },
+                        icon: "note.text.badge.plus"
+                    )
+                }
+                .sheet(isPresented: $isShowingNoteSheet) {
+                    if let currentBook = selectedBook {
+                        NoteSheetView(book: currentBook)
+                    } else {
+                        VStack(spacing: 12) {
+                            Text("Atenção")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("Selecione um livro antes de adicionar uma anotação.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .presentationDetents([.height(180)])
+                    }
+                }
+                .sheet(isPresented: $isShowingSelectBookSheet) {
+                    SelectBookSheetView(selectedBook: $selectedBook)
+                }
+
+                .sheet(isPresented: $isShowingTimerPicker) {
+                    VStack(spacing: 20) {
+                        HStack(spacing: 0) {
+                            // Picker de Horas
+                            Picker("Horas", selection: Binding(
+                                get: { Int(selectedDuration) / 3600 },
+                                set: { newHours in
+                                    let currentMinutes = (Int(selectedDuration) % 3600) / 60
+                                    let newTotal = TimeInterval((newHours * 3600) + (currentMinutes * 60))
+                                    selectedDuration = newTotal
+                                    stopwatchViewModel.totalTime = newTotal
+                                    stopwatchViewModel.elapsedTime = newTotal
+                                }
+                            )) {
+                                ForEach(0..<24, id: \.self) { hour in
+                                    Text("\(hour) h").tag(hour)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+
+                            // Picker de Minutos
+                            Picker("Minutos", selection: Binding(
+                                get: { (Int(selectedDuration) % 3600) / 60 },
+                                set: { newMinutes in
+                                    let currentHours = Int(selectedDuration) / 3600
+                                    let newTotal = TimeInterval((currentHours * 3600) + (newMinutes * 60))
+                                    selectedDuration = newTotal
+                                    stopwatchViewModel.totalTime = newTotal
+                                    stopwatchViewModel.elapsedTime = newTotal
+                                }
+                            )) {
+                                ForEach(0..<60, id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                        }
+                        .padding(.horizontal)
+
+                        Button("Confirmar") {
+                            isShowingTimerPicker = false
+                        }
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(Color("ActionColor"))
+                        .padding(.bottom)
+                    }
+                    .presentationDetents([.height(260)])                 
+                 
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    @Previewable @Namespace var namespace
+    @Previewable @State var selectedBook: Books? = nil
+    
+    StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
+        .preferredColorScheme(.dark)
+        .environmentObject(StopwatchViewModel())
+        .environmentObject(BooksViewModel.preview)
+}
+
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/EditDailyGoalSheet.swift\ ⁠
+⁠ swift
+//
+//  EditDailyGoalSheet.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 20/08/26.
+//
+import SwiftUI
+
+struct EditDailyGoalContent: View {
+    // binding atualizado para representar o tempo total em minutos
+    @Binding var minutesPerDay: Int
+    @State private var showAlert = false
+    var onDismiss: () -> Void = {}
+    var onSave: () -> Void = {}
+
+    // computadas locais para facilitar o bind das rodas do Picker
+    private var hours: Int {
+        minutesPerDay / 60
+    }
+    
+    private var minutes: Int {
+        minutesPerDay % 60
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                // Título e Subtítulo
+                VStack(spacing: 4) {
+                    Text("Editar objetivo diário")
+                        .font(.title2.weight(.semibold))
+                        .foregroundColor(.white)
+
+                    Text("Defina quantos minutos você\ndeseja ler por dia")
+                        .font(.callout)
+                        .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+
+                // selector estilo cronômetro hrs e min
+                VStack(spacing: 0) {
+                    Text("Tempo por dia")
+                        .font(.callout)
+                        .foregroundColor(.white)
+                        .padding(.top, 12)
+
+                    HStack(spacing: 0) {
+                        // picker de hrs
+                        Picker("Horas", selection: Binding(
+                            get: { hours },
+                            set: { newHours in
+                                minutesPerDay = (newHours * 60) + minutes
+                            }
+                        )) {
+                            ForEach(0..<24, id: \.self) { hour in
+                                Text("\(hour) h").tag(hour)
+                            }
+                        }
+                        .pickerStyle(.wheel)
+
+                        // picker de mins
+                        Picker("Minutos", selection: Binding(
+                            get: { minutes },
+                            set: { newMinutes in
+                                minutesPerDay = (hours * 60) + newMinutes
+                            }
+                        )) {
+                            ForEach(0..<60, id: \.self) { minute in
+                                Text("\(minute) min").tag(minute)
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                    }
+                    .frame(height: 120)
+                    .padding(.horizontal, 8)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color("LinesColor"), lineWidth: 0.3)
+                )
+
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .padding(.horizontal, 20)
+            .toolbar {
+                SheetHeaderView(
+                    title: "",
+                    actionIcon: "checkmark",
+                    showingDiscardAlert: $showAlert,
+                    onCancel: { onDismiss() },
+                    onConfirm: { onSave() },
+                    onDiscard: { onDismiss() }
+                )
+            }
+        }
+    }
+}
+
+#Preview("Edit Daily Goal - SheetHeaderView") {
+    struct PreviewWrapper: View {
+        @State private var isPresented = true
+        @State private var goalMinutes = 15 // exemplo 0h 15min
+
+        var body: some View {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                Button("Abrir Sheet") {
+                    isPresented = true
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .sheet(isPresented: $isPresented) {
+                EditDailyGoalContent(
+                    minutesPerDay: $goalMinutes,
+                    onDismiss: { isPresented = false },
+                    onSave: { isPresented = false }
+                )
+                .presentationDetents([.height(340)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color("BackgroundColorViews"))
+            }
+        }
+    }
+
+    return PreviewWrapper()
+}
+ ⁠
+
+---
+
 ### Arquivo: \⁠ ./View/Onboarding/FirstOnboardView.swift\ ⁠
 ⁠ swift
 //
@@ -3552,59 +5063,77 @@ struct StopwatchView: View {
 import SwiftUI
 
 struct FirstOnboardView: View {
+    var onAdvance: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
             Color("BackgroundColorViews")
                 .ignoresSafeArea()
             
-            VStack {
+            Image("OnboardingOficial")
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .black, location: 0.68),
+                            .init(color: .clear, location: 0.52)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            
+            VStack(spacing: 16) {
                 Spacer()
+        
+                Capsule()
+                    .fill(Color("ProgressBar"))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 8)
                 
-                    Image("Onboarding")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                    
-                    Text("Olá, seja bem-vindo(a)!")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding(.bottom, 30)
-                        .multilineTextAlignment(.center)
-                    
-                    Rectangle()
-                    .frame(width: 100, height: 2.5)
-                        .foregroundColor(Color("ActionColor"))
-                        .padding(.bottom, 30)
-                    
-                    Text("No Frush você consegue cadastrar seus livros, registrar seus momentos de leitura e alcançar suas metas no seu próprio ritmo.")
-                        .font(.body)
-                        .fontWeight(.light)
-                        .padding(.bottom, 10)
-                        .multilineTextAlignment(.center)
+
+                VStack(spacing: 2) {
+                    Text("Bem-vindo(a)")
+                        .font(.largeTitle)
+                        .fontWeight(.regular)
                         .foregroundColor(.white)
                     
-                    Spacer()
-                    Spacer()
-                    
-                    Button(action: {
-                        
-                    }) {
-                        Text("Avançar")
-                            .font(.title3)
-                            .frame(maxWidth: .infinity)
-                            .fontWeight(.medium)
-                            .padding(.vertical, 14)
-                            .background(Color("ActionColor"))
+                    HStack(spacing: 6) {
+                        Text("ao")
+                            .font(.largeTitle)
+                            .fontWeight(.regular)
                             .foregroundColor(.white)
-                            .clipShape(Capsule())
+                        
+                        Text("Frush")
+                            .font(.bitter(.bold, style: .largeTitle))
+                            .foregroundColor(.white)
+ 
                     }
-                    .padding(.bottom, 30)
-                    
                 }
-                .padding(.horizontal, 26)
+                
+                // Subtítulo com destaque final em amarelo
+                (Text("Venha cadastrar seus livros, registrar suas notas de leitura e alcançar suas metas ")
+                    .foregroundColor(.white.opacity(0.85)) +
+                 Text("no seu próprio ritmo.")
+                    .foregroundColor(Color("ProgressBar"))
+                    .bold())
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                
+                Spacer()
+                
+                ButtonAction(text: "Avançar") {
+                    //colocar acao
+                }
+                .padding(.bottom, 40)
+                
             }
-        
-       
+            .padding(.horizontal, 26)
+            .padding(.top, 400)
+        }
     }
 }
 
@@ -3623,72 +5152,169 @@ struct FirstOnboardView: View {
 //
 //  Created by Agatha Barbosa Marinho dos Santos on 17/08/26.
 //
+/*
+ import SwiftUI
+ 
+ struct SecondOnboardView: View {
+ @EnvironmentObject var booksViewModel: BooksViewModel
+ @State private var selectedGoal: String = ""
+ 
+ var body: some View {
+ ZStack {
+ Color("BackgroundColorViews")
+ .ignoresSafeArea()
+ 
+ VStack {
+ Spacer()
+ Spacer()
+ 
+ Text("Quanto tempo você \n deseja por dia?")
+ .font(.title2)
+ .fontWeight(.semibold)
+ .padding(.bottom, 30)
+ .multilineTextAlignment(.center)
+ 
+ Rectangle()
+ .frame(width: 100, height: 2.5)
+ .foregroundColor(Color("ActionColor"))
+ .padding(.bottom, 30)
+ 
+ Text("Definir um tempo diário ajuda a manter a consistência. Você pode alterar isso a qualquer momento")
+ .font(.body)
+ .fontWeight(.light)
+ .padding(.bottom, 30)
+ .multilineTextAlignment(.center)
+ .foregroundColor(.white)
+ 
+ 
+ MenuSheetPicker(
+ title: "",
+ placeholder: "Selecione seu objetivo diário",
+ selectedValue: $selectedGoal,
+ options: booksViewModel.goalOptions,
+ formatOption: { "\($0) minutos" }
+ )
+ 
+ 
+ Spacer()
+ Spacer()
+ 
+ Button(action: {
+ 
+ }) {
+ Text("Iniciar jornada")
+ .font(.title3)
+ .frame(maxWidth: .infinity)
+ .fontWeight(.medium)
+ .padding(.vertical, 14)
+ .background(Color("ActionColor"))
+ .foregroundColor(.white)
+ .clipShape(Capsule())
+ }
+ .padding(.bottom, 30)
+ 
+ }
+ .padding(.horizontal, 26)
+ }
+ 
+ 
+ }
+ }
+ 
+ #Preview {
+ SecondOnboardView()
+ .environmentObject(BooksViewModel())
+ }
+ */
 
 import SwiftUI
 
 struct SecondOnboardView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @State private var selectedGoal: String = ""
-    
+    var onStart: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
+            // Fundo escuro base
             Color("BackgroundColorViews")
                 .ignoresSafeArea()
             
-            VStack {
-                Spacer()
+            // Ilustração dos arcos no topo (supondo que seja a mesma imagem ou similar com máscara)
+            Image("OnboardingOficial2")
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .ignoresSafeArea()
+               
+            
+            // Conteúdo principal
+            VStack(spacing: 20) {
                 Spacer()
                 
-                    Text("Quanto tempo você \n deseja por dia?")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding(.bottom, 30)
-                        .multilineTextAlignment(.center)
-                    
-                    Rectangle()
-                    .frame(width: 100, height: 2.5)
-                        .foregroundColor(Color("ActionColor"))
-                        .padding(.bottom, 30)
-                    
-                    Text("Definir um tempo diário ajuda a manter a consistência. Você pode alterar isso a qualquer momento")
-                        .font(.body)
-                        .fontWeight(.light)
-                        .padding(.bottom, 30)
-                        .multilineTextAlignment(.center)
+                // Título principal
+                VStack(spacing: 2) {
+                    Text("Defina a sua ")
+                        .font(.largeTitle)
+                        .fontWeight(.regular)
+                        .foregroundColor(.white) +
+                    Text("meta")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
-                
-                
-                    MenuSheetPicker(
-                        title: "",
-                        placeholder: "Selecione seu objetivo diário",
-                        selectedValue: $selectedGoal,
-                        options: booksViewModel.goalOptions,
-                        formatOption: { "\($0) minutos" }
-                    )
-                
                     
-                    Spacer()
-                    Spacer()
-                    
-                    Button(action: {
-                        
-                    }) {
-                        Text("Iniciar jornada")
-                            .font(.title3)
-                            .frame(maxWidth: .infinity)
-                            .fontWeight(.medium)
-                            .padding(.vertical, 14)
-                            .background(Color("ActionColor"))
+                    HStack(spacing: 6) {
+                        Text("diária")
+                            .font(.bitter(.bold, style: .largeTitle))
                             .foregroundColor(.white)
-                            .clipShape(Capsule())
+                        
+                        Text("de leitura")
+                            .font(.largeTitle)
+                            .fontWeight(.regular)
+                            .foregroundColor(.white)
                     }
-                    .padding(.bottom, 30)
-                    
                 }
-                .padding(.horizontal, 26)
+                .multilineTextAlignment(.center)
+                .padding(.top, 350)
+                
+                // Subtítulo com destaque amarelo
+                (Text("Definir um tempo diário ajuda\nem ")
+                    .foregroundColor(.white.opacity(0.85)) +
+                 Text("manter a consistência")
+                    .foregroundColor(Color("ProgressBar"))
+                    .bold())
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                
+                // Picker / Menu de Seleção
+                MenuSheetPickerOnboarding(
+                    title: "",
+                    placeholder: "Selecione uma meta",
+                    selectedValue: $selectedGoal,
+                    options: booksViewModel.goalOptions,
+                    formatOption: { "\($0) minutos" }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                
+                // Texto informativo logo abaixo do Picker
+                Text("Você pode alterar isso a qualquer momento")
+                    .font(.footnote)
+                    .foregroundColor(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+                
+                // Botão de ação "Iniciar jornada"
+                ButtonAction(text: "Iniciar jornada") {
+                    onStart?()
+                }
+                .padding(.bottom, 40)
             }
-        
-       
+            .padding(.horizontal, 26)
+            
+        }
     }
 }
 
@@ -3712,34 +5338,40 @@ struct SecondOnboardView: View {
 import SwiftUI
 
 struct NotesView: View {
+    
     var body: some View {
-        ZStack {
-            Color("BackgroundColorViews")
-                .ignoresSafeArea()
+        NavigationView {
             
-            VStack(alignment: .leading, spacing: 20) {
-                Spacer()
+            ZStack {
+                Color("BackgroundColorViews")
+                    .ignoresSafeArea()
                 
-                Text("Minhas notas")
-                    .font(.bitter(.medium, style: .largeTitle))
-                    .foregroundStyle(Color("TitleColor"))
-                
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        ForEach(0..<5) { _ in
-                            NotesCardView(
-                                imageName: "defaultBook",
-                                tagText: "Referência",
-                                title: "Título da nota",
-                                description: "Descrição inicial da primeira..."
-                            )
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Minhas notas")
+                        .font(.bitter(.medium, style: .largeTitle))
+                        .foregroundStyle(Color("TitleColor"))
+                    
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 16) {
+                            ForEach(0..<5) { _ in
+                                NotesCardView(
+                                    imageName: "defaultBook",
+                                    tagText: "Referência",
+                                    title: "Título da nota",
+                                    description: "Descrição inicial da primeira..."
+                                )
+                            }
                         }
                     }
-                }
                 
-                Spacer()
+                }
+                .padding(.horizontal, 24)
+    
             }
-            .padding(.horizontal, 24)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolBarButton(action: {}, icon: "plus", colorName: "ActionColor")
+            }
         }
     }
 }

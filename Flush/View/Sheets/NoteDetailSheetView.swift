@@ -8,69 +8,64 @@
 import SwiftUI
 
 struct NoteDetailSheetView: View {
-    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
-    @EnvironmentObject var notesViewModel: NotesViewModel
-    
-    var note: Notes
-    
-    @Environment(\.dismiss) var dismiss
-    
-    @State var isShowingEditSheet: Bool = false
-    
+    @EnvironmentObject private var notesViewModel: NotesViewModel
+
+    @ObservedObject var note: Notes
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var isShowingEditSheet = false
+
     private var noteImages: [UIImage] {
         if let photosData = note.notePhoto as? [Data] {
             return photosData.compactMap { UIImage(data: $0) }
         }
         return []
     }
-    
+
     var body: some View {
-        
-        NavigationStack{
+        NavigationStack {
             ZStack(alignment: .top) {
                 Color(.backgroundColorViews)
                     .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 24) {
-                            
-                            if !noteImages.isEmpty {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 16) {
-                                        ForEach(0..<noteImages.count, id: \.self) { index in
-                                            Image(uiImage: noteImages[index])
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 240, height: 300)
-                                                .cornerRadius(16)
-                                                .clipped()
-                                        }
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+
+                        if !noteImages.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(Array(noteImages.enumerated()), id: \.offset) { _, image in
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 240, height: 300)
+                                            .cornerRadius(16)
+                                            .clipped()
                                     }
-                                    .padding(.horizontal, 24)
                                 }
+                                .padding(.horizontal, 24)
                             }
-                            
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text(note.noteTitle ?? "Sem título")
-                                    .font(.system(.title, weight: .medium))
-                                    .foregroundColor(.title)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Text(note.noteDescription ?? "Sem descrição")
-                                    .font(.system(.body, weight: .light))
-                                    .foregroundColor(Color(.title))
-                                    .lineSpacing(5)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .padding(.horizontal, 24)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.bottom, 40)
+
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(note.noteTitle ?? "Sem título")
+                                .font(.system(.title, weight: .medium))
+                                .foregroundColor(.title)
+                                .multilineTextAlignment(.leading)
+
+                            Text(note.noteDescription ?? "Sem descrição")
+                                .font(.system(.body, weight: .light))
+                                .foregroundColor(Color(.title))
+                                .lineSpacing(5)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding(.horizontal, 24)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 40)
                 }
-                .toolbar{
+                .toolbar {
                     NotesToolBar(
                         title: "Nota",
                         onClose: {
@@ -78,18 +73,19 @@ struct NoteDetailSheetView: View {
                             dismiss()
                         },
                         onEdit: {
-                            isShowingEditSheet.toggle()
+                            isShowingEditSheet = true
                         }
-                    ) 
+                    )
                 }
-                
-                .sheet(isPresented: $isShowingEditSheet, onDismiss: {
-                    
-                }){
-                    NoteSheetView(book: note.book!, noteToEdit: note)
+            }
+            .sheet(isPresented: $isShowingEditSheet, onDismiss: {
+                notesViewModel.fetchNotes(for: note.book)
+            }) {
+                if let book = note.book {
+                    NoteSheetView(book: book, noteToEdit: note)
+                        .environmentObject(notesViewModel)
                 }
             }
         }
-
     }
 }
