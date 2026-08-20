@@ -230,6 +230,10 @@ struct BookSheetView: View {
                                             bookCategory: selectedCategory,
                                             bookTotalPages: bookTotalPages
                                         )
+                                        
+                                        booksViewModel.fetchBooks()
+                                        dismiss()
+                                        
                                     } catch let error as LocalizedError{
                                         errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                                         showErrorAlert = true

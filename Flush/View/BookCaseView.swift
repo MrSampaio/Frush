@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BookCaseView: View {
-    @ObservedObject var booksViewModel: BooksViewModel
+    @ObservedObject var bookViewModel: BooksViewModel
     @State private var isShowingSheet = false
     
     @State private var selectedBookForDetail: Books? = nil
@@ -16,7 +16,7 @@ struct BookCaseView: View {
     
     
     var books: [Books] {
-        booksViewModel.savedBooks
+        bookViewModel.savedBooks
     }
     
     let columns = [
@@ -57,11 +57,11 @@ struct BookCaseView: View {
                         }
                         .padding(.top, 28)
                         
-                        CardTotalPages(totalPages: booksViewModel.countReadedPages())
+                        CardTotalPages(totalPages: bookViewModel.countReadedPages())
                         
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(books) { book in
-                                NavigationLink(destination: BookDetailView(viewModel: booksViewModel, book: book)){
+                                NavigationLink(destination: BookDetailView(bookViewModel: bookViewModel, book: book)){
                                     BookCardView(book: book)
                                 }
                                 .buttonStyle(.plain)
@@ -80,24 +80,27 @@ struct BookCaseView: View {
                 }
             }
         }
+        .onAppear {
+            bookViewModel.fetchBooks()
+        }
 //        .fakeSheet(isPresented: $isShowingBookDetail) {
 //            if let selectedBookForDetail {
 //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
 //            }
 //        }
         .sheet(isPresented: $isShowingSheet, onDismiss: {
-            booksViewModel.fetchBooks()
+            bookViewModel.fetchBooks()
         }) {
             BookSheetView(bookToEdit: nil)
                 .environmentObject(PhotoLibraryViewModel())
-                .environmentObject(BooksViewModel())
+                .environmentObject(bookViewModel)
                 
         }
     }
 }
 
 #Preview {
-    BookCaseView(booksViewModel: BooksViewModel())
+    BookCaseView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
 }

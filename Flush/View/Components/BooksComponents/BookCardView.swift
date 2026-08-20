@@ -9,11 +9,12 @@ import SwiftUI
 import CoreData
 
 struct BookCardView: View {
-    let book: Books
+    @ObservedObject var book: Books
     
     @State private var isEditingSheetPresented = false
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var bookViewModel: BooksViewModel
     
     private var percentageRead: Int {
         guard book.bookTotalPages > 0 else { return 0 }
@@ -86,9 +87,11 @@ struct BookCardView: View {
         .frame(width: 170)
         .cornerRadius(12)
         
-        .sheet(isPresented: $isEditingSheetPresented) {
-                    BookSheetView(bookToEdit: book)
-                }
+        .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
+            bookViewModel.fetchBooks()
+        }) {
+            BookSheetView(bookToEdit: book)
+        }
     }
 }
 //#Preview {

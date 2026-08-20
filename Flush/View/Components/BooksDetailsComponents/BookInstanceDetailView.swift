@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct BookInstanceDetailView: View {
-    var book: Books
+    @ObservedObject var book: Books
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var readingProgress: Double {
