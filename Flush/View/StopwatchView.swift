@@ -91,7 +91,7 @@ struct StopwatchView: View {
                                 stopwatchViewModel.isRunning.toggle()
                                 
                                 if stopwatchViewModel.isRunning {
-                                    stopwatchViewModel.start()
+                                    stopwatchViewModel.startTimer()
                                     
                                 }
                                 else{

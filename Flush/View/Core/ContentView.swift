@@ -17,7 +17,7 @@ struct ContentView: View {
                 BookCaseView(booksViewModel: BooksViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-                StopwatchView()
+               // StopwatchInicialView()
             }
             Tab(role: .search){
                 BookSearchView()
