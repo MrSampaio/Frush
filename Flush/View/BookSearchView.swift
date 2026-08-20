@@ -64,6 +64,8 @@ struct BookSearchView: View {
                     }
                 }
             }
+           
+
             .overlay {
                 if filteredBooks.isEmpty && filteredNotes.isEmpty {
                     ContentUnavailableView(
@@ -98,5 +100,6 @@ struct BookSearchView: View {
                 NoteDetailSheetView(note: note)
             }
         }
+        .background(Color("backgroundColorViews"))
     }
 }

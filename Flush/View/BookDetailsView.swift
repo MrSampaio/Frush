@@ -110,14 +110,14 @@ struct BookDetailView: View {
             .onDisappear {
                 bookViewModel.fetchBooks()
             }
-            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                notesViewModel.fetchNotes(for: currentBook)
-            }) {
-                if let currentBook {
-                    NoteSheetView(book: currentBook)
-                        .environmentObject(notesViewModel)
-                }
-            }
+//            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+//                notesViewModel.fetchNotes(for: currentBook)
+//            }) {
+//                if let currentBook {
+//                    NoteSheetView(book: currentBook)
+//                        .environmentObject(notesViewModel)
+//                }
+//            }
             .sheet(isPresented: $isPresentedEditBook, onDismiss: {
                 bookViewModel.fetchBooks()
             }){

@@ -63,19 +63,23 @@ struct NoteDetailSheetView: View {
                         .padding(.horizontal, 24)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
                     .padding(.bottom, 40)
                 }
                 .toolbar {
-                    NotesToolBar(
-                        title: "Nota",
-                        onClose: {
-                            notesViewModel.fetchNotes(for: note.book)
-                            dismiss()
-                        },
-                        onEdit: {
-                            isShowingEditSheet = true
-                        }
-                    )
+                    NoteDetailsToolbar(title: "Nota", onEdit: {
+                         
+                    })
+//                    NotesToolBar(
+//                        title: "Nota",
+//                        onClose: {
+//                            notesViewModel.fetchNotes(for: note.book)
+//                            dismiss()
+//                        },
+//                        onEdit: {
+//                            isShowingEditSheet = true
+//                        }
+//                    )
                 }
             }
             .sheet(isPresented: $isShowingEditSheet, onDismiss: {
