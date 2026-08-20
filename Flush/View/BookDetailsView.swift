@@ -73,18 +73,17 @@ struct BookDetailView: View {
                                 .padding(.top, 16)
                                  */
                                 
-                                ButtonAction(text: "Iniciar leitura") {
-                                    //print("Botão pressionado!")
+                                
+                                ButtonAction(text: "Adicionar leitura", isGlass: true) {
+                                    //print("Excluído")
                                 }
                                 .buttonStyle(.glass)
                                 .padding(.horizontal, 24)
                                 .padding(.top, 16)
                                 
-                                ButtonAction(text: "Iniciar leitura") {
-                                    //print("Botão pressionado!")
-                                }
-                                .padding(.horizontal, 24)
-                                .padding(.top, 16)
+                                // Button preenchido com cor
+                                ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
+                                    .padding(.horizontal, 24)
                                 
                             }
            
