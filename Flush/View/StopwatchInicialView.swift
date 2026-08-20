@@ -11,13 +11,30 @@ struct StopwatchInitialView: View {
     var namespace: Namespace.ID
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     
+    // View Models necessários para a NoteSheetView
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var notesViewModel: NotesViewModel
+    
     @Binding var selectedBook: Books?
     
     @State private var isShowingNoteSheet = false
     @State private var isShowingSelectBookSheet = false
     @State private var isShowingTimerPicker = false
+    @State private var isShowingNoBookAlert = false
     
     @State private var selectedDuration: TimeInterval = 15 * 60
+    
+    private var buttonTitle: String {
+        switch stopwatchViewModel.timerState {
+        case .running:
+            return "Pausar leitura"
+        case .paused:
+            return "Continuar leitura"
+        case .stopped:
+            return "Iniciar leitura"
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -111,6 +128,7 @@ struct StopwatchInitialView: View {
                                     isShowingSelectBookSheet = true
                                 }) {
                                     HStack(spacing: 12) {
+                                        /*
                                         if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                                             Image(uiImage: uiImage)
                                                 .resizable()
@@ -134,6 +152,35 @@ struct StopwatchInitialView: View {
                                                 .lineLimit(1)
                                             
                                             Text(selectedBook?.bookAuthor ?? "Becca Fitzpatrick")
+                                                .font(.system(size: 13))
+                                                .foregroundColor(Color.white.opacity(0.8))
+                                                .lineLimit(1)
+                                        }
+                                         */
+                                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 40, height: 40)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        } else {
+                                            Image(systemName: "book.closed.fill")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 40, height: 40)
+                                                .foregroundColor(.white.opacity(0.7))
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                .padding(.leading, 8)
+                                        }
+
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(selectedBook?.bookTitle ?? "Nenhum livro selecionado")
+                                                .font(.body)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.white)
+                                                .lineLimit(1)
+                                            
+                                            Text(selectedBook?.bookAuthor ?? "Toque para selecionar")
                                                 .font(.system(size: 13))
                                                 .foregroundColor(Color.white.opacity(0.8))
                                                 .lineLimit(1)
@@ -201,6 +248,11 @@ struct StopwatchInitialView: View {
                             VStack(spacing: 12) {
                                 // botão Principal: Iniciar / Pausar / Continuar
                                 ButtonAction(text: buttonTitle){
+                                    guard selectedBook != nil else {
+                                        isShowingNoBookAlert = true
+                                        return
+                                    }
+                                    
                                     if stopwatchViewModel.timerState == .running {
                                         stopwatchViewModel.pauseTimer()
                                     } else {
@@ -222,18 +274,6 @@ struct StopwatchInitialView: View {
                                 }
                             }
                             .padding(.horizontal)
-
-                            // Computada auxiliar para o rótulo do botão
-                            var buttonTitle: String {
-                                switch stopwatchViewModel.timerState {
-                                case .running:
-                                    return "Pausar leitura"
-                                case .paused:
-                                    return "Continuar leitura"
-                                case .stopped:
-                                    return "Iniciar leitura"
-                                }
-                            }
                         }
                         
                         Spacer()
@@ -241,28 +281,31 @@ struct StopwatchInitialView: View {
                 }
                 .toolbar {
                     ToolBarButton(
-                        action: { isShowingNoteSheet = true },
-                        icon: "note.text.badge.plus"
+                        action: {
+                            if selectedBook != nil {
+                                isShowingNoteSheet = true
+                            } else {
+                                isShowingNoBookAlert = true
+                            }
+                        },
+                        icon: "square.and.pencil"
                     )
                 }
+                
                 .sheet(isPresented: $isShowingNoteSheet) {
                     if let currentBook = selectedBook {
                         NoteSheetView(book: currentBook)
-                    } else {
-                        VStack(spacing: 12) {
-                            Text("Atenção")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            Text("Selecione um livro antes de adicionar uma anotação.")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                        .presentationDetents([.height(180)])
                     }
                 }
+                .alert("Atenção", isPresented: $isShowingNoBookAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Selecione um livro antes de adicionar uma anotação.")
+                }
+                
                 .sheet(isPresented: $isShowingSelectBookSheet) {
                     SelectBookSheetView(selectedBook: $selectedBook)
+                        .environmentObject(booksViewModel)
                 }
 
                 .sheet(isPresented: $isShowingTimerPicker) {
@@ -314,6 +357,9 @@ struct StopwatchInitialView: View {
                     .presentationDetents([.height(260)])                 
                  
                 }
+                .onAppear {
+                    booksViewModel.fetchBooks()
+                }
             }
         }
     }
@@ -326,6 +372,7 @@ struct StopwatchInitialView: View {
     StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
         .preferredColorScheme(.dark)
         .environmentObject(StopwatchViewModel())
-        .environmentObject(BooksViewModel.preview)
+        .environmentObject(PhotoLibraryViewModel())
+        .environmentObject(BooksViewModel())
+        .environmentObject(NotesViewModel())
 }
-

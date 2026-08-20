@@ -24,9 +24,10 @@ struct ToolBarButton: ToolbarContent {
                 action()
             }) {
                 Image(systemName: icon)
-                        .font(icon == "note.text.badge.plus" ? .subheadline : .body)
+                        .font(icon == "square.and.pencil" ? .body : .body)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
+                        .padding(.bottom, icon == "square.and.pencil" ? 5 : 0)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
@@ -41,7 +42,7 @@ struct ToolBarButton: ToolbarContent {
     NavigationStack {
         Text("Preview")
             .toolbar {
-                ToolBarButton(action: {}, icon: "note.text.badge.plus")
+                ToolBarButton(action: {}, icon: "square.and.pencil")
             }
     }
     .preferredColorScheme(.dark)

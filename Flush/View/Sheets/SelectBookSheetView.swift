@@ -74,34 +74,7 @@ struct SelectBookSheetView: View {
     }
 }
 
-// Extension para dados fictícios no Preview
-extension BooksViewModel {
-    static var preview: BooksViewModel {
-        let viewModel = BooksViewModel()
-        let context = CoreDataManager.shared.viewContext
-        
-        // Cria instâncias temporárias para exibir no Canvas
-        let book1 = Books(context: context)
-        book1.bookTitle = "Hush, Hush"
-        book1.bookAuthor = "Becca Fitzpatrick"
-        
-        let book2 = Books(context: context)
-        book2.bookTitle = "É Assim que Acaba"
-        book2.bookAuthor = "Colleen Hoover"
-        
-        let book3 = Books(context: context)
-        book3.bookTitle = "O Hobbit"
-        book3.bookAuthor = "J.R.R. Tolkien"
-        
-        viewModel.savedBooks = [book1, book2, book3]
-        return viewModel
-    }
-}
-
 #Preview {
-    let previewVM = BooksViewModel.preview
-    
-    // Passa o primeiro livro do mock como selecionado para testar o indicador visual
-    SelectBookSheetView(selectedBook: .constant(previewVM.savedBooks.first))
-        .environmentObject(previewVM)
+    SelectBookSheetView(selectedBook: .constant(nil))
+        .environmentObject(BooksViewModel())
 }
