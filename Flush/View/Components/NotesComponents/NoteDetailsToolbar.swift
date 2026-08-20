@@ -11,7 +11,7 @@ import SwiftUI
 struct NoteDetailsToolbar: ToolbarContent {
     var title: String
 //    var hasReturn: Bool
-    //var onClose: () -> Void
+    var onDelete: () -> Void
     var onEdit: () -> Void
     
     
@@ -36,6 +36,23 @@ struct NoteDetailsToolbar: ToolbarContent {
             Text(title)
                 .foregroundColor(Color("LinesColor"))
                 .font(.bitter(.semibold, style: .title2))
+        }
+        
+
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                onDelete()
+            }) {
+                Image(systemName: "trash")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                   
+            }
+            
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.circle)
+            .tint(Color(.red))
         }
         
         ToolbarItem(placement: .topBarTrailing) {

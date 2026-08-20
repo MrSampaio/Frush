@@ -67,9 +67,12 @@ struct NoteDetailSheetView: View {
                     .padding(.bottom, 40)
                 }
                 .toolbar {
-                    NoteDetailsToolbar(title: "Nota", onEdit: {
-                         
-                    })
+                    NoteDetailsToolbar(
+                        title: "Nota",
+                        onDelete: {},
+                        onEdit: {}
+                        
+                    )
 //                    NotesToolBar(
 //                        title: "Nota",
 //                        onClose: {
