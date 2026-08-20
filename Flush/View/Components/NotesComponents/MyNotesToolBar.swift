@@ -21,7 +21,7 @@ struct MyNotesToolBar: ToolbarContent {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.plain)
             .buttonBorderShape(.circle)
             .tint(Color.white.opacity(0.2))
         }
@@ -34,9 +34,9 @@ struct MyNotesToolBar: ToolbarContent {
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.circle)
             .tint(Color("ActionColor"))
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
         }
     }
 }

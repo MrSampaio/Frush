@@ -33,6 +33,7 @@ struct NoteSheetView: View {
     @State private var showPhotoPicker = false
     
     var book: Books
+//    var note: Notes
    
     var body: some View {
         NavigationStack {
