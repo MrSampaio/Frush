@@ -12,6 +12,7 @@ struct BookCardView: View {
     @ObservedObject var book: Books
     
     @State private var isEditingSheetPresented = false
+    @State private var isShowingDeleteAlert = false
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var bookViewModel: BooksViewModel
@@ -78,7 +79,7 @@ struct BookCardView: View {
             Divider()
             
             Button(role: .destructive) {
-                //showDeleteAlert = true
+                isShowingDeleteAlert = true
             } label: {
                 Label("Apagar Livro", systemImage: "trash")
                     .font(.body)
@@ -88,9 +89,27 @@ struct BookCardView: View {
         .cornerRadius(12)
         
         .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
-            bookViewModel.fetchBooks()
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
         }) {
             BookSheetView(bookToEdit: book)
+        }
+        
+        .alert("Apagar Livro", isPresented: $isShowingDeleteAlert) {
+            Button("Cancelar", role: .cancel) { }
+            
+            Button("Apagar", role: .destructive) {
+                withAnimation {
+                    do {
+                        try bookViewModel.deleteBook(book: book)
+                    } catch {
+                        print("Erro ao tentar apagar o livro: \(error.localizedDescription)")
+                    }
+                }
+            }
+        } message: {
+            Text("Tem certeza que deseja apagar o livro '\(book.bookTitle ?? "Sem título")'? Essa ação não pode ser desfeita.")
         }
     }
 }

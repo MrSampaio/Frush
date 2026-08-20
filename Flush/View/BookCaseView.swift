@@ -38,21 +38,6 @@ struct BookCaseView: View {
                         //título e botão "+"
                         HStack {
                             TitleComponent(title: "Meus Livros")
-                            
-                            
-    //                        Spacer()
-    //
-    //                        Button(action: {
-    //                            // Ação do botão
-    //                        }) {
-    //                            Image(systemName: "plus")
-    //                                .font(.system(.title, weight: .semibold))
-    //                                .foregroundStyle(Color("TitleColor"))
-    //                                .frame(width: 48, height: 48)
-    //                                .background(Color.black.opacity(0.3), in: Circle())
-    //                        }
-    //                        .glassEffect(.regular, in: Circle())
-                            
                                 
                         }
                         .padding(.top, 28)
@@ -67,6 +52,7 @@ struct BookCaseView: View {
                                 .buttonStyle(.plain)
                             }
                         }
+                        .environmentObject(bookViewModel)
                     }
                     .padding(.horizontal, 24)
                 }
@@ -81,7 +67,9 @@ struct BookCaseView: View {
             }
         }
         .onAppear {
-            bookViewModel.fetchBooks()
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
         }
 //        .fakeSheet(isPresented: $isShowingBookDetail) {
 //            if let selectedBookForDetail {
@@ -89,7 +77,10 @@ struct BookCaseView: View {
 //            }
 //        }
         .sheet(isPresented: $isShowingSheet, onDismiss: {
-            bookViewModel.fetchBooks()
+            withAnimation{
+                bookViewModel.fetchBooks()
+            }
+            
         }) {
             BookSheetView(bookToEdit: nil)
                 .environmentObject(PhotoLibraryViewModel())
