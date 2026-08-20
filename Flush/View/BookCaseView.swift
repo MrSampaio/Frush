@@ -24,7 +24,6 @@ struct BookCaseView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     
-    
     //@State var books = self.booksViewModel.savedBooks
     
     var body: some View {

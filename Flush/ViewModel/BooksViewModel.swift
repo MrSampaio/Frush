@@ -161,33 +161,47 @@ class BooksViewModel: ObservableObject {
 
     }
     
-    func updateBook(IndexSet: IndexSet, bookTitle: String?, bookAuthor: String?, bookCover: Data?, bookCategory: String?, bookTotalPages: Int16?, bookCurrentPage: Int16?, bookGoal: Int16?) throws {
+    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws {
         
-        guard let index = IndexSet.first else { return }
+//        guard let index = IndexSet.first else { return }
+//        
+//        let book = self.savedBooks[index]
         
-        let book = self.savedBooks[index]
+        let totalPagesInt = Int16(bookTotalPages) ?? 0
         
-        // valores finais que serão aplicados (novo valor, ou o valor atual se nil)
-        let finalTitle = (bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)) ?? book.bookTitle
-        let finalTotalPages = bookTotalPages ?? book.bookTotalPages
-        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
-        let finalGoal = bookGoal ?? book.bookGoal
+        let finalTitle = (bookTitle.trimmingCharacters(in: .whitespacesAndNewlines))
         
-        if let finalTitle, finalTitle.isEmpty {
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        
+        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+
+        if finalTitle.isEmpty {
             throw BookError.invalidTitle
         }
         
-        if finalTotalPages <= 0 {
+        if totalPagesInt <= 0 {
             throw BookError.invalidTotalPages
         }
         
-        if finalCurrentPage < 0 {
-            throw BookError.invalidCurrentPage
-        }
         
-        if finalCurrentPage > finalTotalPages {
-            throw BookError.invalidPageLogic
-        }
+        //let finalTotalPages = bookTotalPages ?? book.bookTotalPages
+        
+
+//        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
+//        let finalGoal = bookGoal ?? book.bookGoal
+        
+//        if finalTotalPages <= 0 {
+//            throw BookError.invalidTotalPages
+//        }
+       
+        
+//        if finalCurrentPage < 0 {
+//            throw BookError.invalidCurrentPage
+//        }
+//        
+//        if finalCurrentPage > finalTotalPages {
+//            throw BookError.invalidPageLogic
+//        }
         
 //        if finalGoal <= 0 {
 //            throw BookError.invalidGoal
@@ -195,13 +209,26 @@ class BooksViewModel: ObservableObject {
         
         // só aplica as mudanças se passou em todas as validações
 //        book.id = UUID()
-        book.bookTitle = finalTitle
-        book.bookAuthor = bookAuthor ?? book.bookAuthor
-        book.bookCover = bookCover ?? book.bookCover
-        book.bookCategory = bookCategory ?? book.bookCategory
-        book.bookTotalPages = finalTotalPages
-        book.bookCurrentPage = finalCurrentPage
-        book.bookGoal = finalGoal
+        
+        if(book.bookTitle != finalTitle){
+            book.bookTitle = finalTitle
+        }
+        
+        if(book.bookAuthor != bookAuthor){
+            book.bookAuthor = bookAuthor
+        }
+        
+        if(book.bookCategory != bookCategory){
+            book.bookCategory = bookCategory
+        }
+        
+        if(book.bookTotalPages != totalPagesInt){
+            book.bookTotalPages = totalPagesInt
+        }
+        
+        if(book.bookCover != coverData){
+            book.bookCover = coverData
+        }
         
         try self.saveBook()
         self.fetchBooks()

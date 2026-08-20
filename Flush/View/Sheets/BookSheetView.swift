@@ -220,31 +220,45 @@ struct BookSheetView: View {
                             onCancel: {},
                             onConfirm: {
                                 
-                                do{
-
-//                                    
-//                                    let coverData = photoLibraryViewModel.selectedImage?.jpegData(compressionQuality: 0.7) ?? Data()
-                                    
-//                                    let goalInt = Int16(selectedGoal.filter("0123456789".contains)) ?? 0
-                                    
-                                    try booksViewModel.addBook(
-                                        bookTitle: bookTitle,
-                                        bookAuthor: bookAuthor,
-                                        bookCover: photoLibraryViewModel.selectedImage,
-                                        bookCategory: selectedCategory,
-                                        bookTotalPages: bookTotalPages
-                                    )
-                                    
-                                    booksViewModel.fetchBooks()
-                                    dismiss()
-                                    
-                                } catch let error as LocalizedError{
-                                    errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                    showErrorAlert = true
-                                } catch {
-                                    errorMessage = "Erro inesperado."
-                                    showErrorAlert = true
+                                if(bookToEdit != nil){
+                                    do{
+                                        try booksViewModel.updateBook(
+                                            book: bookToEdit!,
+                                            bookTitle: bookTitle,
+                                            bookAuthor: bookAuthor,
+                                            bookCover: photoLibraryViewModel.selectedCoverImage,
+                                            bookCategory: selectedCategory,
+                                            bookTotalPages: bookTotalPages
+                                        )
+                                    } catch let error as LocalizedError{
+                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                        showErrorAlert = true
+                                    } catch {
+                                        errorMessage = "Erro inesperado."
+                                        showErrorAlert = true
+                                    }
+                                } else{
+                                    do{
+                                        try booksViewModel.addBook(
+                                            bookTitle: bookTitle,
+                                            bookAuthor: bookAuthor,
+                                            bookCover: photoLibraryViewModel.selectedCoverImage,
+                                            bookCategory: selectedCategory,
+                                            bookTotalPages: bookTotalPages
+                                        )
+                                        
+                                        booksViewModel.fetchBooks()
+                                        dismiss()
+                                        
+                                    } catch let error as LocalizedError{
+                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                        showErrorAlert = true
+                                    } catch {
+                                        errorMessage = "Erro inesperado."
+                                        showErrorAlert = true
+                                    }
                                 }
+
                             },
                             onDiscard: { dismiss() }
                         )
