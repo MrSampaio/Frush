@@ -60,6 +60,7 @@ struct SelectBookSheetView: View {
                 SheetHeaderView(
                     title: "Livros salvos",
                     actionIcon: "checkmark",
+                    hasChanges: false,
                     showingDiscardAlert: $showingDiscardAlert,
                     onCancel: { dismiss() },
                     onConfirm: { dismiss() },

@@ -11,11 +11,9 @@ import CoreData
 
 struct NoteSheetView: View {
 
-    // MARK: - Ambiente
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var notesViewModel: NotesViewModel
 
-    // MARK: - Entradas
     let book: Books
     let noteToEdit: Notes?
 
@@ -23,20 +21,32 @@ struct NoteSheetView: View {
     @State private var noteDescription: String
     @State private var noteImages: [SelectableImage]
     @State private var selectedCategory: String
+    
+    @State private var initialImagesCount: Int
 
-    // MARK: - Fluxo de mídia
     @State private var pickedItems: [PhotosPickerItem] = []
     @State private var isShowingPhotoPicker = false
     @State private var isShowingCamera = false
 
-    // MARK: - Alertas
     @State private var showingDiscardAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
 
     private static let maxImages = 3
+    
+    private var hasChanges: Bool {
+        let initialTitle = noteToEdit?.noteTitle ?? ""
+        let initialDescription = noteToEdit?.noteDescription ?? ""
+        let initialCategory = noteToEdit?.noteCategory ?? ""
+        
+        let titleChanged = noteTitle != initialTitle
+        let descriptionChanged = noteDescription != initialDescription
+        let categoryChanged = selectedCategory != initialCategory
+        let imagesChanged = noteImages.count != initialImagesCount
+        
+        return titleChanged || descriptionChanged || categoryChanged || imagesChanged
+    }
 
-    // MARK: - Init
     init(book: Books, noteToEdit: Notes? = nil) {
         self.book = book
         self.noteToEdit = noteToEdit
@@ -51,25 +61,13 @@ struct NoteSheetView: View {
             .map { SelectableImage(image: $0) }
 
         _noteImages = State(initialValue: Array(existingImages))
+        _initialImagesCount = State(initialValue: existingImages.count)
     }
 
     private var toolbarTitle: String {
         noteToEdit != nil ? "Editar nota" : "Adicionar nota"
     }
 
-    private var isLimitReached: Bool {
-        noteImages.count >= Self.maxImages
-    }
-
-    private var remainingSlots: Int {
-        max(1, Self.maxImages - noteImages.count)
-    }
-
-    private var isCameraAvailable: Bool {
-        UIImagePickerController.isSourceTypeAvailable(.camera)
-    }
-
-    // MARK: - Body
     var body: some View {
         NavigationStack {
             ZStack {
@@ -97,6 +95,7 @@ struct NoteSheetView: View {
                 SheetHeaderView(
                     title: toolbarTitle,
                     actionIcon: "checkmark",
+                    hasChanges: hasChanges,
                     showingDiscardAlert: $showingDiscardAlert,
                     onCancel: {
                         hideKeyboard()
@@ -109,7 +108,6 @@ struct NoteSheetView: View {
                     }
                 )
             }
-
             .fullScreenCover(isPresented: $isShowingCamera) {
                 CameraPicker { image in
                     appendImage(image)
@@ -119,7 +117,6 @@ struct NoteSheetView: View {
         }
     }
 
-    // MARK: - Cabeçalho
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Livro: \(book.bookTitle ?? "Sem título")")
@@ -134,9 +131,7 @@ struct NoteSheetView: View {
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
 
-            TipsComponent(
-                content: "Adicione um título e um conteúdo para a sua nota."
-            )
+            TipsComponent(content: "Adicione um título e um conteúdo para a sua nota.")
         }
     }
 
@@ -174,24 +169,18 @@ struct NoteSheetView: View {
         }
     }
 
-    // MARK: - Mídia
     private var mediaSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-
             if !noteImages.isEmpty {
                 mediaThumbnailsRow
             }
-
             mediaSourceMenu
-
-            TipsComponent(
-                content: "Você pode adicionar até 3 fotos em uma mesma nota."
-            )
+            TipsComponent(content: "Você pode adicionar até 3 fotos em uma mesma nota.")
         }
         .photosPicker(
             isPresented: $isShowingPhotoPicker,
             selection: $pickedItems,
-            maxSelectionCount: remainingSlots,
+            maxSelectionCount: max(1, Self.maxImages - noteImages.count),
             matching: .images,
             photoLibrary: .shared()
         )
@@ -220,7 +209,7 @@ struct NoteSheetView: View {
             } label: {
                 Label("Tirar foto", systemImage: "camera")
             }
-            .disabled(!isCameraAvailable)
+            .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
             Button {
                 isShowingPhotoPicker = true
@@ -231,7 +220,7 @@ struct NoteSheetView: View {
             HStack {
                 Image(systemName: "camera.viewfinder")
 
-                Text(mediaButtonText)
+                Text(noteImages.isEmpty ? "Adicionar fotos" : "Adicionar mais fotos (\(noteImages.count)/\(Self.maxImages))")
                     .font(.system(.body, weight: .regular))
 
                 Spacer()
@@ -249,19 +238,10 @@ struct NoteSheetView: View {
         }
         .menuOrder(.fixed)
         .buttonStyle(.plain)
-        .disabled(isLimitReached)
-        .opacity(isLimitReached ? 0.5 : 1.0)
+        .disabled(noteImages.count >= Self.maxImages)
+        .opacity(noteImages.count >= Self.maxImages ? 0.5 : 1.0)
     }
 
-    private var mediaButtonText: String {
-        if noteImages.isEmpty {
-            return "Adicionar fotos"
-        } else {
-            return "Adicionar mais fotos (\(noteImages.count)/\(Self.maxImages))"
-        }
-    }
-
-    // MARK: - Ações de mídia
     @MainActor
     private func loadPickedItems(_ items: [PhotosPickerItem]) async {
         for item in items {
@@ -279,7 +259,6 @@ struct NoteSheetView: View {
         noteImages.append(SelectableImage(image: image))
     }
 
-    // MARK: - Salvar
     private func handleConfirm() {
         hideKeyboard()
 
@@ -322,7 +301,6 @@ struct NoteSheetView: View {
         )
     }
 }
-
 #Preview {
     NoteSheetView(book: PreviewProviderHelper.sampleBook)
         .environmentObject(NotesViewModel())

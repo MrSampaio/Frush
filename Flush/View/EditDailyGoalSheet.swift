@@ -87,6 +87,7 @@ struct EditDailyGoalContent: View {
                 SheetHeaderView(
                     title: "",
                     actionIcon: "checkmark",
+                    hasChanges: false,
                     showingDiscardAlert: $showAlert,
                     onCancel: { onDismiss() },
                     onConfirm: { onSave() },
