@@ -58,6 +58,7 @@ struct BookDetailView: View {
                             }
                             .padding(.horizontal)
                             VStack(spacing: 16) {
+                                /*
                                 Button(action: {
                                 }) {
                                     Text("Adicionar leitura")
@@ -65,31 +66,22 @@ struct BookDetailView: View {
                                         .foregroundColor(.white)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 16)
-    //                                    .background(
-    //                                        RoundedRectangle(cornerRadius: 24)
-    //                                    )
-    //                                    .overlay(
-    //                                        RoundedRectangle(cornerRadius: 24)
-    //                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-    //                                    )
+                                }
+                                .buttonStyle(.glass)
+                                .padding(.horizontal, 24)
+                                .padding(.top, 16)
+                                 */
+                                
+                                ButtonAction(text: "Iniciar leitura") {
+                                    //print("Botão pressionado!")
                                 }
                                 .buttonStyle(.glass)
                                 .padding(.horizontal, 24)
                                 .padding(.top, 16)
                                 
-                                Button(action: {
-                                }) {
-                                    Text("Iniciar leitura")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                       
-    //
-                                        .cornerRadius(24)
+                                ButtonAction(text: "Iniciar leitura") {
+                                    //print("Botão pressionado!")
                                 }
-                                //.background(Color(.action))
-                                .buttonStyle(.glass)
                                 .padding(.horizontal, 24)
                                 .padding(.top, 16)
                                 

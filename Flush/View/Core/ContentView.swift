@@ -10,21 +10,30 @@ import CoreData
 
 struct ContentView: View {
     @State private var searchText = ""
+    @State private var selectedBook: Books? = nil
+    @Namespace private var stopwatchNamespace
+    
+    @EnvironmentObject var booksViewModel: BooksViewModel
     
     var body: some View {
         TabView {
             Tab("Estante", systemImage: "book"){
                 BookCaseView(bookViewModel: BooksViewModel())
-                    .environmentObject(PhotoLibraryViewModel())
+                   // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-               // StopwatchInicialView()
+                StopwatchInitialView(
+                    namespace: stopwatchNamespace,
+                    selectedBook: $selectedBook
+                )
             }
             Tab(role: .search){
                 BookSearchView()
             }
             
         }
+        .tint(Color("ActionColor"))
+  
     }
 }
 
