@@ -33,7 +33,15 @@ struct NoteSheetView: View {
     @State private var showPhotoPicker = false
     
     var book: Books
-//    var note: Notes
+    var noteToEdit: Notes?
+    
+    private var toolbarTitle: String {
+        if noteToEdit != nil {
+            return "Editar nota"
+        } else {
+            return "Adicionar nota"
+        }
+    }
    
     var body: some View {
         NavigationStack {
@@ -46,7 +54,7 @@ struct NoteSheetView: View {
                         VStack(alignment: .leading, spacing: 17) {
                             noteContentHeader
                             titleField
-                            noteTextEditor
+                            noteTextEditor  
                             selectedImagePreview
                             mediaSection
                         }
@@ -56,7 +64,7 @@ struct NoteSheetView: View {
                 
                 .toolbar {
                     SheetHeaderView(
-                        title: "Adicionar nota",
+                        title: toolbarTitle,
                         actionIcon: "checkmark",
                         showingDiscardAlert: $showingDiscardAlert,
                         onCancel: { dismiss() },
@@ -89,18 +97,38 @@ struct NoteSheetView: View {
                 photoLibraryViewModel.appendCapturedImage(newImage)
                 capturedImage = nil
             }
+            
+            .onAppear {
+                if let note = noteToEdit {
+                    titleText = note.noteTitle ?? ""
+                    noteText = note.noteDescription ?? ""
+                    
+                    // IMPORTANTE: FAZ O SISTEMA DE IMAGEM
+                }
+            }
         }
     }
     
     private func handleConfirm() {
         do {
-            try notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: selectedCategory,
-                notePhotos: photoLibraryViewModel.noteImages.map(\.image),
-                to: book
-            )
+            if let note = noteToEdit {
+
+//                try notesViewModel.(
+//                    note: note,
+//                    noteTitle: titleText,
+//                    noteDescription: noteText,
+//                    noteCategory: selectedCategory,
+//                    notePhotos: photoLibraryViewModel.noteImages.map(\.image)
+//                )
+            } else {
+                try notesViewModel.addNote(
+                    noteTitle: titleText,
+                    noteDescription: noteText,
+                    noteCategory: selectedCategory,
+                    notePhotos: photoLibraryViewModel.noteImages.map(\.image),
+                    to: book
+                )
+            }
             
             photoLibraryViewModel.resetNoteImages()
             dismiss()
@@ -135,6 +163,8 @@ struct NoteSheetView: View {
     }
     
     private var titleField: some View {
+        
+//        var let titleText = noteToEdit != nil ?? noteToEdit?.noteTitle : "Adicione o título"
         TextFieldSheets(
             text: $titleText,
             placeholder: "Adicione o título",

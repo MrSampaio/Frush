@@ -12,6 +12,8 @@ struct NoteDetailSheetView: View {
     
     @Environment(\.dismiss) var dismiss
     
+    @State var isShowingEditSheet: Bool = false
+    
     private var noteImages: [UIImage] {
         if let photosData = note.notePhoto as? [Data] {
             return photosData.compactMap { UIImage(data: $0) }
@@ -69,8 +71,16 @@ struct NoteDetailSheetView: View {
                     NotesToolBar(
                         title: "Nota",
                         onClose: { dismiss() },
-                        onEdit: { }
-                    )
+                        onEdit: {
+                            isShowingEditSheet.toggle()
+                        }
+                    ) 
+                }
+                
+                .sheet(isPresented: $isShowingEditSheet, onDismiss: {
+                    
+                }){
+                    NoteSheetView(book: note.book!, noteToEdit: note)
                 }
             }
         }
