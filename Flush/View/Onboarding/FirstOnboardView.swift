@@ -70,14 +70,12 @@ struct FirstOnboardView: View {
                 
                 Spacer()
                 
-                ButtonAction(text: "Avançar") {
-                    //colocar acao
-                }
-                .padding(.bottom, 40)
+                ButtonAction(text: "Avançar", colorButton: "ActionColor")
+                    .padding(.bottom, 40)
                 
             }
             .padding(.horizontal, 26)
-            .padding(.top, 400)
+            .padding(.top, 420)
         }
     }
 }

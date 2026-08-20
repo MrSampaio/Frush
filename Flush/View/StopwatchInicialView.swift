@@ -247,7 +247,7 @@ struct StopwatchInitialView: View {
                            
                             VStack(spacing: 12) {
                                 // botão Principal: Iniciar / Pausar / Continuar
-                                ButtonAction(text: buttonTitle){
+                                ButtonAction(text: buttonTitle, colorButton: "ActionColor"){
                                     guard selectedBook != nil else {
                                         isShowingNoBookAlert = true
                                         return
@@ -260,6 +260,7 @@ struct StopwatchInitialView: View {
                                     }
                                 }
                                 .padding(.top, 8)
+                                
 
                                 // botão Secundário: abandonar Leitura (exibido apenas se a leitura começou ou está pausada)
                                 if stopwatchViewModel.timerState != .stopped {
