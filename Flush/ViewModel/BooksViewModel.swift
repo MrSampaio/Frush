@@ -277,6 +277,19 @@ class BooksViewModel: ObservableObject {
         }
     }
     
+    func updateCurrentPage(book: Books, currentPage: String) throws{
+        let convertedCurrentPage = Int16(currentPage) ?? 0
+        
+        if convertedCurrentPage == 0 {
+            throw BookError.invalidCurrentPage
+        }
+        
+        book.bookCurrentPage += convertedCurrentPage
+        
+        try self.saveBook()
+        self.fetchBooks()
+    }
+    
 //    func saveDailyGoal(minutes: Int) {
 //        let context = CoreDataManager.shared.viewContext
 //        let request = NSFetchRequest<UserSettings>(entityName: "Database")

@@ -33,7 +33,6 @@ struct ContentView: View {
             
         }
         .tint(Color("ActionColor"))
-  
     }
 }
 
