@@ -14,6 +14,8 @@ struct BookCaseView: View {
     @State private var selectedBookForDetail: Books? = nil
     @State private var isShowingBookDetail = false
     
+    @State private var showBottomSheet: Bool = false
+    
     
     var books: [Books] {
         bookViewModel.savedBooks
@@ -48,7 +50,7 @@ struct BookCaseView: View {
                             pagesReadToday: 12,
                             targetPages: 30,
                             onEditAction: {
-                                print("Editar meta clicado")
+                                showBottomSheet.toggle()
                             }
                         )
                         
@@ -94,6 +96,10 @@ struct BookCaseView: View {
                 .environmentObject(PhotoLibraryViewModel())
                 .environmentObject(bookViewModel)
                 
+        }
+        
+        .sheet(isPresented: $showBottomSheet){
+            BottomSheetView()
         }
     }
 }
