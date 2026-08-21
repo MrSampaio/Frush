@@ -8,11 +8,17 @@
 import SwiftUI
 
 struct BookCaseView: View {
+    //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
     @ObservedObject var bookViewModel: BooksViewModel
     @State private var isShowingSheet = false
     
     @State private var selectedBookForDetail: Books? = nil
     @State private var isShowingBookDetail = false
+    
+    @State private var showBottomSheet: Bool = false
+    
+    @State private var isPresented = true
+    @State private var goalMinutes: Int = 15
     
     
     var books: [Books] {
@@ -48,7 +54,7 @@ struct BookCaseView: View {
                             pagesReadToday: 12,
                             targetPages: 30,
                             onEditAction: {
-                                print("Editar meta clicado")
+                                showBottomSheet.toggle()
                             }
                         )
                         
@@ -95,7 +101,22 @@ struct BookCaseView: View {
                 .environmentObject(bookViewModel)
                 
         }
-    }
+        
+        .sheet(isPresented: $showBottomSheet) {
+            EditDailyGoalContent(
+                minutesPerDay: $goalMinutes,
+                onDismiss: {
+                    showBottomSheet = false
+                },
+                onSave: {
+                    //bookViewModel.saveDailyGoal(minutes: goalMinutes)
+                    showBottomSheet = false
+                }
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color("BackgroundColorViews"))
+        }    }
 }
 
 #Preview {
