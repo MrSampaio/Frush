@@ -234,4 +234,27 @@ class BooksViewModel: ObservableObject {
         try self.saveBook()
         self.fetchBooks()
     }
+    
+//    func saveDailyGoal(minutes: Int) {
+//        let context = CoreDataManager.shared.viewContext
+//        let request = NSFetchRequest<UserSettings>(entityName: "Database")
+//        
+//        do {
+//            let results = try context.fetch(request)
+//            
+//            if let existingSettings = results.first {
+//                existingSettings.dailyGoalMinutes = Int32(minutes)
+//            } else {
+//                let newSettings = UserSettings(context: context)
+//                newSettings.dailyGoalMinutes = Int32(minutes)
+//            }
+//            
+//            // 2. Salve as alterações no Core Data
+//            try context.save()
+//            print("Meta diária de \(minutes) minutos salva com sucesso!")
+//            
+//        } catch {
+//            print("Erro ao salvar meta diária: \(error.localizedDescription)")
+//        }
+//    }
 }
