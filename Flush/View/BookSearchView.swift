@@ -57,7 +57,7 @@ struct BookSearchView: View {
                             Button {
                                 selectedNote = note
                             } label: {
-                                NoteCellView(note: note)
+                                NoteCellView(note: note, noteViewModel: notesViewModel)
                             }
                             .buttonStyle(.plain)
                         }
