@@ -15,6 +15,8 @@ struct NoteDetailSheetView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var isShowingEditSheet = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
 
     private var noteImages: [UIImage] {
         if let photosData = note.notePhoto as? [Data] {
@@ -66,11 +68,31 @@ struct NoteDetailSheetView: View {
                     .padding()
                     .padding(.bottom, 40)
                 }
+                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                    Button("Tentar novamente", role: .cancel) { }
+                } message: {
+                    Text(errorMessage)
+                }
                 .toolbar {
                     NoteDetailsToolbar(
                         title: "Nota",
-                        onDelete: {},
-                        onEdit: {}
+                        onDelete: {
+                            do{
+                                try notesViewModel.deleteNote(note: note)
+                                notesViewModel.fetchNotes(for: note.book)
+                                dismiss()
+                            } catch let error as LocalizedError {
+                                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                showErrorAlert = true
+                            } catch {
+                                errorMessage = "Erro inesperado."
+                                showErrorAlert = true
+                            }
+                        },
+                        onEdit: {
+                            isShowingEditSheet.toggle()
+                                
+                        }
                         
                     )
 //                    NotesToolBar(
