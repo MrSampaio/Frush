@@ -6,34 +6,27 @@
 //
 import SwiftUI
 
-
 struct NotesHeaderview: View {
     @Binding var isPresentedAddNote: Bool
     var body: some View {
         HStack {
             Text("Anotações")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(.white)
+                .font(.bitter(.medium,style: .title3))
+                .foregroundColor(Color("Texts"))
             Spacer()
             Button(action: {
                 isPresentedAddNote = true
             }) {
                 Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
-                    .padding()
-//                    .frame(width: 36, height: 36)
-                    //.background(Color(.orange))
-                    .clipShape(Circle())
-                    
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .padding(.all, 4)
             }
-            .tint(Color(.orange))
-            .background(Color(.orange))
-            .clipShape(Circle())
-            //.padding()
             .buttonStyle(.glass)
-            
+            .buttonBorderShape(.circle)
         }
+        //.padding(.horizontal,24)
     }
 }
 #Preview {
