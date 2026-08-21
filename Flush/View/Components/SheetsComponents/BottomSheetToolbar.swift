@@ -39,7 +39,7 @@ struct BottomSheetToolbar: ToolbarContent {
             Button(action: {
                 onEdit()
             }) {
-                Image(systemName: "pencil")
+                Image(systemName: "checkmark")
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
                    

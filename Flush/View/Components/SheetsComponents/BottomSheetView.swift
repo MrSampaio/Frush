@@ -5,41 +5,40 @@
 //  Created by Julio Sampaio on 20/08/26.
 //
 
-import Foundation
 import SwiftUI
 
 struct BottomSheetView: View {
     
-
+    var onClose: (() -> Void)
+    var onEdit: (() -> Void)
+    
     var body: some View {
-        
-        NavigationStack{
-            VStack(spacing: 20) {
-                Text("Ação Rápida")
-                    .font(.headline)
-                Button("Confirmar") {
-                    //showSheet = false
+        NavigationStack {
+            ZStack {
+                Color("BackgroundColorViews")
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    Text("Ação Rápida")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    
+                    Button("Confirmar") {
+                        //showSheet = false
+                    }
                 }
+                .padding()
             }
-            .padding()
-            .presentationDetents([.height(200)])
-            .toolbar{
+            .toolbar {
                 BottomSheetToolbar(
                     title: "Meta diária",
-                    onClose: {},
-                    onEdit: {}
+                    onClose: onClose,
+                    onEdit: onEdit
                 )
             }
-    //        .sheet(isPresented: $showSheet) {
-    //
-    //
-    //
-    //        }
-            
-            // .presentationDetents([.medium, .large]) -> Para em 50% ou 100%
-            // .presentationDetents([.fraction(0.3)]) -> Ocupa 30% da tela
+            .navigationBarTitleDisplayMode(.inline)
         }
+        .presentationDetents([.fraction(0.3)])
+        .presentationDragIndicator(.visible)
     }
-        
 }
-

@@ -99,7 +99,14 @@ struct BookCaseView: View {
         }
         
         .sheet(isPresented: $showBottomSheet){
-            BottomSheetView()
+            BottomSheetView(
+                onClose: {
+                    showBottomSheet.toggle()
+                },
+                onEdit: {
+                    print("clicado")
+                }
+            )
         }
     }
 }
