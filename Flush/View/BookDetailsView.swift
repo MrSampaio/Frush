@@ -24,6 +24,7 @@ struct BookDetailView: View {
     @State private var errorMessage = ""
     
     var book: Books
+    
     //apagar assim que possivel
 //    private var currentBook: Books {
 //        book ?? bookViewModel.savedBooks.first
@@ -37,31 +38,73 @@ struct BookDetailView: View {
                     .ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack() {
                         
                         BookInstanceDetailView(book: book)
                             .environmentObject(PhotoLibraryViewModel())
                             .id(book.bookCover ?? Data())
                         
-                        CardTotalPages(totalPages: 100)
+                        CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
                             .padding(.horizontal)
+                        
+                        NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
+                               .padding(.horizontal, 24)
+                               .padding(.top, 10)
+                        
 
                         VStack(spacing: 16) {
-                            NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
                             
-                            NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-                                notesViewModel.fetchNotes(for: book)
+                               
+                            VStack{
+                                VStack() {
+                                    NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
+                                        notesViewModel.fetchNotes(for: book)
+                                    }
+                                    
+                                    
+                                    Divider()
+                                        .frame(height: 0.3)
+                                        .background(Color("LinesColor"))
+                                        .padding(.horizontal, 28)
+                                    
+                                }
                             }
+                            
+//                            NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
+//                                notesViewModel.fetchNotes(for: book)
+//                            }
+//                            
+//                            NavigationLink(destination: MyNotesListView(book: book)) {
+//                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
+//                                        .font(.system(size: 14, weight: .semibold))
+//                                        .foregroundColor(Color(.action))
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                        .padding(.horizontal,28)
+//                                        .padding(.vertical)
+//                                        .padding(.bottom, 10)
+//                                }
+//                                
+//                            }
+//                            .background(Color("CardNoteColor"))
+//                            .cornerRadius(30)
+//                            .padding(.horizontal)
                             
                             NavigationLink(destination: MyNotesListView(book: book)) {
                                 
-                                Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
+//                                Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
+                                Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(Color(.action))
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal)
+//                                    .padding(.horizontal)
+                                    .padding(.horizontal,28)
+                                    .padding(.vertical)
+                                    .padding(.bottom, 10)
                             }
+                            
                         }
+                        .background(Color("CardNoteColor"))
+                        .cornerRadius(30)
                         .padding(.horizontal)
                         VStack(spacing: 16) {
                             /*
@@ -89,7 +132,6 @@ struct BookDetailView: View {
                             // Button preenchido com cor
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
                                 .padding(.horizontal, 24)
-                            
                         }
        
                         
@@ -103,14 +145,12 @@ struct BookDetailView: View {
             .onDisappear {
                 bookViewModel.fetchBooks()
             }
-//            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-//                notesViewModel.fetchNotes(for: currentBook)
-//            }) {
-//                if let currentBook {
-//                    NoteSheetView(book: currentBook)
-//                        .environmentObject(notesViewModel)
-//                }
-//            }
+            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+                notesViewModel.fetchNotes(for: book)
+            }) {
+                NoteSheetView(book: book)
+                    .environmentObject(notesViewModel)
+            }
             
             .sheet(isPresented: $isPresentedBottomSheet) {
                 EditDailyGoalContent(

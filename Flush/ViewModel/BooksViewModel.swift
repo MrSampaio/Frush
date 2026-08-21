@@ -54,7 +54,7 @@ class BooksViewModel: ObservableObject {
         self.fetchBooks()
     }
     
-    func countReadedPages() -> Int16{
+    func countGeralReadedPages() -> Int16{
         var totalReadedPages: Int16 = 0
         for book in self.savedBooks{
             totalReadedPages += book.bookCurrentPage
@@ -63,12 +63,17 @@ class BooksViewModel: ObservableObject {
         return totalReadedPages
     }
     
+    func countBookReadedPages(book: Books) -> Int16 {
+        let pagesReaded = book.bookCurrentPage
+        return pagesReaded
+    }
+    
     // funcao que carrega todos os livros do banco e atrbui na lista books
     func fetchBooks(){
         let request = NSFetchRequest<Books>(entityName: "Books")
         do{
             try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
-            countReadedPages()
+            countGeralReadedPages()
 
         } catch let error{
             fatalError("Error when trying to fetch books data: \(error)")

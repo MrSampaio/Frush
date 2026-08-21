@@ -47,7 +47,7 @@ struct BookCaseView: View {
                         }
                         .padding(.top, 28)
                         
-                        CardTotalPages(totalPages: bookViewModel.countReadedPages())
+                        CardTotalPages(totalPages: bookViewModel.countGeralReadedPages())
                         
                         DailyGoalCardView(
                             pagesReadToday: 12,
