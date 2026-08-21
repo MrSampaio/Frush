@@ -20,9 +20,11 @@ class StopwatchViewModel: ObservableObject {
     @Published var isRunning: Bool = false
     @Published var timer: Timer? = nil
     
+    // muda aqui pra puxar a página do banco e ela atualizar o progresso dinamicamente
+    
     // controle de Páginas do Livro
-    @Published var currentPage: Int = 45
-    @Published var totalPages: Int = 300
+    @Published var currentPage: Int16 = 0
+    @Published var totalPages: Int16 = 0
     
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {
@@ -79,7 +81,7 @@ class StopwatchViewModel: ObservableObject {
     }
     
     func updatePage(to newPage: Int) {
-        self.currentPage = newPage
+        self.currentPage = Int16(newPage)
     }
     
     /*
@@ -99,5 +101,15 @@ class StopwatchViewModel: ObservableObject {
         } else {
             return String(format: "%02d:%02d", minutes, seconds)
         }
+    }
+    
+    func getCurrentPage(book: Books){
+        currentPage = book.bookCurrentPage
+        //return Int16(currentPage)
+    }
+    
+    func getTotalPages(book: Books){
+        totalPages = book.bookTotalPages
+//        return Int16(totalPages)
     }
 }
