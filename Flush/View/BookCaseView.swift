@@ -18,8 +18,7 @@ struct BookCaseView: View {
     @State private var showBottomSheet: Bool = false
     
     @State private var isPresented = true
-    @State private var goalMinutes: Int = 15
-    
+    @State private var tempGoalMinutes: Int = 15
     
     var books: [Books] {
         bookViewModel.savedBooks
@@ -44,7 +43,7 @@ struct BookCaseView: View {
                         //título e botão "+"
                         HStack {
                             TitleComponent(title: "Meus Livros")
-                                
+                            
                         }
                         .padding(.top, 28)
                         
@@ -52,9 +51,9 @@ struct BookCaseView: View {
                         
                         DailyGoalCardView(
                             pagesReadToday: 12,
-                            targetPages: 30,
+                            targetPages: bookViewModel.dailyGoalMinutes,
                             onEditAction: {
-                                showBottomSheet.toggle()
+                                showBottomSheet = true
                             }
                         )
                         
@@ -81,15 +80,16 @@ struct BookCaseView: View {
             }
         }
         .onAppear {
-            withAnimation{
+            withAnimation {
                 bookViewModel.fetchBooks()
+                bookViewModel.fetchDailyGoal()
             }
         }
-//        .fakeSheet(isPresented: $isShowingBookDetail) {
-//            if let selectedBookForDetail {
-//                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
-//            }
-//        }
+        //        .fakeSheet(isPresented: $isShowingBookDetail) {
+        //            if let selectedBookForDetail {
+        //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
+        //            }
+        //        }
         .sheet(isPresented: $isShowingSheet, onDismiss: {
             withAnimation{
                 bookViewModel.fetchBooks()
@@ -99,24 +99,42 @@ struct BookCaseView: View {
             BookSheetView(bookToEdit: nil)
                 .environmentObject(PhotoLibraryViewModel())
                 .environmentObject(bookViewModel)
-                
+            
         }
-        
         .sheet(isPresented: $showBottomSheet) {
             EditDailyGoalContent(
-                minutesPerDay: $goalMinutes,
+                minutesPerDay: $tempGoalMinutes,
                 onDismiss: {
                     showBottomSheet = false
                 },
                 onSave: {
-                    //bookViewModel.saveDailyGoal(minutes: goalMinutes)
+                    bookViewModel.saveDailyGoal(minutes: tempGoalMinutes)
                     showBottomSheet = false
                 }
             )
+            .onAppear {
+                tempGoalMinutes = bookViewModel.dailyGoalMinutes
+            }
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
             .presentationBackground(Color("BackgroundColorViews"))
-        }    }
+        }
+//        .sheet(isPresented: $showBottomSheet) {
+//            EditDailyGoalContent(
+//                minutesPerDay: $tempGoalMinutes,
+//                onDismiss: {
+//                    showBottomSheet = false
+//                },
+//                onSave: {
+//                    //bookViewModel.saveDailyGoal(minutes: goalMinutes)
+//                    showBottomSheet = false
+//                }
+//            )
+//            .presentationDetents([.height(340)])
+//            .presentationDragIndicator(.visible)
+//            .presentationBackground(Color("BackgroundColorViews"))
+//        }
+    }
 }
 
 #Preview {
