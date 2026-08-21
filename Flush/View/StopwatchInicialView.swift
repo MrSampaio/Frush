@@ -305,8 +305,8 @@ struct StopwatchInitialView: View {
                 }
                 
                 .sheet(isPresented: $isShowingSelectBookSheet) {
-                    SelectBookSheetView(selectedBook: $selectedBook)
-                        .environmentObject(booksViewModel)
+                    SelectBookSheetView(selectedBook: self.$selectedBook)
+                        .environmentObject(self.booksViewModel)
                 }
 
                 .sheet(isPresented: $isShowingTimerPicker) {

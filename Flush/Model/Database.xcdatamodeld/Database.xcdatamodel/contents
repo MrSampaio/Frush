@@ -29,4 +29,7 @@
         <relationship name="book" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Books" inverseName="notes" inverseEntity="Books"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="NoteImage" inverseName="note" inverseEntity="NoteImage"/>
     </entity>
+    <entity name="UserSettings" representedClassName="UserSettings" syncable="YES" codeGenerationType="class">
+        <attribute name="dailyGoalMinutes" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
 </model>
