@@ -31,7 +31,7 @@ struct BookDetailView: View {
                 if let currentBook = currentBook {
                     
                     ScrollView(showsIndicators: false) {
-                        VStack(spacing: 24) {
+                        VStack{
                             
                             BookInstanceDetailView(book: currentBook)
                                 .environmentObject(PhotoLibraryViewModel())
@@ -39,39 +39,40 @@ struct BookDetailView: View {
                             
                             CardTotalPages(totalPages: 100)
                                 .padding(.horizontal)
-
-                            VStack(spacing: 16) {
-                                NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
-                                
-                                NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-                                    notesViewModel.fetchNotes(for: currentBook)
-                                }
-                                
-                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+                            
+                            NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
+                                .padding(.horizontal, 24)
+                                .padding(.top, 10)
+                            
+                            VStack{
+                                VStack() {
+                                    NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
+                                        notesViewModel.fetchNotes(for: currentBook)
+                                    }
                                     
-                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
+                                    
+                                    Divider()
+                                        .frame(height: 0.3)
+                                        .background(Color("LinesColor"))
+                                        .padding(.horizontal, 28)
+                                    
+                                }
+                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
                                         .font(.system(size: 14, weight: .semibold))
                                         .foregroundColor(Color(.action))
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.horizontal)
+                                        .padding(.horizontal,28)
+                                        .padding(.vertical)
+                                        .padding(.bottom, 10)
                                 }
-                            }
-                            .padding(.horizontal)
-                            VStack(spacing: 16) {
-                                /*
-                                Button(action: {
-                                }) {
-                                    Text("Adicionar leitura")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                }
-                                .buttonStyle(.glass)
-                                .padding(.horizontal, 24)
-                                .padding(.top, 16)
-                                 */
                                 
+                            }
+                            .background(Color("CardNoteColor"))
+                            .cornerRadius(30)
+                            .padding(.horizontal)
+                            
+                            VStack(spacing: 16) {
                                 
                                 ButtonAction(text: "Adicionar leitura", isGlass: true) {
                                     //print("Excluído")
@@ -90,6 +91,7 @@ struct BookDetailView: View {
                         }
                         .padding(.bottom, 40)
                     }
+                    .padding(.horizontal, 10)
                 } else {
                     Text("Nenhum livro encontrado.")
                         .foregroundColor(.secondary)
