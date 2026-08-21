@@ -57,7 +57,6 @@ struct BookDetailView: View {
                                 }
                             }
                             .padding(.horizontal)
-                            // só pra falar que mexi
                             VStack(spacing: 16) {
                                 Button(action: {
                                 }) {

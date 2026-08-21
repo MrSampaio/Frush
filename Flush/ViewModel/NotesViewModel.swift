@@ -164,25 +164,16 @@ class NotesViewModel: ObservableObject {
     }
     
     // funcao para deletar notas
-    func deleteNote(indexSet: IndexSet) {
-        guard let index = indexSet.first else { return }
-        let note = self.savedNotes[index]
-        
+    func deleteNote(note: Notes) throws{
         CoreDataManager.shared.viewContext.delete(note)
+        self.savedNotes.removeAll(where: { $0.objectID == note.objectID })
         
-        do {
-            try self.saveNote()
-        } catch let error {
-            print("Erro ao deletar nota: \(error)")
-        }
-        
+        try self.saveNote()
         self.fetchNotes()
+    
     }
 }
 
-    
-
-    
 //    private func savePhotoToDisk(_ image: UIImage?) -> String? {
 //        guard let image, let data = image.jpegData(compressionQuality: 0.8) else { return nil }
 //        
