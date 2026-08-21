@@ -57,6 +57,7 @@ struct BookDetailView: View {
                                         .padding(.horizontal, 28)
                                     
                                 }
+                                
                                 NavigationLink(destination: MyNotesListView(book: currentBook)) {
                                     Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
                                         .font(.system(size: 14, weight: .semibold))
