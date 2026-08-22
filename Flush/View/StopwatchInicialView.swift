@@ -49,13 +49,13 @@ struct StopwatchInitialView: View {
                             Image(uiImage: uiImage)
                                 .resizable()
                         } else {
-                            Image("bookTest2")
+                            Image("defaultBook")
                                 .resizable()
                         }
                     }
                     .scaledToFill()
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    .opacity(0.20)
+                    .opacity(0.40)
                     .overlay(
                         ZStack {
                             Color("BackgroundColorViews").opacity(0.70)

@@ -4,7 +4,6 @@
 //
 //  Created by Julio Sampaio on 13/08/26.
 //
-// test
 import Foundation
 import SwiftUI
 import CoreData
@@ -239,48 +238,7 @@ class BooksViewModel: ObservableObject {
         try self.saveBook()
         self.fetchBooks()
     }
-        
-    @Published var dailyGoalMinutes: Int = 15
     
-    func fetchDailyGoal() {
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
-        
-        do {
-            let results = try CoreDataManager.shared.viewContext.fetch(request)
-            if let settings = results.first {
-                self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
-            }
-        } catch {
-            print("Erro ao buscar a meta diária: \(error)")
-        }
-    }
-    
-    func saveDailyGoal(minutes: Int) {
-        let context = CoreDataManager.shared.viewContext
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
-        
-        do {
-            let results = try context.fetch(request)
-            
-            if let existingSettings = results.first {
-                // se já existir configuração, apenas atualiza
-                existingSettings.dailyGoalMinutes = Int16(minutes)
-            } else {
-                // se for a primeira vez, cria o registro
-                let newSettings = UserSettings(context: context)
-                newSettings.dailyGoalMinutes = Int16(minutes)
-            }
-            
-            try context.save()
-            
-            self.dailyGoalMinutes = minutes
-            print("Meta diária de \(minutes) minutos salva no Core Data!")
-            
-        } catch {
-            print("Erro ao salvar a meta diária: \(error.localizedDescription)")
-            context.rollback()
-        }
-    }
     
     func updateCurrentPage(book: Books, currentPage: String) throws{
         let convertedCurrentPage = Int16(currentPage) ?? 0
