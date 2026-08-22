@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-struct EditDailyGoalContent: View {
+struct BottomSheet: View {
     // binding atualizado para representar o tempo total em minutos
     @Binding var minutesPerDay: Int
     @State private var showAlert = false
@@ -31,7 +31,6 @@ struct EditDailyGoalContent: View {
             VStack(spacing: 20) {
                 if isPickerShown{
                     
-                    // Título e Subtítulo
                     VStack(spacing: 4) {
                         Text("Editar objetivo diário")
                             .font(.title2.weight(.semibold))
@@ -92,13 +91,13 @@ struct EditDailyGoalContent: View {
                             .font(.title2.weight(.semibold))
                             .foregroundColor(.white)
     
-                        Text("Defina quantas páginas você leu hoje")
+                        Text("Qual foi a última página lida?")
                             .font(.callout)
                             .foregroundColor(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
                     }
                     VStack(spacing: 0) {
-                        TextFieldSheets(text: $readedPages, placeholder: "Informa a quantidade de páginas")
+                        TextFieldSheets(text: $readedPages, placeholder: "Informe a última página lida")
                             .keyboardType(.numberPad)
                     }
                     .padding(.horizontal)
@@ -143,7 +142,7 @@ struct EditDailyGoalContent: View {
                 .buttonStyle(.borderedProminent)
             }
             .sheet(isPresented: $isPresented) {
-                EditDailyGoalContent(
+                BottomSheet(
                     minutesPerDay: $goalMinutes,
                     isPickerShown: true,
                     readedPages: $tempPages,
