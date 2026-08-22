@@ -238,6 +238,47 @@ class BooksViewModel: ObservableObject {
         try self.saveBook()
         self.fetchBooks()
     }
+        
+    @Published var dailyGoalMinutes: Int = 0
+    
+    func fetchDailyGoal() {
+        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        
+        do {
+            let results = try CoreDataManager.shared.viewContext.fetch(request)
+            if let settings = results.first {
+                self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
+            }
+        } catch {
+            print("Error when fetching daily goal: \(error)")
+        }
+    }
+    
+    func saveDailyGoal(minutes: Int) {
+        let context = CoreDataManager.shared.viewContext
+        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        
+        do {
+            let results = try context.fetch(request)
+            
+            if let existingSettings = results.first {
+                // se já existir configuração, apenas atualiza
+                existingSettings.dailyGoalMinutes = Int16(minutes)
+            } else {
+                // se for a primeira vez, cria o registro
+                let newSettings = UserSettings(context: context)
+                newSettings.dailyGoalMinutes = Int16(minutes)
+            }
+            
+            try context.save()
+            
+            self.dailyGoalMinutes = minutes
+            
+        } catch {
+            print("Error when saving daily goal: \(error.localizedDescription)")
+            context.rollback()
+        }
+    }
     
     
     func updateCurrentPage(book: Books, currentPage: String) throws{
@@ -247,7 +288,7 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidCurrentPage
         }
         
-        book.bookCurrentPage += convertedCurrentPage
+        book.bookCurrentPage = convertedCurrentPage
         
         try self.saveBook()
         self.fetchBooks()

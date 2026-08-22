@@ -105,7 +105,7 @@ struct BookCaseView: View {
             
         }
         .sheet(isPresented: $showBottomSheet) {
-            EditDailyGoalContent(
+            BottomSheet(
                 minutesPerDay: $tempGoalMinutes,
                 isPickerShown: true,
                 readedPages: .constant(""),

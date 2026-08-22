@@ -154,7 +154,7 @@ struct BookDetailView: View {
             }
             
             .sheet(isPresented: $isPresentedBottomSheet) {
-                EditDailyGoalContent(
+                BottomSheet(
                     minutesPerDay: $tempGoalMinutes,
                     isPickerShown: false,
                     readedPages: $tempReadedPages,
