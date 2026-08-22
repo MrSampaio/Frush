@@ -240,7 +240,7 @@ class BooksViewModel: ObservableObject {
         self.fetchBooks()
     }
         
-    @Published var dailyGoalMinutes: Int = 15
+    @Published var dailyGoalMinutes: Int = 0
     
     func fetchDailyGoal() {
         let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
@@ -251,7 +251,7 @@ class BooksViewModel: ObservableObject {
                 self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
             }
         } catch {
-            print("Erro ao buscar a meta diária: \(error)")
+            print("Error when fetching daily goal: \(error)")
         }
     }
     
@@ -274,10 +274,9 @@ class BooksViewModel: ObservableObject {
             try context.save()
             
             self.dailyGoalMinutes = minutes
-            print("Meta diária de \(minutes) minutos salva no Core Data!")
             
         } catch {
-            print("Erro ao salvar a meta diária: \(error.localizedDescription)")
+            print("Error when saving daily goal: \(error.localizedDescription)")
             context.rollback()
         }
     }
@@ -289,7 +288,7 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidCurrentPage
         }
         
-        book.bookCurrentPage += convertedCurrentPage
+        book.bookCurrentPage = convertedCurrentPage
         
         try self.saveBook()
         self.fetchBooks()
