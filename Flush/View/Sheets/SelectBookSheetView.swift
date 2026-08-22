@@ -11,6 +11,7 @@ import CoreData
 struct SelectBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     
     @Binding var selectedBook: Books?
@@ -30,6 +31,7 @@ struct SelectBookSheetView: View {
                             
                             Button(action: {
                                 selectedBook = book
+                                userSettingsViewModel.updateUserSettings(newLastBook: book)
                                 
                                 stopwatchViewModel.getTotalPages(book: book)
                                 stopwatchViewModel.getCurrentPage(book: book)
@@ -73,6 +75,9 @@ struct SelectBookSheetView: View {
             }
             .onAppear {
                 booksViewModel.fetchBooks()
+            }
+            .onDisappear{
+                userSettingsViewModel.fetchUserSettings()
             }
         }
     }

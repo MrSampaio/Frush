@@ -15,6 +15,7 @@ struct CH4_BooksApp: App {
     @StateObject private var booksViewModel = BooksViewModel()
     @StateObject private var notesViewModel = NotesViewModel()
     @StateObject private var stopWatchViewModel = StopwatchViewModel()
+    @StateObject private var userSettingsViewModel = UserSettingsViewModel()
 
     var body: some Scene {
         WindowGroup {

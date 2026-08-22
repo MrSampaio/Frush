@@ -15,6 +15,7 @@ struct StopwatchInitialView: View {
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     
     @Binding var selectedBook: Books?
     
@@ -45,7 +46,7 @@ struct StopwatchInitialView: View {
                     
                     // Fundo com a capa do livro e gradiente
                     Group {
-                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                         } else {
@@ -157,7 +158,7 @@ struct StopwatchInitialView: View {
                                                 .lineLimit(1)
                                         }
                                          */
-                                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
                                             Image(uiImage: uiImage)
                                                 .resizable()
                                                 .scaledToFill()
@@ -174,13 +175,13 @@ struct StopwatchInitialView: View {
                                         }
 
                                         VStack(alignment: .leading, spacing: 3) {
-                                            Text(selectedBook?.bookTitle ?? "Nenhum livro selecionado")
+                                            Text(userSettingsViewModel.lastBookReaded?.bookTitle ?? "Nenhum livro selecionado")
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundColor(.white)
                                                 .lineLimit(1)
                                             
-                                            Text(selectedBook?.bookAuthor ?? "Toque para selecionar")
+                                            Text(userSettingsViewModel.lastBookReaded?.bookAuthor ?? "Toque para selecionar")
                                                 .font(.system(size: 13))
                                                 .foregroundColor(Color.white.opacity(0.8))
                                                 .lineLimit(1)
@@ -372,6 +373,7 @@ struct StopwatchInitialView: View {
     
     StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
         .preferredColorScheme(.dark)
+        .environmentObject(UserSettingsViewModel())
         .environmentObject(StopwatchViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())

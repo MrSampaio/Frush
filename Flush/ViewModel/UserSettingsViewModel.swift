@@ -43,7 +43,7 @@ class UserSettingsViewModel: ObservableObject {
         }
     }
     
-    func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil) throws{
+    func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil){
         guard let settings = currentSettings else { return }
         
         if let newGoal = newGoal {
@@ -60,7 +60,7 @@ class UserSettingsViewModel: ObservableObject {
             try CoreDataManager.shared.viewContext.save()
             print("UserSetting updated successfully")
         } catch {
-            print("Error when trying to update UserSettings: \(error)")
+            fatalError("Error when trying to update UserSettings: \(error)")
         }
     }
     func saveDailyGoal(minutes: Int) {
