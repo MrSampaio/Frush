@@ -19,25 +19,18 @@ struct NoteCellView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(note.noteCategory ?? "Geral")
-                    .font(.custom("Bitter-SemiBold", size: 11))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .foregroundStyle(.blue)
-                    .background(Color.blue.opacity(0.15), in: Capsule())
-                
-                Spacer()
-            }
             
             Text(note.noteTitle ?? "Nota sem título")
-                .font(.custom("Bitter-SemiBold", size: 17))
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .lineLimit(1)
             
             if let description = note.noteDescription, !description.isEmpty {
                 Text(description)
-                    .font(.custom("Bitter-Regular", size: 15))
+                    .font(.body)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
         }
         .contentShape(Rectangle())
@@ -81,7 +74,8 @@ struct NoteCellView: View {
 
         .frame(width: 170)
         .cornerRadius(12)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 4)
     }
 }
 
