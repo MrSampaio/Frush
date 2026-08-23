@@ -47,6 +47,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(UserSettingsViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(StopwatchViewModel())
         .environmentObject(PhotoLibraryViewModel())

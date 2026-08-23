@@ -14,11 +14,14 @@ enum TimerState {
 }
 
 class StopwatchViewModel: ObservableObject {
+    
     @Published var timerState: TimerState = .stopped
     @Published var elapsedTime: TimeInterval = 0
     @Published var totalTime: TimeInterval = 0
     @Published var isRunning: Bool = false
     @Published var timer: Timer? = nil
+    
+    @Published var showProgressSheet: Bool = false
     
     // muda aqui pra puxar a página do banco e ela atualizar o progresso dinamicamente
     
@@ -32,18 +35,13 @@ class StopwatchViewModel: ObservableObject {
         return (totalTime - elapsedTime) / totalTime
     }
     
-    // progresso do Livro (0.0 a 1.0) independente do timer
-    var bookProgress: Double {
-        guard totalPages > 0 else { return 0 }
-        return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
-    }
     
     // configura a duração inicial (chamado ao rolar o Picker)
     func setDuration(_ duration: TimeInterval) {
         self.totalTime = duration
         self.elapsedTime = duration
     }
-        
+    
     func startTimer() {
         timerState = .running
         isRunning = true
@@ -55,10 +53,12 @@ class StopwatchViewModel: ObservableObject {
                 self.elapsedTime -= 0.1
             } else {
                 self.stop()
+                DispatchQueue.main.async {
+                    self.showProgressSheet = true
+                }
             }
         }
     }
-    
     func pauseTimer() {
         timerState = .paused
         isRunning = false
@@ -85,11 +85,11 @@ class StopwatchViewModel: ObservableObject {
     }
     
     /*
-    func timerFormater() -> String{
-        let current = max(0, Int(elapsedTime))
-        return String(format: "%02d:%02d", current / 60, current % 60)
-    }
-    */
+     func timerFormater() -> String{
+     let current = max(0, Int(elapsedTime))
+     return String(format: "%02d:%02d", current / 60, current % 60)
+     }
+     */
     func timerFormater() -> String {
         let current = max(0, Int(elapsedTime))
         let hours = current / 3600
@@ -103,13 +103,37 @@ class StopwatchViewModel: ObservableObject {
         }
     }
     
-    func getCurrentPage(book: Books){
+    func getCurrentPage(book: Books) -> Int{
         currentPage = book.bookCurrentPage
-        //return Int16(currentPage)
+        return Int(currentPage)
     }
     
-    func getTotalPages(book: Books){
+    func getTotalPages(book: Books) -> Int{
         totalPages = book.bookTotalPages
-//        return Int16(totalPages)
+        return Int(totalPages)
     }
+    
+//    func getBookProgress(book: Books) -> Int{
+//        //        bookProgress = Double(book.bookCurrentPage) / Double(book.bookTotalPages)
+//        //        return bookProgress
+//        
+//        let totalPages = book.bookTotalPages
+//        let currentPage = book.bookCurrentPage
+//        var bookProgress: Double {
+//            guard totalPages > 0 else { return 0 }
+//            return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
+//        }
+//        
+//        return Int(bookProgress)
+//        
+//    }
+    
+    func getBookProgress(book: Books) -> Double {
+        let totalPages = book.bookTotalPages
+        let currentPage = book.bookCurrentPage
+        
+        guard totalPages > 0 else { return 0.0 }
+        return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
+    }
+    
 }
