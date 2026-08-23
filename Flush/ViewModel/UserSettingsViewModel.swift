@@ -51,6 +51,12 @@ class UserSettingsViewModel: ObservableObject {
                         try? context.save()
                     }
                     
+                    if self.dailyGoal > 0 && self.minutesReadToday < self.dailyGoal {
+                        NotificationManager.shared.scheduleDailyReminders()
+                    } else {
+                        NotificationManager.shared.cancelReminders()
+                    }
+                    
                 } else {
                     // 👇 A MÁGICA ACONTECE AQUI:
                     // Se o banco estiver vazio, cria as configurações padrão para o app não quebrar mais!
@@ -150,6 +156,10 @@ class UserSettingsViewModel: ObservableObject {
             try CoreDataManager.shared.viewContext.save()
             self.minutesReadToday = Int(settings.minutesReadToday)
             print("Reading updated: \(self.minutesReadToday)")
+            
+            if self.minutesReadToday >= self.dailyGoal {
+                NotificationManager.shared.cancelReminders()
+            }
         } catch {
             print("Error when updating reading: \(error)")
         }

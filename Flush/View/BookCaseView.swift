@@ -78,6 +78,8 @@ struct BookCaseView: View {
                 bookViewModel.fetchBooks()
                 userSettingsViewModel.fetchUserSettings()
             }
+            
+            NotificationManager.shared.requestPermission()
         }
 
         .sheet(item: $activeSheet, onDismiss: {
