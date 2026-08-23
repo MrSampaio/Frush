@@ -32,19 +32,10 @@ struct CardTotalPages: View {
                         .font(.bitter(.regular, style: .footnote))
                         .foregroundStyle(Color.black)
                 } else {
-                    Text("Escolha um livro e comece seu novo hábito de leitura!")
+                    Text("Que tal começar agora mesmo?")
                         .font(.bitter(.medium, style: .subheadline))
                         .foregroundStyle(Color.black)
-                    
-//                    Text("Escolha um livro abaixo e aproveite")
-//                        .font(.bitter(.regular, style: .footnote))
-//                        .foregroundStyle(Color.black)
                 }
-//                Text("\(totalPages) páginas lidas")
-//                    .font(.bitter(.bold, style: .title3))
-//                    .foregroundStyle(Color.black)
-                
-
             }
             
             Spacer()

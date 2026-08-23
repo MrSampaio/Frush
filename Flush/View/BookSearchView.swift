@@ -125,6 +125,12 @@ struct BookSearchView: View {
                 }) { note in
                     NoteDetailSheetView(note: note)
                 }
+                .onTapGesture {
+                    #if canImport(UIKit)
+                                    hideKeyboard()
+                    #endif
+                }
+                .scrollDismissesKeyboard(.interactively)
             }
             
         }

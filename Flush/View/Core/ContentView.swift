@@ -15,11 +15,14 @@ struct ContentView: View {
     
     @EnvironmentObject var booksViewModel: BooksViewModel
     
+    private static let configureAppearance: Void = {
+        UITabBar.appearance().tintColor = UIColor(named: "ActionColor") ?? .orange
+    }()
+     
     init() {
-        // Tenta puxar a sua "ActionColor". Se falhar por algum motivo, usa laranja padrão.
-        UITabBar.appearance().tintColor = UIColor(named: "ActionColor") ?? UIColor.orange
+        _ = Self.configureAppearance
     }
-
+     
     var body: some View {
         
         TabView {
