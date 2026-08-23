@@ -78,6 +78,8 @@ struct BookCaseView: View {
                 bookViewModel.fetchBooks()
                 userSettingsViewModel.fetchUserSettings()
             }
+            
+            NotificationManager.shared.requestPermission()
         }
 
         .sheet(item: $activeSheet, onDismiss: {
@@ -160,4 +162,5 @@ struct BookCaseView: View {
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
         .environmentObject(StopwatchViewModel())
+        .environmentObject(BookFilterViewModel())
 }

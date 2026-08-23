@@ -33,15 +33,18 @@ struct CH4_BooksApp: App {
 }
 
 struct RootFlowView: View {
+ 
     enum Screen {
         case splash
         case firstOnboard
         case secondOnboard
         case main
     }
-
+ 
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+ 
     @State private var screen: Screen = .splash
-
+ 
     var body: some View {
         ZStack {
             switch screen {
@@ -49,28 +52,25 @@ struct RootFlowView: View {
                 SplashView()
                     .transition(.opacity)
                     .task {
-                        try? await Task.sleep(for: .seconds(2))
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            screen = .firstOnboard
+                        try? await Task.sleep(for: .seconds(1.2))
+                        withAnimation(.easeInOut(duration: 0.35)) {
+                            screen = hasCompletedOnboarding ? .main : .firstOnboard
                         }
                     }
-
+ 
             case .firstOnboard:
                 FirstOnboardView {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        screen = .secondOnboard
-                    }
+                    withAnimation(.easeInOut(duration: 0.35)) { screen = .secondOnboard }
                 }
                 .transition(.opacity)
-
+ 
             case .secondOnboard:
                 SecondOnboardView {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        screen = .main
-                    }
+                    hasCompletedOnboarding = true
+                    withAnimation(.easeInOut(duration: 0.35)) { screen = .main }
                 }
                 .transition(.opacity)
-
+ 
             case .main:
                 ContentView()
                     .transition(.opacity)

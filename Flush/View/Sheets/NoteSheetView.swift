@@ -108,6 +108,13 @@ struct NoteSheetView: View {
                     }
                 )
             }
+            .onTapGesture {
+                #if canImport(UIKit)
+                                hideKeyboard()
+                #endif
+            }
+            .scrollDismissesKeyboard(.interactively)
+            
             .fullScreenCover(isPresented: $isShowingCamera) {
                 CameraPicker { image in
                     appendImage(image)

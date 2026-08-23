@@ -62,9 +62,9 @@ class PhotoLibraryViewModel: ObservableObject {
         
         do {
             try CoreDataManager.shared.viewContext.save()
-            print("Sucesso ao salvar a capa do livro.")
+            print("Success when saving the book cover")
         } catch let error {
-            print("Erro ao tentar salvar a capa do livro: \(error)")
+            print("Error when saving the book cover \(error)")
         }
     }
     
