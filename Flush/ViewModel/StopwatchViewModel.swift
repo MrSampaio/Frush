@@ -21,6 +21,8 @@ class StopwatchViewModel: ObservableObject {
     @Published var isRunning: Bool = false
     @Published var timer: Timer? = nil
     
+    @Published var showProgressSheet: Bool = false
+    
     // muda aqui pra puxar a página do banco e ela atualizar o progresso dinamicamente
     
     // controle de Páginas do Livro
@@ -51,10 +53,12 @@ class StopwatchViewModel: ObservableObject {
                 self.elapsedTime -= 0.1
             } else {
                 self.stop()
+                DispatchQueue.main.async {
+                    self.showProgressSheet = true
+                }
             }
         }
     }
-    
     func pauseTimer() {
         timerState = .paused
         isRunning = false
@@ -125,11 +129,11 @@ class StopwatchViewModel: ObservableObject {
 //    }
     
     func getBookProgress(book: Books) -> Double {
-            let totalPages = book.bookTotalPages
-            let currentPage = book.bookCurrentPage
-            
-            guard totalPages > 0 else { return 0.0 }
-            return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
-        }
+        let totalPages = book.bookTotalPages
+        let currentPage = book.bookCurrentPage
+        
+        guard totalPages > 0 else { return 0.0 }
+        return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
+    }
     
 }

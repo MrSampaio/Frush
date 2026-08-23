@@ -33,6 +33,8 @@
     <entity name="UserSettings" representedClassName="UserSettings" syncable="YES" codeGenerationType="class">
         <attribute name="dailyGoalMinutes" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastBookSelected" optional="YES" attributeType="Transformable"/>
+        <attribute name="lastReadingDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="minutesReadToday" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="lastBookReaded" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Books" inverseName="userSetttings" inverseEntity="Books"/>
     </entity>
 </model>

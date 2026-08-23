@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct DailyGoalCardView: View {
-    let pagesReadToday: Int
-    let targetPages: Int
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
+    
     var onEditAction: () -> Void
     
+    // puxando o progresso pela viewmodel
     private var progress: Double {
-        guard targetPages > 0 else { return 0 }
-        return min(Double(pagesReadToday) / Double(targetPages), 1.0)
+        let target = Double(userSettingsViewModel.dailyGoal)
+        guard target > 0 else { return 0 }
+        return min(Double(userSettingsViewModel.minutesReadToday) / target, 1.0)
     }
     
     var body: some View {
@@ -45,10 +47,10 @@ struct DailyGoalCardView: View {
             }
             
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(targetPages)")
+                Text("\(userSettingsViewModel.dailyGoal)")
                     .font(.bitter(.medium, style: .largeTitle))
                     .foregroundColor(.white)
-                
+                 
                 Text("minutos")
                     .font(.bitter(.regular, style: .title3))
                     .foregroundColor(.white)
@@ -76,10 +78,9 @@ struct DailyGoalCardView: View {
             .padding(.vertical, 2)
             .padding(.bottom, 6)
             
-            
             HStack {
                 HStack(spacing: 4) {
-                    Text("\(pagesReadToday)")
+                    Text("\(userSettingsViewModel.minutesReadToday)")
                         .font(.system(.callout))
                         .foregroundColor(.orange)
                     
@@ -87,10 +88,10 @@ struct DailyGoalCardView: View {
                         .font(.system(.callout))
                         .foregroundColor(Color("TextPagesColor"))
                 }
-                
+               
                 Spacer()
                 
-                Text("\(targetPages)")
+                Text("\(userSettingsViewModel.dailyGoal)")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color("TextPagesColor"))
             }
@@ -100,7 +101,7 @@ struct DailyGoalCardView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(.ultraThinMaterial) // Ou .thinMaterial / .regularMaterial
+                    .fill(.ultraThinMaterial)
                 
                 RoundedRectangle(cornerRadius: 24)
                     .fill(Color("DailyGoalCardColor"))
@@ -126,12 +127,11 @@ struct DailyGoalCardView: View {
             .ignoresSafeArea()
         
         DailyGoalCardView(
-            pagesReadToday: 12,
-            targetPages: 30,
             onEditAction: {
                 print("Editar meta clicado")
             }
         )
+        .environmentObject(UserSettingsViewModel())
         .padding()
     }
 }

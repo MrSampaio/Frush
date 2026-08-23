@@ -52,8 +52,8 @@ struct BookCaseView: View {
                         CardTotalPages(totalPages: bookViewModel.countGeralReadedPages())
                         
                         DailyGoalCardView(
-                            pagesReadToday: 12,
-                            targetPages: userSettingsViewModel.dailyGoal,
+//                            pagesReadToday: 12,
+//                            targetPages: userSettingsViewModel.dailyGoal,
                             onEditAction: {
                                 showBottomSheet = true
                             }

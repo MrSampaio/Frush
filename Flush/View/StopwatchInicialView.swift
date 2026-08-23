@@ -23,6 +23,10 @@ struct StopwatchInitialView: View {
     @State private var isShowingSelectBookSheet = false
     @State private var isShowingTimerPicker = false
     @State private var isShowingNoBookAlert = false
+    @State private var tempReadedPages: String = ""
+    
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
     
     @State private var selectedDuration: TimeInterval = 15 * 60
     
@@ -321,7 +325,12 @@ struct StopwatchInitialView: View {
                                 get: { Int(selectedDuration) / 3600 },
                                 set: { newHours in
                                     let currentMinutes = (Int(selectedDuration) % 3600) / 60
-                                    let newTotal = TimeInterval((newHours * 3600) + (currentMinutes * 60))
+                                    
+                                    // Separado para o compilador não chorar
+                                    let hoursInSeconds = Double(newHours * 3600)
+                                    let minutesInSeconds = Double(currentMinutes * 60)
+                                    let newTotal = hoursInSeconds + minutesInSeconds
+                                    
                                     selectedDuration = newTotal
                                     stopwatchViewModel.totalTime = newTotal
                                     stopwatchViewModel.elapsedTime = newTotal
@@ -338,7 +347,12 @@ struct StopwatchInitialView: View {
                                 get: { (Int(selectedDuration) % 3600) / 60 },
                                 set: { newMinutes in
                                     let currentHours = Int(selectedDuration) / 3600
-                                    let newTotal = TimeInterval((currentHours * 3600) + (newMinutes * 60))
+                                    
+                                    // Separado para o compilador não chorar
+                                    let hoursInSeconds = Double(currentHours * 3600)
+                                    let minutesInSeconds = Double(newMinutes * 60)
+                                    let newTotal = hoursInSeconds + minutesInSeconds
+                                    
                                     selectedDuration = newTotal
                                     stopwatchViewModel.totalTime = newTotal
                                     stopwatchViewModel.elapsedTime = newTotal
@@ -359,9 +373,53 @@ struct StopwatchInitialView: View {
                         .foregroundColor(Color("ActionColor"))
                         .padding(.bottom)
                     }
-                    .presentationDetents([.height(260)])                 
-                 
+                    .presentationDetents([.height(260)])
                 }
+                
+                .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
+                    if let currentBook = selectedBook {
+                        BottomSheet(
+                            minutesPerDay: .constant(0),
+                            isPickerShown: false,
+                            readedPages: $tempReadedPages,
+                            onDismiss: {
+                                stopwatchViewModel.showProgressSheet = false
+                            },
+                            onSave: {
+                                if let newPage = Int16(tempReadedPages) {
+                                    currentBook.bookCurrentPage = newPage
+                                    
+                                    do {
+                                        try booksViewModel.saveBook()
+                                    } catch let error as LocalizedError {
+                                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                                        showErrorAlert = true
+                                    } catch {
+                                        errorMessage = "Erro inesperado."
+                                        showErrorAlert = true
+                                    }
+                                }
+                                
+                                let minutesRead = Int(stopwatchViewModel.totalTime / 60)
+                                userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
+                                
+                                booksViewModel.fetchBooks()
+                                tempReadedPages = ""
+                                stopwatchViewModel.showProgressSheet = false
+                            }
+                        )
+                        .presentationDetents([.height(340)])
+                        .presentationDragIndicator(.visible)
+                        .presentationBackground(Color("BackgroundColorViews"))
+                    }
+                }
+                
+                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                    Button("Tentar novamente", role: .cancel) { }
+                } message: {
+                    Text(errorMessage)
+                }
+                
                 .onAppear {
                     booksViewModel.fetchBooks()
                     userSettingsViewModel.fetchUserSettings()
