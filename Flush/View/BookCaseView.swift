@@ -22,6 +22,9 @@ struct BookCaseView: View {
     @State private var isPresented = true
     @State private var tempGoalMinutes: Int = 15
     
+    @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @State private var tempReadedPages: String = ""
+    
     var books: [Books] {
         bookViewModel.savedBooks
     }
@@ -103,6 +106,43 @@ struct BookCaseView: View {
                 .environmentObject(PhotoLibraryViewModel())
                 .environmentObject(bookViewModel)
             
+        }
+        
+        .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
+            if let currentBook = userSettingsViewModel.lastBookReaded {
+                BottomSheet(
+                    minutesPerDay: .constant(0),
+                    isPickerShown: false,
+                    readedPages: $tempReadedPages,
+                    onDismiss: {
+                        stopwatchViewModel.showProgressSheet = false
+                    },
+                    onSave: {
+                        if let newPage = Int16(tempReadedPages) {
+                            currentBook.bookCurrentPage = newPage
+                            
+                            do {
+                                try bookViewModel.saveBook()
+                            } catch {
+                                print("Erro ao salvar a página pela Home: \(error)")
+                            }
+                        }
+                        
+                        let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
+                        let minutesRead = max(1, rawMinutes)
+                        
+                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
+                        
+                        bookViewModel.fetchBooks()
+                        userSettingsViewModel.fetchUserSettings()
+                        tempReadedPages = ""
+                        stopwatchViewModel.showProgressSheet = false
+                    }
+                )
+                .presentationDetents([.height(340)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color("BackgroundColorViews"))
+            }
         }
         .sheet(isPresented: $showBottomSheet) {
             BottomSheet(

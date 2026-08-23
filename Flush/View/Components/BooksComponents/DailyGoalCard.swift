@@ -74,7 +74,7 @@ struct DailyGoalCardView: View {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: isGoalCompleted ? [.yellow, .orange] : [.white.opacity(0.3), .white.opacity(0.05)],
+                                colors: isGoalCompleted ? [.yellow, .orange] : [.yellow.opacity(0.9), .orange.opacity(0.9)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -99,7 +99,7 @@ struct DailyGoalCardView: View {
                
                 Spacer()
                
-                Text("\(userSettingsViewModel.dailyGoal)")
+                Text("\(userSettingsViewModel.dailyGoal) min")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color("TextPagesColor"))
             }

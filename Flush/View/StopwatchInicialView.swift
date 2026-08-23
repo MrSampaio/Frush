@@ -369,10 +369,13 @@ struct StopwatchInitialView: View {
                                     }
                                 }
                                 
-                                let minutesRead = Int(stopwatchViewModel.totalTime / 60)
+                                let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
+                                let minutesRead = max(1, rawMinutes)
+                                
                                 userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
                                 
                                 booksViewModel.fetchBooks()
+                                userSettingsViewModel.fetchUserSettings()
                                 tempReadedPages = ""
                                 stopwatchViewModel.showProgressSheet = false
                             }

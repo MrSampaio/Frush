@@ -35,6 +35,12 @@ class StopwatchViewModel: ObservableObject {
     init() {
         // obeservador do tempo de vida ativo do app
         setupAppLifecycleObservers()
+        checkPendingSession()
+    }
+    
+    
+    private func resumeStateOnForeground() {
+        checkPendingSession()
     }
     
     private func setupAppLifecycleObservers() {
@@ -71,21 +77,27 @@ class StopwatchViewModel: ObservableObject {
         // salva o estado do timer (se estava rodando ou pausado)
         UserDefaults.standard.set(timerState == .running ? "running" : "paused", forKey: "savedTimerState")
     }
-
+    
     // função para trazer os estados de volta pro app
-    private func resumeStateOnForeground() {
+    private func checkPendingSession() {
         let savedDate = UserDefaults.standard.double(forKey: "savedBackgroundDate")
         let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
+        let savedTotal = UserDefaults.standard.double(forKey: "savedTotalTime")
         let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
 
         // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
         guard savedDate > 0 else { return }
+        
+        if savedTotal > 0 {
+            self.totalTime = savedTotal
+        }
 
         let backgroundDate = Date(timeIntervalSince1970: savedDate)
         let timeAway = Date().timeIntervalSince(backgroundDate) // quanto tempo o app ficou fora de foco
 
+        
         if savedStateStr == "running" {
-            // Subtrai do cronômetro o tempo que o cara passou fora do app
+            // subtrai do cronômetro o tempo que o cara passou fora do app
             let newElapsedTime = savedElapsed - timeAway
 
             if newElapsedTime > 0 {
@@ -95,7 +107,7 @@ class StopwatchViewModel: ObservableObject {
             } else {
                 // se o tempo acabou ENQUANTO o app estava fechado
                 self.elapsedTime = 0
-                self.stop() // ou a sua função que pausa/invalida o timer
+                self.stop()// ou a sua função que pausa/invalida o timer
                 
                 // dispara a bottom sheet para ele preencher as páginas
                 DispatchQueue.main.async {
@@ -111,8 +123,51 @@ class StopwatchViewModel: ObservableObject {
         // limpa o UserDefaults para não correr o risco de puxar esses dados numa próxima leitura do zero
         UserDefaults.standard.removeObject(forKey: "savedBackgroundDate")
         UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
+        UserDefaults.standard.removeObject(forKey: "savedTotalTime")
         UserDefaults.standard.removeObject(forKey: "savedTimerState")
     }
+
+//    // função para trazer os estados de volta pro app
+//    private func resumeStateOnForeground() {
+//        let savedDate = UserDefaults.standard.double(forKey: "savedBackgroundDate")
+//        let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
+//        let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
+//
+//        // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
+//        guard savedDate > 0 else { return }
+//
+//        let backgroundDate = Date(timeIntervalSince1970: savedDate)
+//        let timeAway = Date().timeIntervalSince(backgroundDate) // quanto tempo o app ficou fora de foco
+//
+//        if savedStateStr == "running" {
+//            // subtrai do cronômetro o tempo que o cara passou fora do app
+//            let newElapsedTime = savedElapsed - timeAway
+//
+//            if newElapsedTime > 0 {
+//                // se ainda sobrou tempo, atualiza e volta a rodar o timer visual
+//                self.elapsedTime = newElapsedTime
+//                self.startTimer()
+//            } else {
+//                // se o tempo acabou ENQUANTO o app estava fechado
+//                self.elapsedTime = 0
+//                self.stop() // ou a sua função que pausa/invalida o timer
+//                
+//                // dispara a bottom sheet para ele preencher as páginas
+//                DispatchQueue.main.async {
+//                    self.showProgressSheet = true
+//                }
+//            }
+//        } else if savedStateStr == "paused" {
+//            // se estava pausado, só devolve o tempo exato, não subtrai o tempo fora
+//            self.elapsedTime = savedElapsed
+//            self.timerState = .paused
+//        }
+//
+//        // limpa o UserDefaults para não correr o risco de puxar esses dados numa próxima leitura do zero
+//        UserDefaults.standard.removeObject(forKey: "savedBackgroundDate")
+//        UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
+//        UserDefaults.standard.removeObject(forKey: "savedTimerState")
+//    }
     
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {

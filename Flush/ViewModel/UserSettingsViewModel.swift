@@ -24,59 +24,79 @@ class UserSettingsViewModel: ObservableObject {
         self.fetchUserSettings()
     }
     
-    func fetchUserSettings(){
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
-        
-        do {
-            let results = try CoreDataManager.shared.viewContext.fetch(request)
+    func fetchUserSettings() {
+            let context = CoreDataManager.shared.viewContext
+            let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
             
-            if let settings = results.first {
-                self.currentSettings = settings
+            do {
+                let results = try context.fetch(request)
                 
-                let convertedGoal = Int(settings.dailyGoalMinutes)
-                
-                self.dailyGoal = convertedGoal
-                self.lastBookReaded = settings.lastBookReaded
-                
-                let calendar = Calendar.current
-                
-                if let lastDate = settings.lastReadingDate, calendar.isDateInToday(lastDate) {
-                    // Se leu hoje, carrega o valor real salvo
-                    self.minutesReadToday = Int(settings.minutesReadToday)
+                if let settings = results.first {
+                    self.currentSettings = settings
+                    
+                    let convertedGoal = Int(settings.dailyGoalMinutes)
+                    
+                    self.dailyGoal = convertedGoal
+                    self.lastBookReaded = settings.lastBookReaded
+                    
+                    let calendar = Calendar.current
+                    
+                    if let lastDate = settings.lastReadingDate, calendar.isDateInToday(lastDate) {
+                        // Se leu hoje, carrega o valor real salvo
+                        self.minutesReadToday = Int(settings.minutesReadToday)
+                    } else {
+                        // Se a última leitura foi em outro dia (ou nunca leu), zera na tela e no banco
+                        self.minutesReadToday = 0
+                        settings.minutesReadToday = 0
+                        try? context.save()
+                    }
+                    
                 } else {
-                    // Se a última leitura foi em outro dia (ou nunca leu), zera na tela e no banco
+                    // 👇 A MÁGICA ACONTECE AQUI:
+                    // Se o banco estiver vazio, cria as configurações padrão para o app não quebrar mais!
+                    let newSettings = UserSettings(context: context)
+                    newSettings.dailyGoalMinutes = 0
+                    newSettings.minutesReadToday = 0
+                    
+                    try? context.save()
+                    
+                    self.currentSettings = newSettings
+                    self.dailyGoal = 0
                     self.minutesReadToday = 0
-                    settings.minutesReadToday = 0
-                    try? CoreDataManager.shared.viewContext.save()
+                    self.lastBookReaded = nil
                 }
-                
+            } catch let error {
+                fatalError("Error when trying to fetch UserSettings data: \(error)")
             }
-        } catch let error {
-            fatalError("Error when trying to fetch UserSettings data: \(error)")
-        }
-    }
-    
-    func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil){
-        guard let settings = currentSettings else { return }
-        
-        if let newGoal = newGoal {
-            settings.dailyGoalMinutes = Int16(newGoal)
-            self.dailyGoal = newGoal
         }
         
-        if let newLastBook = newLastBook {
-            settings.lastBookReaded = newLastBook
-            self.lastBookReaded = newLastBook
+        func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil) {
+            
+            // Se por algum milagre o currentSettings não estiver carregado, força a criação/busca
+            if currentSettings == nil {
+                fetchUserSettings()
+            }
+            
+            guard let settings = currentSettings else { return }
+            
+            if let newGoal = newGoal {
+                settings.dailyGoalMinutes = Int16(newGoal)
+                self.dailyGoal = newGoal
+            }
+            
+            if let newLastBook = newLastBook {
+                settings.lastBookReaded = newLastBook
+                self.lastBookReaded = newLastBook
+            }
+            
+            do {
+                try CoreDataManager.shared.viewContext.save()
+                fetchUserSettings() // Recarrega os dados na ViewModel
+                print("UserSetting updated successfully")
+            } catch {
+                fatalError("Error when trying to update UserSettings: \(error)")
+            }
         }
-        
-        do {
-            try CoreDataManager.shared.viewContext.save()
-            fetchUserSettings()
-            print("UserSetting updated successfully")
-        } catch {
-            fatalError("Error when trying to update UserSettings: \(error)")
-        }
-    }
     func saveDailyGoal(minutes: Int) {
         let context = CoreDataManager.shared.viewContext
         let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
