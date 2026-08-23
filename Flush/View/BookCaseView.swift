@@ -11,6 +11,7 @@ struct BookCaseView: View {
     @EnvironmentObject var bookViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @EnvironmentObject var filterViewModel: BookFilterViewModel
     
     enum ActiveSheet: Identifiable {
         case addBook
@@ -69,7 +70,7 @@ struct BookCaseView: View {
             .toolbar {
                 BookCaseToolbar(onAddClick: {
                     activeSheet = .addBook
-                })
+                }, filterViewModel: filterViewModel)
             }
         }
         .onAppear {
