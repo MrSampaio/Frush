@@ -4,7 +4,6 @@
 //
 //  Created by Julio Sampaio on 13/08/26.
 //
-// test
 import Foundation
 import SwiftUI
 import CoreData
@@ -280,6 +279,7 @@ class BooksViewModel: ObservableObject {
             context.rollback()
         }
     }
+    
     
     func updateCurrentPage(book: Books, currentPage: String) throws{
         let convertedCurrentPage = Int16(currentPage) ?? 0

@@ -15,6 +15,7 @@
                 <entry key="key" value="value"/>
             </userInfo>
         </relationship>
+        <relationship name="userSetttings" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserSettings" inverseName="lastBookReaded" inverseEntity="UserSettings"/>
     </entity>
     <entity name="NoteImage" representedClassName="NoteImage" syncable="YES" codeGenerationType="class">
         <attribute name="fileName" optional="YES" attributeType="String"/>
@@ -31,5 +32,9 @@
     </entity>
     <entity name="UserSettings" representedClassName="UserSettings" syncable="YES" codeGenerationType="class">
         <attribute name="dailyGoalMinutes" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastBookSelected" optional="YES" attributeType="Transformable"/>
+        <attribute name="lastReadingDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="minutesReadToday" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="lastBookReaded" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Books" inverseName="userSetttings" inverseEntity="Books"/>
     </entity>
 </model>

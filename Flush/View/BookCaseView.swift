@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct BookCaseView: View {
+    //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
+    @ObservedObject var bookViewModel = BooksViewModel()
+    @ObservedObject var userSettingsViewModel = UserSettingsViewModel()
     @ObservedObject var bookViewModel: BooksViewModel
     @StateObject private var filterViewModel = BookFilterViewModel()
     
@@ -43,8 +46,8 @@ struct BookCaseView: View {
                         CardTotalPages(totalPages: bookViewModel.countGeralReadedPages())
                         
                         DailyGoalCardView(
-                            pagesReadToday: 12,
-                            targetPages: bookViewModel.dailyGoalMinutes,
+//                            pagesReadToday: 12,
+//                            targetPages: userSettingsViewModel.dailyGoal,
                             onEditAction: {
                                 showBottomSheet = true
                             }
@@ -72,7 +75,8 @@ struct BookCaseView: View {
         .onAppear {
             withAnimation {
                 bookViewModel.fetchBooks()
-                bookViewModel.fetchDailyGoal()
+                userSettingsViewModel.fetchUserSettings()
+                //bookViewModel.fetchDailyGoal()
             }
         }
         .sheet(isPresented: $isShowingSheet, onDismiss: {
@@ -92,12 +96,14 @@ struct BookCaseView: View {
                     showBottomSheet = false
                 },
                 onSave: {
-                    bookViewModel.saveDailyGoal(minutes: tempGoalMinutes)
+                    userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes)
+                    //bookViewModel.saveDailyGoal(minutes: tempGoalMinutes)
                     showBottomSheet = false
                 }
             )
             .onAppear {
-                tempGoalMinutes = bookViewModel.dailyGoalMinutes
+//                tempGoalMinutes = bookViewModel.dailyGoalMinutes
+                tempGoalMinutes = userSettingsViewModel.dailyGoal
             }
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
@@ -106,7 +112,8 @@ struct BookCaseView: View {
     }
 }
 #Preview {
-    BookCaseView(bookViewModel: BooksViewModel())
+    BookCaseView()
+        .environmentObject(UserSettingsViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())

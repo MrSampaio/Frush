@@ -10,6 +10,7 @@ import CoreData
 
 struct BookDetailView: View {
     @ObservedObject var bookViewModel: BooksViewModel
+    @ObservedObject var userSettingsViewModel = UserSettingsViewModel()
     @StateObject private var notesViewModel = NotesViewModel()
     @State private var isPresentedAddNote: Bool = false
     @State private var isPresentedEditBook: Bool = false
@@ -177,7 +178,7 @@ struct BookDetailView: View {
                     }
                 )
                 .onAppear {
-                    tempGoalMinutes = bookViewModel.dailyGoalMinutes
+                    tempGoalMinutes = userSettingsViewModel.dailyGoal
                     tempReadedPages = ""
                 }
                 .presentationDetents([.height(340)])
