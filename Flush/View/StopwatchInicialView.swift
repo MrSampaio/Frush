@@ -16,7 +16,7 @@ struct StopwatchInitialView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
-    
+    //bindign para receber o livro
     @Binding var selectedBook: Books?
     
     @State private var isShowingNoteSheet = false
@@ -49,16 +49,16 @@ struct StopwatchInitialView: View {
                         .ignoresSafeArea()
                     
                     // Fundo com a capa do livro e gradiente
+                    //modificado para colocar a capa do livro selecionado
                     Group {
-                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                        } else {
-                            Image("defaultBook")
-                                .resizable()
-                        }
-                    }
-                    .scaledToFill()
+                                            if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                                                Image(uiImage: uiImage)
+                                                    .resizable()
+                                            } else {
+                                                Image("defaultBook")
+                                                    .resizable()
+                                            }
+                                        }                    .scaledToFill()
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .opacity(0.40)
                     .overlay(
@@ -129,10 +129,39 @@ struct StopwatchInitialView: View {
                                     .font(.body)
                                     .foregroundColor(.white)
                                 
-                                Button(action: {
-                                    isShowingSelectBookSheet = true
-                                }) {
+                                    Button(action: {
+                                        isShowingSelectBookSheet = true
+                                    }) {
                                     HStack(spacing: 12) {
+                                        // mostrar capa do livro selecionado no seletor
+                                                                                if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
+                                                                                    Image(uiImage: uiImage)
+                                                                                        .resizable()
+                                                                                        .scaledToFill()
+                                                                                        .frame(width: 40, height: 40)
+                                                                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                                                } else {
+                                                                                    Image(systemName: "book.closed.fill")
+                                                                                        .resizable()
+                                                                                        .scaledToFit()
+                                                                                        .frame(width: 40, height: 40)
+                                                                                        .foregroundColor(.white.opacity(0.7))
+                                                                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                                                        .padding(.leading, 8)
+                                                                                }
+                                        //exibindo dinamicamente o titulo do livro
+                                        VStack(alignment: .leading, spacing: 3) {
+                                                                                    Text(selectedBook?.bookTitle ?? "Nenhum livro selecionado")
+                                                                                        .font(.body)
+                                                                                        .fontWeight(.semibold)
+                                                                                        .foregroundColor(.white)
+                                                                                        .lineLimit(1)
+                                                                                    
+                                                                                    Text(selectedBook?.bookAuthor ?? "Toque para selecionar")
+                                                                                        .font(.system(size: 13))
+                                                                                        .foregroundColor(Color.white.opacity(0.8))
+                                                                                        .lineLimit(1)
+                                                                                }
                                         /*
                                         if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                                             Image(uiImage: uiImage)
@@ -162,34 +191,36 @@ struct StopwatchInitialView: View {
                                                 .lineLimit(1)
                                         }
                                          */
-                                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 40, height: 40)
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        } else {
-                                            Image(systemName: "book.closed.fill")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 40, height: 40)
-                                                .foregroundColor(.white.opacity(0.7))
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                                .padding(.leading, 8)
-                                        }
+                                        //------------------comentando codigo de capa antigo------------------
+//                                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
+//                                            Image(uiImage: uiImage)
+//                                                .resizable()
+//                                                .scaledToFill()
+//                                                .frame(width: 40, height: 40)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+//                                        } else {
+//                                            Image(systemName: "book.closed.fill")
+//                                                .resizable()
+//                                                .scaledToFit()
+//                                                .frame(width: 40, height: 40)
+//                                                .foregroundColor(.white.opacity(0.7))
+//                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+//                                                .padding(.leading, 8)
+//                                        }
+                                        //------------------comentando codigo de titulo antigo------------------
 
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(userSettingsViewModel.lastBookReaded?.bookTitle ?? "Nenhum livro selecionado")
-                                                .font(.body)
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.white)
-                                                .lineLimit(1)
-                                            
-                                            Text(userSettingsViewModel.lastBookReaded?.bookAuthor ?? "Toque para selecionar")
-                                                .font(.system(size: 13))
-                                                .foregroundColor(Color.white.opacity(0.8))
-                                                .lineLimit(1)
-                                        }
+//                                        VStack(alignment: .leading, spacing: 3) {
+//                                            Text(userSettingsViewModel.lastBookReaded?.bookTitle ?? "Nenhum livro selecionado")
+//                                                .font(.body)
+//                                                .fontWeight(.semibold)
+//                                                .foregroundColor(.white)
+//                                                .lineLimit(1)
+//                                            
+//                                            Text(userSettingsViewModel.lastBookReaded?.bookAuthor ?? "Toque para selecionar")
+//                                                .font(.system(size: 13))
+//                                                .foregroundColor(Color.white.opacity(0.8))
+//                                                .lineLimit(1)
+//                                        }
                                         
                                         Spacer()
                                         
@@ -223,7 +254,7 @@ struct StopwatchInitialView: View {
                                 }
                             }
                             .padding(.horizontal, 24)
-                            
+                            //livro selecionado progresso verificar funcionamento
                             if let existingBook = selectedBook {
                                 //  Progresso do Livro
                                 VStack(spacing: 10) {
@@ -433,6 +464,13 @@ struct StopwatchInitialView: View {
                         stopwatchViewModel.getCurrentPage(book: safeBook)
                     }
                 }
+                //utilizado para atualizar o cronometro caso haja modificacoes 
+                .onChange(of: selectedBook) { newBook in
+                                    if let safeBook = newBook {
+                                        stopwatchViewModel.getTotalPages(book: safeBook)
+                                        stopwatchViewModel.getCurrentPage(book: safeBook)
+                                    }
+                                }
             }
         }
     }
