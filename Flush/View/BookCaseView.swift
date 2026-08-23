@@ -24,8 +24,8 @@ struct BookCaseView: View {
     @State private var tempGoalMinutes: Int = 15
     @State private var tempReadedPages: String = ""
     
-    var books: [Books] {
-        bookViewModel.savedBooks
+    var filteredBooks: [Books] {
+        return filterViewModel.applyFilters(to: bookViewModel.savedBooks)
     }
     
     let columns = [
@@ -53,9 +53,8 @@ struct BookCaseView: View {
                                 activeSheet = .editGoal
                             }
                         )
-                        
                         LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(books) { book in
+                            ForEach(filteredBooks) { book in
                                 NavigationLink(destination: BookDetailView(bookViewModel: bookViewModel, book: book)){
                                     BookCardView(book: book)
                                 }
@@ -153,7 +152,6 @@ struct BookCaseView: View {
         }
     }
 }
-
 #Preview {
     BookCaseView()
         .environmentObject(UserSettingsViewModel())

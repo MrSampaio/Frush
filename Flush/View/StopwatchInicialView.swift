@@ -197,6 +197,13 @@ struct StopwatchInitialView: View {
                         stopwatchViewModel.getCurrentPage(book: safeBook)
                     }
                 }
+                //utilizado para atualizar o cronometro caso haja modificacoes 
+                .onChange(of: selectedBook) { newBook in
+                                    if let safeBook = newBook {
+                                        stopwatchViewModel.getTotalPages(book: safeBook)
+                                        stopwatchViewModel.getCurrentPage(book: safeBook)
+                                    }
+                                }
             }
         }
     }

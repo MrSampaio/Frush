@@ -39,22 +39,20 @@ struct SelectBookSheetView: View {
                             
                                 dismiss()
                             }) {
-                                VStack(alignment: .leading, spacing: 14) {
+                                VStack(spacing: 14) {
                                     HStack {
-                                        Text(book.bookTitle ?? "Sem título")
-                                            .font(.body)
-                                            .fontWeight(isSelected ? .semibold : .regular)
-                                            .foregroundColor(isSelected ? Color("ActionColor") : Color("Texts"))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
+                                        BookCellView(book: book, isSelected: isSelected)
+                                        Spacer()
                                     }
-
+                                    .padding(.horizontal, 24)
+                                    
                                     Rectangle()
                                         .fill(Color.white.opacity(0.15))
                                         .frame(height: 1)
+                                        .padding(.horizontal, 24)
                                 }
-                                .padding(.horizontal, 24)
                                 .padding(.top, 14)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
@@ -84,7 +82,11 @@ struct SelectBookSheetView: View {
     }
 }
 
-//#Preview {
-//    SelectBookSheetView(selectedBook: )
-//        .environmentObject(BooksViewModel())
-//}
+#Preview {
+    @Previewable @State var selectedBook: Books? = nil
+    
+    SelectBookSheetView(selectedBook: $selectedBook)
+        .environmentObject(BooksViewModel())
+        .environmentObject(UserSettingsViewModel())
+        .environmentObject(StopwatchViewModel())
+}
