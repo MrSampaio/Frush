@@ -1,5 +1,5 @@
 //
-//  StopwatchInitialView.swift (REFATORADO)
+//  StopwatchInitialView.swift
 //  CH4-Books
 //
 //  Created by Agatha Barbosa Marinho dos Santos on 19/08/26.
@@ -21,6 +21,7 @@ struct StopwatchInitialView: View {
     @State private var isShowingSelectBookSheet = false
     @State private var isShowingTimerPicker = false
     @State private var isShowingNoBookAlert = false
+    @State private var showAbandonAlert = false
     @State private var tempReadedPages: String = ""
     
     @State private var showErrorAlert = false
@@ -92,7 +93,6 @@ struct StopwatchInitialView: View {
                         }
                         
                         VStack(spacing: 24) {
-                            // AQUI: Botão único sem duplicação
                             bookSelectionButton
                             
                             if let existingBook = selectedBook {
@@ -117,7 +117,7 @@ struct StopwatchInitialView: View {
 
                                 if stopwatchViewModel.timerState != .stopped {
                                     Button(action: {
-                                        stopwatchViewModel.abandonTimer()
+                                        showAbandonAlert = true
                                     }) {
                                         Text("Abandonar leitura")
                                             .font(.subheadline.weight(.semibold))
@@ -154,6 +154,15 @@ struct StopwatchInitialView: View {
                     Button("OK", role: .cancel) { }
                 } message: {
                     Text("Selecione um livro e um tempo de leitura.")
+                }
+                
+                .alert("Abandonar leitura", isPresented: $showAbandonAlert) {
+                    Button("Cancelar", role: .cancel) { }
+                    Button("Abandonar", role: .destructive) {
+                        stopwatchViewModel.abandonTimer()
+                    }
+                } message: {
+                    Text("Tem certeza que deseja abandonar a leitura? O progresso será perdido.")
                 }
                 
                 .sheet(isPresented: $isShowingSelectBookSheet) {
@@ -417,15 +426,3 @@ struct StopwatchInitialView: View {
         }
     }
 }
-//#Preview {
-//    @Previewable @Namespace var namespace
-//    @Previewable @State var selectedBook: Books? = nil
-//    
-//    StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
-//        .preferredColorScheme(.dark)
-//        .environmentObject(UserSettingsViewModel())
-//        .environmentObject(StopwatchViewModel())
-//        .environmentObject(PhotoLibraryViewModel())
-//        .environmentObject(BooksViewModel())
-//        .environmentObject(NotesViewModel())
-//}
