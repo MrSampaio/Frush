@@ -220,30 +220,33 @@ struct StopwatchInitialView: View {
                             }
                             .padding(.horizontal, 24)
                             
-                            //  Progresso do Livro
-                            VStack(spacing: 10) {
-                                HStack {
-                                    Text("Progresso do livro")
-                                        .font(.body)
-                                        .foregroundColor(.white)
-                                    Text("\(Int(stopwatchViewModel.bookProgress * 100))%")
-                                        .font(.body)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(Color("ActionColor"))
-                                }
-                                
-                                GeometryReader { barGeo in
-                                    ZStack(alignment: .leading) {
-                                        Capsule()
-                                            .fill(Color.white.opacity(0.15))
-                                        Capsule()
-                                            .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing))
-                                            .frame(width: barGeo.size.width * CGFloat(stopwatchViewModel.bookProgress))
+                            if let existingBook = selectedBook {
+                                //  Progresso do Livro
+                                VStack(spacing: 10) {
+                                    HStack {
+                                        Text("Progresso do livro")
+                                            .font(.body)
+                                            .foregroundColor(.white)
+                                        Text("\(Int(stopwatchViewModel.getBookProgress(book: existingBook) * 100))%")
+                                            .font(.body)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(Color("ActionColor"))
                                     }
+                                    
+                                    GeometryReader { barGeo in
+                                        ZStack(alignment: .leading) {
+                                            Capsule()
+                                                .fill(Color.white.opacity(0.15))
+                                            Capsule()
+                                                .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing))
+                                                .frame(width: barGeo.size.width * CGFloat(stopwatchViewModel.getBookProgress(book: existingBook)))
+                                        }
+                                    }
+                                    .frame(height: 10)
+                                    .padding(.horizontal, 28)
                                 }
-                                .frame(height: 10)
-                                .padding(.horizontal, 28)
                             }
+
                             
                            
                             VStack(spacing: 12) {
@@ -361,6 +364,16 @@ struct StopwatchInitialView: View {
                 }
                 .onAppear {
                     booksViewModel.fetchBooks()
+                    userSettingsViewModel.fetchUserSettings()
+                    
+                    if selectedBook == nil {
+                        selectedBook = userSettingsViewModel.lastBookReaded
+                    }
+                    
+                    if let safeBook = selectedBook {
+                        stopwatchViewModel.getTotalPages(book: safeBook)
+                        stopwatchViewModel.getCurrentPage(book: safeBook)
+                    }
                 }
             }
         }
