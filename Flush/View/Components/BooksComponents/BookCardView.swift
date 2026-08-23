@@ -72,9 +72,10 @@ struct BookCardView: View {
                 isEditingSheetPresented = true
             } label: {
                 Label("Editar Livro", systemImage: "pencil")
-                    .foregroundColor(.blue)
+                   
                     .font(.body)
             }
+            .foregroundColor(.blue)
             
             Divider()
             
@@ -84,9 +85,13 @@ struct BookCardView: View {
                 Label("Apagar Livro", systemImage: "trash")
                     .font(.body)
             }
+            .foregroundColor(.red)
+        
         }
+        
         .frame(width: 170)
         .cornerRadius(12)
+
         
         .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
             withAnimation{

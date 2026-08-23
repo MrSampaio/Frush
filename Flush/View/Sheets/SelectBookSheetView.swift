@@ -11,8 +11,8 @@ import CoreData
 struct SelectBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     
-    // Binding do livro selecionado enviado de volta para a view chamadora
     @Binding var selectedBook: Books?
     
     @State private var showingDiscardAlert = false
@@ -30,6 +30,10 @@ struct SelectBookSheetView: View {
                             
                             Button(action: {
                                 selectedBook = book
+                                
+                                stopwatchViewModel.getTotalPages(book: book)
+                                stopwatchViewModel.getCurrentPage(book: book)
+                            
                                 dismiss()
                             }) {
                                 VStack(alignment: .leading, spacing: 14) {
@@ -74,7 +78,7 @@ struct SelectBookSheetView: View {
     }
 }
 
-#Preview {
-    SelectBookSheetView(selectedBook: .constant(nil))
-        .environmentObject(BooksViewModel())
-}
+//#Preview {
+//    SelectBookSheetView(selectedBook: )
+//        .environmentObject(BooksViewModel())
+//}

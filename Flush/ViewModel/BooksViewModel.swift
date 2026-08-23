@@ -54,7 +54,7 @@ class BooksViewModel: ObservableObject {
         self.fetchBooks()
     }
     
-    func countReadedPages() -> Int16{
+    func countGeralReadedPages() -> Int16{
         var totalReadedPages: Int16 = 0
         for book in self.savedBooks{
             totalReadedPages += book.bookCurrentPage
@@ -63,12 +63,17 @@ class BooksViewModel: ObservableObject {
         return totalReadedPages
     }
     
+    func countBookReadedPages(book: Books) -> Int16 {
+        let pagesReaded = book.bookCurrentPage
+        return pagesReaded
+    }
+    
     // funcao que carrega todos os livros do banco e atrbui na lista books
     func fetchBooks(){
         let request = NSFetchRequest<Books>(entityName: "Books")
         do{
             try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
-            countReadedPages()
+            countGeralReadedPages()
 
         } catch let error{
             fatalError("Error when trying to fetch books data: \(error)")
@@ -230,6 +235,60 @@ class BooksViewModel: ObservableObject {
         if(book.bookCover != coverData){
             book.bookCover = coverData
         }
+        
+        try self.saveBook()
+        self.fetchBooks()
+    }
+        
+    @Published var dailyGoalMinutes: Int = 0
+    
+    func fetchDailyGoal() {
+        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        
+        do {
+            let results = try CoreDataManager.shared.viewContext.fetch(request)
+            if let settings = results.first {
+                self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
+            }
+        } catch {
+            print("Error when fetching daily goal: \(error)")
+        }
+    }
+    
+    func saveDailyGoal(minutes: Int) {
+        let context = CoreDataManager.shared.viewContext
+        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        
+        do {
+            let results = try context.fetch(request)
+            
+            if let existingSettings = results.first {
+                // se já existir configuração, apenas atualiza
+                existingSettings.dailyGoalMinutes = Int16(minutes)
+            } else {
+                // se for a primeira vez, cria o registro
+                let newSettings = UserSettings(context: context)
+                newSettings.dailyGoalMinutes = Int16(minutes)
+            }
+            
+            try context.save()
+            
+            self.dailyGoalMinutes = minutes
+            
+        } catch {
+            print("Error when saving daily goal: \(error.localizedDescription)")
+            context.rollback()
+        }
+    }
+    
+    func updateCurrentPage(book: Books, currentPage: String) throws{
+        let convertedCurrentPage = Int16(currentPage) ?? 0
+        
+        if convertedCurrentPage == 0 {
+            throw BookError.invalidCurrentPage
+        }
+        
+        book.bookCurrentPage = convertedCurrentPage
         
         try self.saveBook()
         self.fetchBooks()

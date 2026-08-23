@@ -150,8 +150,13 @@ struct SecondOnboardView: View {
                 
                 Spacer()
                 
-                ButtonAction(text: "Iniciar jornada", colorButton: "ActionColor")
-                    .padding(.bottom, 40)
+                ButtonAction(text: "Iniciar jornada", colorButton: "ActionColor"){
+                    if let minutes = Int(selectedGoal) {
+                            booksViewModel.saveDailyGoal(minutes: minutes)
+                    }
+                    onStart?()
+                }
+                .padding(.bottom, 40)
             }
             .padding(.horizontal, 26)
             

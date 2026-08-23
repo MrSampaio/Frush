@@ -6,7 +6,6 @@
 //
 import SwiftUI
 
-
 struct NotesHeaderview: View {
     @Binding var isPresentedAddNote: Bool
     var body: some View {
@@ -19,6 +18,7 @@ struct NotesHeaderview: View {
                 isPresentedAddNote = true
             }) {
                 Image(systemName: "plus")
+                    .foregroundColor(.white)
                     .font(.body)
                     .fontWeight(.medium)
                     .padding(.all, 4)

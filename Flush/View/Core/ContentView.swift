@@ -15,10 +15,17 @@ struct ContentView: View {
     
     @EnvironmentObject var booksViewModel: BooksViewModel
     
+    init() {
+        // Tenta puxar a sua "ActionColor". Se falhar por algum motivo, usa laranja padrão.
+        UITabBar.appearance().tintColor = UIColor(named: "ActionColor") ?? UIColor.orange
+    }
+
     var body: some View {
+        
         TabView {
             Tab("Estante", systemImage: "book"){
                 BookCaseView(bookViewModel: BooksViewModel())
+//                    .tint(.blue)
                    // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
@@ -26,14 +33,15 @@ struct ContentView: View {
                     namespace: stopwatchNamespace,
                     selectedBook: $selectedBook
                 )
+//                .tint(.blue)
             }
             Tab(role: .search){
                 BookSearchView()
+//                    .tint(.blue)
             }
             
         }
-        .tint(Color("ActionColor"))
-  
+//        .tint(Color("ActionColor"))
     }
 }
 
