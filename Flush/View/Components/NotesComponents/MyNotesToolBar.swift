@@ -34,10 +34,23 @@ struct MyNotesToolBar: ToolbarContent {
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
             }
-            .tint(Color("ActionColor"))
-            .buttonStyle(.glass)
+            .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
+            .tint(Color("ActionColor"))
         }
+        
+//        ToolbarItem(placement: .topBarTrailing) {
+//            Button(action: {
+//                onAddClick()
+//            }) {
+//                Image(systemName: "plus")
+//                    .fontWeight(.semibold)
+//                    .foregroundColor(.primary)
+//            }
+//            .tint(Color("ActionColor"))
+//            .buttonStyle(.glass)
+//            .buttonBorderShape(.circle)
+//        }
     }
 }
 

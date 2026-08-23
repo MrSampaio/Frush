@@ -167,6 +167,13 @@ struct BookSheetView: View {
                             initialCoverImage = nil
                         }
                     }
+                    
+                    .onTapGesture {
+                        #if canImport(UIKit)
+                                        hideKeyboard()
+                        #endif
+                    }
+                    .scrollDismissesKeyboard(.interactively)
                 }
             }
         }

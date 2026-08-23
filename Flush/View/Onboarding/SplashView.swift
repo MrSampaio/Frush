@@ -34,6 +34,9 @@ struct SplashView: View {
                     .foregroundColor(Color(red: 0.15, green: 0.10, blue: 0.05))
                 
             }
+            .onAppear {
+                SoundManager.shared.playSound(named: .splash)
+            }
         }
     }
 }

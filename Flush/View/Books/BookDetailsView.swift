@@ -61,8 +61,6 @@ struct BookDetailView: View {
                                     NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
                                         notesViewModel.fetchNotes(for: book)
                                     }
-                                    
-                                    
                                     Divider()
                                         .frame(height: 0.3)
                                         .background(Color("LinesColor"))
@@ -70,34 +68,14 @@ struct BookDetailView: View {
                                     
                                 }
                             }
-                            
-//                            NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-//                                notesViewModel.fetchNotes(for: book)
-//                            }
-//                            
-//                            NavigationLink(destination: MyNotesListView(book: book)) {
-//                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
-//                                        .font(.system(size: 14, weight: .semibold))
-//                                        .foregroundColor(Color(.action))
-//                                        .frame(maxWidth: .infinity, alignment: .leading)
-//                                        .padding(.horizontal,28)
-//                                        .padding(.vertical)
-//                                        .padding(.bottom, 10)
-//                                }
-//                                
-//                            }
-//                            .background(Color("CardNoteColor"))
-//                            .cornerRadius(30)
-//                            .padding(.horizontal)
+
                             
                             NavigationLink(destination: MyNotesListView(book: book)) {
                                 
-//                                Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
                                 Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(Color(.action))
                                     .frame(maxWidth: .infinity, alignment: .leading)
-//                                    .padding(.horizontal)
                                     .padding(.horizontal,28)
                                     .padding(.vertical)
                                     .padding(.bottom, 10)
@@ -108,20 +86,6 @@ struct BookDetailView: View {
                         .cornerRadius(30)
                         .padding(.horizontal)
                         VStack(spacing: 16) {
-                            /*
-                            Button(action: {
-                            }) {
-                                Text("Adicionar leitura")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
-                             */
-                            
                             
                             ButtonAction(text: "Adicionar leitura", isGlass: true) {
                                 isPresentedBottomSheet.toggle()
@@ -134,8 +98,6 @@ struct BookDetailView: View {
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
                                 .padding(.horizontal, 24)
                         }
-       
-                        
                     }
                     .padding(.bottom, 40)
                 }

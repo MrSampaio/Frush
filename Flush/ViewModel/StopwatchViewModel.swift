@@ -193,9 +193,13 @@ class StopwatchViewModel: ObservableObject {
                 self.elapsedTime -= 0.1
             } else {
                 self.stop()
+                
+                SoundManager.shared.playSound(named: .success)
                 DispatchQueue.main.async {
                     self.showProgressSheet = true
                 }
+                
+                
             }
         }
     }
