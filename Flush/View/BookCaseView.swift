@@ -8,20 +8,18 @@
 import SwiftUI
 
 struct BookCaseView: View {
-    //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
     @ObservedObject var bookViewModel: BooksViewModel
-    @State private var isShowingSheet = false
+    @StateObject private var filterViewModel = BookFilterViewModel()
     
+    @State private var isShowingSheet = false
     @State private var selectedBookForDetail: Books? = nil
     @State private var isShowingBookDetail = false
-    
     @State private var showBottomSheet: Bool = false
-    
     @State private var isPresented = true
     @State private var tempGoalMinutes: Int = 15
     
-    var books: [Books] {
-        bookViewModel.savedBooks
+    var filteredBooks: [Books] {
+        return filterViewModel.applyFilters(to: bookViewModel.savedBooks)
     }
     
     let columns = [
@@ -29,21 +27,16 @@ struct BookCaseView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     
-    //@State var books = self.booksViewModel.savedBooks
-    
     var body: some View {
-        
-        NavigationStack{
+        NavigationStack {
             ZStack {
                 Color("BackgroundColorViews")
                     .ignoresSafeArea()
                 
                 ScrollView {
                     VStack (alignment: .leading, spacing: 24) {
-                        //título e botão "+"
                         HStack {
                             TitleComponent(title: "Meus Livros")
-                            
                         }
                         .padding(.top, 28)
                         
@@ -56,9 +49,8 @@ struct BookCaseView: View {
                                 showBottomSheet = true
                             }
                         )
-                        
                         LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(books) { book in
+                            ForEach(filteredBooks) { book in
                                 NavigationLink(destination: BookDetailView(bookViewModel: bookViewModel, book: book)){
                                     BookCardView(book: book)
                                 }
@@ -69,13 +61,11 @@ struct BookCaseView: View {
                     }
                     .padding(.horizontal, 24)
                 }
-                
-                //.navigationTitle("Meus livros")
-                //.navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    BookCaseToolbar(onAddClick: {
-                        isShowingSheet.toggle()
-                    })
+                    BookCaseToolbar(
+                        onAddClick: { isShowingSheet.toggle() },
+                        filterViewModel: filterViewModel
+                    )
                 }
             }
         }
@@ -85,21 +75,13 @@ struct BookCaseView: View {
                 bookViewModel.fetchDailyGoal()
             }
         }
-        //        .fakeSheet(isPresented: $isShowingBookDetail) {
-        //            if let selectedBookForDetail {
-        //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
-        //            }
-        //        }
         .sheet(isPresented: $isShowingSheet, onDismiss: {
             withAnimation{
                 bookViewModel.fetchBooks()
             }
-            
         }) {
             BookSheetView(bookToEdit: nil)
-                .environmentObject(PhotoLibraryViewModel())
                 .environmentObject(bookViewModel)
-            
         }
         .sheet(isPresented: $showBottomSheet) {
             BottomSheet(
@@ -121,24 +103,8 @@ struct BookCaseView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(Color("BackgroundColorViews"))
         }
-//        .sheet(isPresented: $showBottomSheet) {
-//            EditDailyGoalContent(
-//                minutesPerDay: $tempGoalMinutes,
-//                onDismiss: {
-//                    showBottomSheet = false
-//                },
-//                onSave: {
-//                    //bookViewModel.saveDailyGoal(minutes: goalMinutes)
-//                    showBottomSheet = false
-//                }
-//            )
-//            .presentationDetents([.height(340)])
-//            .presentationDragIndicator(.visible)
-//            .presentationBackground(Color("BackgroundColorViews"))
-//        }
     }
 }
-
 #Preview {
     BookCaseView(bookViewModel: BooksViewModel())
         .environmentObject(PhotoLibraryViewModel())
