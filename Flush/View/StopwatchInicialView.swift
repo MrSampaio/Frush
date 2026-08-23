@@ -251,12 +251,10 @@ struct StopwatchInitialView: View {
                                 }
                             }
 
-                            
-                           
                             VStack(spacing: 12) {
                                 // botão Principal: Iniciar / Pausar / Continuar
                                 ButtonAction(text: buttonTitle, colorButton: "ActionColor"){
-                                    guard selectedBook != nil else {
+                                    guard selectedBook != nil &&  stopwatchViewModel.timerFormater() != "00:00" else {
                                         isShowingNoBookAlert = true
                                         return
                                     }
@@ -309,7 +307,7 @@ struct StopwatchInitialView: View {
                 .alert("Atenção", isPresented: $isShowingNoBookAlert) {
                     Button("OK", role: .cancel) { }
                 } message: {
-                    Text("Selecione um livro antes de adicionar uma anotação.")
+                    Text("Selecione um livro e um tempo de leitura.")
                 }
                 
                 .sheet(isPresented: $isShowingSelectBookSheet) {

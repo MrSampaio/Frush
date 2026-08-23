@@ -24,7 +24,7 @@ struct ContentView: View {
         
         TabView {
             Tab("Estante", systemImage: "book"){
-                BookCaseView(bookViewModel: BooksViewModel())
+                BookCaseView()
 //                    .tint(.blue)
                    // .environmentObject(PhotoLibraryViewModel())
             }

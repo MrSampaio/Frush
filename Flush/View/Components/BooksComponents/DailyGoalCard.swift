@@ -12,20 +12,28 @@ struct DailyGoalCardView: View {
     
     var onEditAction: () -> Void
     
-    // puxando o progresso pela viewmodel
-    private var progress: Double {
+    private var rawProgress: Double {
         let target = Double(userSettingsViewModel.dailyGoal)
         guard target > 0 else { return 0 }
-        return min(Double(userSettingsViewModel.minutesReadToday) / target, 1.0)
+        return Double(userSettingsViewModel.minutesReadToday) / target
+    }
+    
+    private var progress: Double {
+        min(rawProgress, 1.0)
+    }
+    
+    private var isGoalCompleted: Bool {
+        let target = userSettingsViewModel.dailyGoal
+        return target > 0 && userSettingsViewModel.minutesReadToday >= target
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 HStack(spacing: 8) {
-                    Image(systemName: "target")
+                    Image(systemName: isGoalCompleted ? "checkmark.circle.fill" : "target")
                         .font(.system(.body, weight: .bold))
-                        .foregroundColor(.orange)
+                        .foregroundColor(isGoalCompleted ? .action : .orange)
                     
                     Text("Meta diária de leitura")
                         .font(.system(.body, weight: .regular))
@@ -33,7 +41,7 @@ struct DailyGoalCardView: View {
                 }
 
                 Spacer()
-                
+               
                 Button(action: onEditAction) {
                     Image(systemName: "pencil")
                         .font(.system(.title2))
@@ -66,9 +74,9 @@ struct DailyGoalCardView: View {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: [Color.yellow, Color.orange],
-                                startPoint: .leading,
-                                endPoint: .trailing
+                                colors: isGoalCompleted ? [.yellow, .orange] : [.white.opacity(0.3), .white.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: geometry.size.width * CGFloat(progress), height: 8)
@@ -82,15 +90,15 @@ struct DailyGoalCardView: View {
                 HStack(spacing: 4) {
                     Text("\(userSettingsViewModel.minutesReadToday)")
                         .font(.system(.callout))
-                        .foregroundColor(.orange)
+                        .foregroundColor(isGoalCompleted ? .action : .orange)
                     
-                    Text("minutos de leitura hoje")
+                    Text(isGoalCompleted ? "minutos • Meta concluída!" : "minutos de leitura hoje")
                         .font(.system(.callout))
-                        .foregroundColor(Color("TextPagesColor"))
+                        .foregroundColor(isGoalCompleted ? .action.opacity(0.9) : Color("TextPagesColor"))
                 }
                
                 Spacer()
-                
+               
                 Text("\(userSettingsViewModel.dailyGoal)")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color("TextPagesColor"))
@@ -102,7 +110,7 @@ struct DailyGoalCardView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 24)
                     .fill(.ultraThinMaterial)
-                
+               
                 RoundedRectangle(cornerRadius: 24)
                     .fill(Color("DailyGoalCardColor"))
             }
@@ -110,12 +118,13 @@ struct DailyGoalCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 24)
                 .stroke(
+//                    .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing))
                     LinearGradient(
-                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
+                        colors: isGoalCompleted ? [.yellow, .orange] : [.white.opacity(0.3), .white.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 0.5
+                    lineWidth: isGoalCompleted ? 1.0 : 0.5
                 )
         )
     }
@@ -125,7 +134,7 @@ struct DailyGoalCardView: View {
     ZStack {
         Color("BackgroundColorViews")
             .ignoresSafeArea()
-        
+       
         DailyGoalCardView(
             onEditAction: {
                 print("Editar meta clicado")

@@ -12,15 +12,16 @@ import CoreData
 struct CH4_BooksApp: App {
     let persistenceController = CoreDataManager.shared
     @StateObject var photoViewModel = PhotoLibraryViewModel()
-    @StateObject private var booksViewModel = BooksViewModel()
-    @StateObject private var notesViewModel = NotesViewModel()
-    @StateObject private var stopWatchViewModel = StopwatchViewModel()
-    @StateObject private var userSettingsViewModel = UserSettingsViewModel()
+    @StateObject var booksViewModel = BooksViewModel()
+    @StateObject var notesViewModel = NotesViewModel()
+    @StateObject var stopWatchViewModel = StopwatchViewModel()
+    @StateObject var userSettingsViewModel = UserSettingsViewModel()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.viewContext)
+                .environmentObject(userSettingsViewModel)
                 .environmentObject(photoViewModel)
                 .environmentObject(booksViewModel)
                 .environmentObject(notesViewModel)

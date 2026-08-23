@@ -6,6 +6,7 @@
 //
 import Combine
 import Foundation
+import UIKit
 
 enum TimerState {
     case stopped
@@ -28,6 +29,90 @@ class StopwatchViewModel: ObservableObject {
     // controle de Páginas do Livro
     @Published var currentPage: Int16 = 0
     @Published var totalPages: Int16 = 0
+    
+    private var cancellables = Set<AnyCancellable>()
+        
+    init() {
+        // obeservador do tempo de vida ativo do app
+        setupAppLifecycleObservers()
+    }
+    
+    private func setupAppLifecycleObservers() {
+        // verifica quando o app vai pra segundo plano
+        NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
+            .sink { [weak self] _ in
+                self?.saveStateOnBackground()
+            }
+            .store(in: &cancellables)
+        
+        // verifica quando fecha o app repentinamente (arrasta pra cima)
+        NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)
+            .sink { [weak self] _ in
+                self?.saveStateOnBackground()
+            }
+            .store(in: &cancellables)
+
+        // verifica quando o app volta para a tela (primeiro plano)
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .sink { [weak self] _ in
+                self?.resumeStateOnForeground()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func saveStateOnBackground() {
+        // só salva caso tenha uma leitura em andamento
+        guard timerState == .running || timerState == .paused else { return }
+
+        // salva o exato momento que o app foi fechado/background
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "savedBackgroundDate")
+        // salva o tempo que faltava
+        UserDefaults.standard.set(elapsedTime, forKey: "savedElapsedTime")
+        // salva o estado do timer (se estava rodando ou pausado)
+        UserDefaults.standard.set(timerState == .running ? "running" : "paused", forKey: "savedTimerState")
+    }
+
+    // função para trazer os estados de volta pro app
+    private func resumeStateOnForeground() {
+        let savedDate = UserDefaults.standard.double(forKey: "savedBackgroundDate")
+        let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
+        let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
+
+        // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
+        guard savedDate > 0 else { return }
+
+        let backgroundDate = Date(timeIntervalSince1970: savedDate)
+        let timeAway = Date().timeIntervalSince(backgroundDate) // quanto tempo o app ficou fora de foco
+
+        if savedStateStr == "running" {
+            // Subtrai do cronômetro o tempo que o cara passou fora do app
+            let newElapsedTime = savedElapsed - timeAway
+
+            if newElapsedTime > 0 {
+                // se ainda sobrou tempo, atualiza e volta a rodar o timer visual
+                self.elapsedTime = newElapsedTime
+                self.startTimer()
+            } else {
+                // se o tempo acabou ENQUANTO o app estava fechado
+                self.elapsedTime = 0
+                self.stop() // ou a sua função que pausa/invalida o timer
+                
+                // dispara a bottom sheet para ele preencher as páginas
+                DispatchQueue.main.async {
+                    self.showProgressSheet = true
+                }
+            }
+        } else if savedStateStr == "paused" {
+            // se estava pausado, só devolve o tempo exato, não subtrai o tempo fora
+            self.elapsedTime = savedElapsed
+            self.timerState = .paused
+        }
+
+        // limpa o UserDefaults para não correr o risco de puxar esses dados numa próxima leitura do zero
+        UserDefaults.standard.removeObject(forKey: "savedBackgroundDate")
+        UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
+        UserDefaults.standard.removeObject(forKey: "savedTimerState")
+    }
     
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {

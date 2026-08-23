@@ -9,8 +9,8 @@ import SwiftUI
 
 struct BookCaseView: View {
     //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
-    @ObservedObject var bookViewModel = BooksViewModel()
-    @ObservedObject var userSettingsViewModel = UserSettingsViewModel()
+    @EnvironmentObject var bookViewModel: BooksViewModel
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     
     @State private var isShowingSheet = false
     
@@ -110,6 +110,7 @@ struct BookCaseView: View {
                 isPickerShown: true,
                 readedPages: .constant(""),
                 onDismiss: {
+                    userSettingsViewModel.fetchUserSettings()
                     showBottomSheet = false
                 },
                 onSave: {
