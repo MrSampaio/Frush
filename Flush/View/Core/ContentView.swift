@@ -15,12 +15,25 @@ struct ContentView: View {
     
     @EnvironmentObject var booksViewModel: BooksViewModel
     
-    private static let configureAppearance: Void = {
-        UITabBar.appearance().tintColor = UIColor(named: "ActionColor") ?? .orange
-    }()
-     
     init() {
-        _ = Self.configureAppearance
+        let appearance = UITabBarAppearance()
+        
+        // mantém o desfoque/transparência original do sistema
+        appearance.configureWithDefaultBackground()
+        
+        let actionColor = UIColor(named: "ActionColor") ?? UIColor.orange
+        
+        // configura a cor quando o ícone ESTÁ selecionado
+        appearance.stackedLayoutAppearance.selected.iconColor = actionColor
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: actionColor]
+        
+        // configura a cor quando o ícone NÃO ESTÁ selecionado (Cinza padrão)
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.systemGray]
+        
+        // aplica as regras na TabBar do app
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
      
     var body: some View {

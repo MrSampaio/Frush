@@ -162,4 +162,5 @@ struct BookCaseView: View {
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
         .environmentObject(StopwatchViewModel())
+        .environmentObject(BookFilterViewModel())
 }
