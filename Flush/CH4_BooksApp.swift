@@ -16,6 +16,7 @@ struct CH4_BooksApp: App {
     @StateObject var notesViewModel = NotesViewModel()
     @StateObject var stopWatchViewModel = StopwatchViewModel()
     @StateObject var userSettingsViewModel = UserSettingsViewModel()
+    @StateObject var filterViewModel = BookFilterViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -26,6 +27,7 @@ struct CH4_BooksApp: App {
                 .environmentObject(booksViewModel)
                 .environmentObject(notesViewModel)
                 .environmentObject(stopWatchViewModel)
+                .environmentObject(filterViewModel)
         }
     }
 }
