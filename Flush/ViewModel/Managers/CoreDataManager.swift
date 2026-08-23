@@ -25,7 +25,14 @@ class CoreDataManager{
         }
         
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        
+        
+        // atualiza automaticamente os possíveis novos atributos do banco
+        let description = persistentContainer.persistentStoreDescriptions.first
+        description?.shouldInferMappingModelAutomatically = true
+        description?.shouldMigrateStoreAutomatically = true
     }
+    
 }
 
 //
