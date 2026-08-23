@@ -24,14 +24,14 @@ struct ContentView: View {
         
         TabView {
             Tab("Estante", systemImage: "book"){
-                BookCaseView(bookViewModel: BooksViewModel())
+                BookCaseView()
 //                    .tint(.blue)
                    // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
                 StopwatchInitialView(
                     namespace: stopwatchNamespace,
-                    selectedBook: $selectedBook
+                    selectedBook: selectedBook
                 )
 //                .tint(.blue)
             }
