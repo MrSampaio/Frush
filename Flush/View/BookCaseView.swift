@@ -11,7 +11,6 @@ struct BookCaseView: View {
     //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
     @ObservedObject var bookViewModel = BooksViewModel()
     @ObservedObject var userSettingsViewModel = UserSettingsViewModel()
-    @ObservedObject var bookViewModel: BooksViewModel
     @StateObject private var filterViewModel = BookFilterViewModel()
     
     @State private var isShowingSheet = false
