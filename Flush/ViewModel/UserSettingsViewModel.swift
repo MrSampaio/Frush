@@ -71,6 +71,7 @@ class UserSettingsViewModel: ObservableObject {
         
         do {
             try CoreDataManager.shared.viewContext.save()
+            fetchUserSettings()
             print("UserSetting updated successfully")
         } catch {
             fatalError("Error when trying to update UserSettings: \(error)")

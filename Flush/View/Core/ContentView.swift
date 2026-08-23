@@ -31,7 +31,7 @@ struct ContentView: View {
             Tab("Cronômetro", systemImage: "timer"){
                 StopwatchInitialView(
                     namespace: stopwatchNamespace,
-                    selectedBook: $selectedBook
+                    selectedBook: selectedBook
                 )
 //                .tint(.blue)
             }

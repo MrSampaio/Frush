@@ -17,7 +17,7 @@ struct StopwatchInitialView: View {
     @EnvironmentObject var notesViewModel: NotesViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     
-    @Binding var selectedBook: Books?
+    @State var selectedBook: Books?
     
     @State private var isShowingNoteSheet = false
     @State private var isShowingSelectBookSheet = false
@@ -50,7 +50,7 @@ struct StopwatchInitialView: View {
                     
                     // Fundo com a capa do livro e gradiente
                     Group {
-                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
+                        if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                         } else {
@@ -133,7 +133,7 @@ struct StopwatchInitialView: View {
                                     isShowingSelectBookSheet = true
                                 }) {
                                     HStack(spacing: 12) {
-                                        /*
+                                        
                                         if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                                             Image(uiImage: uiImage)
                                                 .resizable()
@@ -150,42 +150,13 @@ struct StopwatchInitialView: View {
                                         }
                                         
                                         VStack(alignment: .leading, spacing: 3) {
-                                            Text(selectedBook?.bookTitle ?? "Hush, Hush")
+                                            Text(selectedBook?.bookTitle ?? "Nenhum livro selecionado")
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundColor(.white)
                                                 .lineLimit(1)
                                             
-                                            Text(selectedBook?.bookAuthor ?? "Becca Fitzpatrick")
-                                                .font(.system(size: 13))
-                                                .foregroundColor(Color.white.opacity(0.8))
-                                                .lineLimit(1)
-                                        }
-                                         */
-                                        if let imageData = userSettingsViewModel.lastBookReaded?.bookCover, let uiImage = UIImage(data: imageData) {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 40, height: 40)
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        } else {
-                                            Image(systemName: "book.closed.fill")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 40, height: 40)
-                                                .foregroundColor(.white.opacity(0.7))
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                                .padding(.leading, 8)
-                                        }
-
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(userSettingsViewModel.lastBookReaded?.bookTitle ?? "Nenhum livro selecionado")
-                                                .font(.body)
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.white)
-                                                .lineLimit(1)
-                                            
-                                            Text(userSettingsViewModel.lastBookReaded?.bookAuthor ?? "Toque para selecionar")
+                                            Text(selectedBook?.bookAuthor ?? "Toque para selecionar")
                                                 .font(.system(size: 13))
                                                 .foregroundColor(Color.white.opacity(0.8))
                                                 .lineLimit(1)
@@ -208,7 +179,7 @@ struct StopwatchInitialView: View {
                                         }
                                     )
                                     .overlay(
-                                        // Borda reluzente
+                                        
                                         RoundedRectangle(cornerRadius: 100, style: .continuous)
                                             .stroke(
                                                 LinearGradient(
@@ -436,15 +407,15 @@ struct StopwatchInitialView: View {
     }
 }
 
-#Preview {
-    @Previewable @Namespace var namespace
-    @Previewable @State var selectedBook: Books? = nil
-    
-    StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
-        .preferredColorScheme(.dark)
-        .environmentObject(UserSettingsViewModel())
-        .environmentObject(StopwatchViewModel())
-        .environmentObject(PhotoLibraryViewModel())
-        .environmentObject(BooksViewModel())
-        .environmentObject(NotesViewModel())
-}
+//#Preview {
+//    @Previewable @Namespace var namespace
+//    @Previewable @State var selectedBook: Books? = nil
+//    
+//    StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
+//        .preferredColorScheme(.dark)
+//        .environmentObject(UserSettingsViewModel())
+//        .environmentObject(StopwatchViewModel())
+//        .environmentObject(PhotoLibraryViewModel())
+//        .environmentObject(BooksViewModel())
+//        .environmentObject(NotesViewModel())
+//}

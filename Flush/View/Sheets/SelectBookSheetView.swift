@@ -32,6 +32,7 @@ struct SelectBookSheetView: View {
                             Button(action: {
                                 selectedBook = book
                                 userSettingsViewModel.updateUserSettings(newLastBook: book)
+                                userSettingsViewModel.fetchUserSettings()
                                 
                                 stopwatchViewModel.getTotalPages(book: book)
                                 stopwatchViewModel.getCurrentPage(book: book)
