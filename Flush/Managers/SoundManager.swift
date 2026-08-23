@@ -6,22 +6,30 @@
 //
 
 import Foundation
-
-import Foundation
 import AVFoundation
+
 
 class SoundManager {
     static let shared = SoundManager()
     private var audioPlayer: AVAudioPlayer?
 
-    enum SoundType: String {
-        case splash = "splash"
-        case success = "success"
+    enum SoundType {
+        case splash
+        case success
+        
+        var fileName: (name: String, extension: String) {
+            switch self {
+            case .splash: return ("splash", "mp3")
+            case .success: return ("readSucess", "mp3")
+            }
+        }
     }
 
     func playSound(named sound: SoundType) {
-        guard let url = Bundle.main.url(forResource: sound.rawValue, withExtension: "mp3") else {
-            print("Sounf file '\(sound.rawValue)' not founded")
+        let file = sound.fileName
+        
+        guard let url = Bundle.main.url(forResource: file.name, withExtension: file.extension) else {
+            print("File '\(file.name).\(file.extension)' not founded")
             return
         }
 
@@ -30,7 +38,7 @@ class SoundManager {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
-            print("Error when reproducing sound \(error.localizedDescription)")
+            print("Error when reproducing sound: \(error.localizedDescription)")
         }
     }
 }
