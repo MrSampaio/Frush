@@ -1,5 +1,5 @@
 //
-//  BookCaseView.swift
+//  BookCaseView.swift (REFATORADO)
 //  CH4-Books
 //
 //  Created by Agatha Barbosa Marinho dos Santos on 15/08/26.
@@ -8,21 +8,20 @@
 import SwiftUI
 
 struct BookCaseView: View {
-    //@AppStorage("dailyReadingGoal") private var goalMinutes: Int = 15
     @EnvironmentObject var bookViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
-    
-    @State private var isShowingSheet = false
-    
-    @State private var selectedBookForDetail: Books? = nil
-    @State private var isShowingBookDetail = false
-    
-    @State private var showBottomSheet: Bool = false
-    
-    @State private var isPresented = true
-    @State private var tempGoalMinutes: Int = 15
-    
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    
+    enum ActiveSheet: Identifiable {
+        case addBook
+        case editGoal
+        
+        var id: Self { self }
+    }
+    
+    @State private var activeSheet: ActiveSheet? = nil
+    
+    @State private var tempGoalMinutes: Int = 15
     @State private var tempReadedPages: String = ""
     
     var books: [Books] {
@@ -34,31 +33,24 @@ struct BookCaseView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     
-    //@State var books = self.booksViewModel.savedBooks
-    
     var body: some View {
-        
-        NavigationStack{
+        NavigationStack {
             ZStack {
                 Color("BackgroundColorViews")
                     .ignoresSafeArea()
                 
                 ScrollView {
                     VStack (alignment: .leading, spacing: 24) {
-                        //título e botão "+"
                         HStack {
                             TitleComponent(title: "Meus Livros")
-                            
                         }
                         .padding(.top, 28)
                         
                         CardTotalPages(totalPages: bookViewModel.countGeralReadedPages())
                         
                         DailyGoalCardView(
-//                            pagesReadToday: 12,
-//                            targetPages: userSettingsViewModel.dailyGoal,
                             onEditAction: {
-                                showBottomSheet = true
+                                activeSheet = .editGoal
                             }
                         )
                         
@@ -74,38 +66,53 @@ struct BookCaseView: View {
                     }
                     .padding(.horizontal, 24)
                 }
-                
-                //.navigationTitle("Meus livros")
-                //.navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    BookCaseToolbar(onAddClick: {
-                        isShowingSheet.toggle()
-                    })
-                }
+            }
+            .toolbar {
+                BookCaseToolbar(onAddClick: {
+                    activeSheet = .addBook
+                })
             }
         }
         .onAppear {
             withAnimation {
                 bookViewModel.fetchBooks()
                 userSettingsViewModel.fetchUserSettings()
-                //bookViewModel.fetchDailyGoal()
             }
         }
-        //        .fakeSheet(isPresented: $isShowingBookDetail) {
-        //            if let selectedBookForDetail {
-        //                BookDetailView(viewModel: booksViewModel, book: selectedBookForDetail)
-        //            }
-        //        }
-        .sheet(isPresented: $isShowingSheet, onDismiss: {
-            withAnimation{
+
+        .sheet(item: $activeSheet, onDismiss: {
+            withAnimation {
                 bookViewModel.fetchBooks()
+                userSettingsViewModel.fetchUserSettings()
             }
-            
-        }) {
-            BookSheetView(bookToEdit: nil)
-                .environmentObject(PhotoLibraryViewModel())
-                .environmentObject(bookViewModel)
-            
+        }) { sheet in
+            switch sheet {
+            case .addBook:
+                BookSheetView(bookToEdit: nil)
+                    .environmentObject(PhotoLibraryViewModel())
+                    .environmentObject(bookViewModel)
+                
+            case .editGoal:
+                BottomSheet(
+                    minutesPerDay: $tempGoalMinutes,
+                    isPickerShown: true,
+                    readedPages: .constant(""),
+                    onDismiss: {
+                        userSettingsViewModel.fetchUserSettings()
+                        activeSheet = nil
+                    },
+                    onSave: {
+                        userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes)
+                        activeSheet = nil
+                    }
+                )
+                .onAppear {
+                    tempGoalMinutes = userSettingsViewModel.dailyGoal
+                }
+                .presentationDetents([.height(340)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color("BackgroundColorViews"))
+            }
         }
         
         .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
@@ -124,7 +131,7 @@ struct BookCaseView: View {
                             do {
                                 try bookViewModel.saveBook()
                             } catch {
-                                print("Erro ao salvar a página pela Home: \(error)")
+                                print("Error when trying to save last readed page by home: \(error)")
                             }
                         }
                         
@@ -144,44 +151,6 @@ struct BookCaseView: View {
                 .presentationBackground(Color("BackgroundColorViews"))
             }
         }
-        .sheet(isPresented: $showBottomSheet) {
-            BottomSheet(
-                minutesPerDay: $tempGoalMinutes,
-                isPickerShown: true,
-                readedPages: .constant(""),
-                onDismiss: {
-                    userSettingsViewModel.fetchUserSettings()
-                    showBottomSheet = false
-                },
-                onSave: {
-                    userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes)
-                    //bookViewModel.saveDailyGoal(minutes: tempGoalMinutes)
-                    showBottomSheet = false
-                }
-            )
-            .onAppear {
-//                tempGoalMinutes = bookViewModel.dailyGoalMinutes
-                tempGoalMinutes = userSettingsViewModel.dailyGoal
-            }
-            .presentationDetents([.height(340)])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color("BackgroundColorViews"))
-        }
-//        .sheet(isPresented: $showBottomSheet) {
-//            EditDailyGoalContent(
-//                minutesPerDay: $tempGoalMinutes,
-//                onDismiss: {
-//                    showBottomSheet = false
-//                },
-//                onSave: {
-//                    //bookViewModel.saveDailyGoal(minutes: goalMinutes)
-//                    showBottomSheet = false
-//                }
-//            )
-//            .presentationDetents([.height(340)])
-//            .presentationDragIndicator(.visible)
-//            .presentationBackground(Color("BackgroundColorViews"))
-//        }
     }
 }
 
@@ -191,4 +160,5 @@ struct BookCaseView: View {
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(BooksViewModel())
         .environmentObject(NotesViewModel())
+        .environmentObject(StopwatchViewModel())
 }
