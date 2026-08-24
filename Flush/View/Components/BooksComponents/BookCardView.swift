@@ -6,14 +6,18 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookCardView: View {
-    let book: Books
+    @Environment(\.modelContext) private var modelContext
+    //nao e mais necessario observedObject
+    var book: Books
     
     @State private var isEditingSheetPresented = false
+    @State private var isShowingDeleteAlert = false
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var bookViewModel: BooksViewModel
     
     private var percentageRead: Int {
         guard book.bookTotalPages > 0 else { return 0 }
@@ -70,25 +74,50 @@ struct BookCardView: View {
                 isEditingSheetPresented = true
             } label: {
                 Label("Editar Livro", systemImage: "pencil")
-                    .foregroundColor(.blue)
+                   
                     .font(.body)
             }
+            .foregroundColor(.blue)
             
             Divider()
             
             Button(role: .destructive) {
-                //showDeleteAlert = true
+                isShowingDeleteAlert = true
             } label: {
                 Label("Apagar Livro", systemImage: "trash")
                     .font(.body)
             }
+            .foregroundColor(.red)
+        
         }
+        
         .frame(width: 170)
         .cornerRadius(12)
+
         
-        .sheet(isPresented: $isEditingSheetPresented) {
-                    BookSheetView(bookToEdit: book)
+        .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
+            withAnimation{
+                bookViewModel.fetchBooks(context: modelContext)
+            }
+        }) {
+            BookSheetView(bookToEdit: book)
+        }
+        
+        .alert("Apagar Livro", isPresented: $isShowingDeleteAlert) {
+            Button("Cancelar", role: .cancel) { }
+            
+            Button("Apagar", role: .destructive) {
+                withAnimation {
+                    do {
+                        try bookViewModel.deleteBook(book: book, context: modelContext)
+                    } catch {
+                        print("Erro ao tentar apagar o livro: \(error.localizedDescription)")
+                    }
                 }
+            }
+        } message: {
+            Text("Tem certeza que deseja apagar o livro '\(book.bookTitle ?? "Sem título")'? Essa ação não pode ser desfeita.")
+        }
     }
 }
 //#Preview {

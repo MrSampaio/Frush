@@ -6,13 +6,16 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct SelectBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
+    @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
-    // Binding do livro selecionado enviado de volta para a view chamadora
     @Binding var selectedBook: Books?
     
     @State private var showingDiscardAlert = false
@@ -25,29 +28,33 @@ struct SelectBookSheetView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(booksViewModel.savedBooks, id: \.objectID) { book in
+                        ForEach(booksViewModel.savedBooks, id: \.self) { book in
                             let isSelected = selectedBook == book
                             
                             Button(action: {
                                 selectedBook = book
+                                userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
+                                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                                
+                                stopwatchViewModel.getTotalPages(book: book)
+                                stopwatchViewModel.getCurrentPage(book: book)
+                            
                                 dismiss()
                             }) {
-                                VStack(alignment: .leading, spacing: 14) {
+                                VStack(spacing: 14) {
                                     HStack {
-                                        Text(book.bookTitle ?? "Sem título")
-                                            .font(.body)
-                                            .fontWeight(isSelected ? .semibold : .regular)
-                                            .foregroundColor(isSelected ? Color("ActionColor") : Color("Texts"))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
+                                        BookCellView(book: book, isSelected: isSelected)
+                                        Spacer()
                                     }
-
+                                    .padding(.horizontal, 24)
+                                    
                                     Rectangle()
                                         .fill(Color.white.opacity(0.15))
                                         .frame(height: 1)
+                                        .padding(.horizontal, 24)
                                 }
-                                .padding(.horizontal, 24)
                                 .padding(.top, 14)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
@@ -60,6 +67,7 @@ struct SelectBookSheetView: View {
                 SheetHeaderView(
                     title: "Livros salvos",
                     actionIcon: "checkmark",
+                    hasChanges: false,
                     showingDiscardAlert: $showingDiscardAlert,
                     onCancel: { dismiss() },
                     onConfirm: { dismiss() },
@@ -67,40 +75,20 @@ struct SelectBookSheetView: View {
                 )
             }
             .onAppear {
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
+            }
+            .onDisappear{
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
         }
     }
 }
 
-// Extension para dados fictícios no Preview
-extension BooksViewModel {
-    static var preview: BooksViewModel {
-        let viewModel = BooksViewModel()
-        let context = CoreDataManager.shared.viewContext
-        
-        // Cria instâncias temporárias para exibir no Canvas
-        let book1 = Books(context: context)
-        book1.bookTitle = "Hush, Hush"
-        book1.bookAuthor = "Becca Fitzpatrick"
-        
-        let book2 = Books(context: context)
-        book2.bookTitle = "É Assim que Acaba"
-        book2.bookAuthor = "Colleen Hoover"
-        
-        let book3 = Books(context: context)
-        book3.bookTitle = "O Hobbit"
-        book3.bookAuthor = "J.R.R. Tolkien"
-        
-        viewModel.savedBooks = [book1, book2, book3]
-        return viewModel
-    }
-}
-
 #Preview {
-    let previewVM = BooksViewModel.preview
+    @Previewable @State var selectedBook: Books? = nil
     
-    // Passa o primeiro livro do mock como selecionado para testar o indicador visual
-    SelectBookSheetView(selectedBook: .constant(previewVM.savedBooks.first))
-        .environmentObject(previewVM)
+    SelectBookSheetView(selectedBook: $selectedBook)
+        .environmentObject(BooksViewModel())
+        .environmentObject(UserSettingsViewModel())
+        .environmentObject(StopwatchViewModel())
 }

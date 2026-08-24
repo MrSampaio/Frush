@@ -4,16 +4,16 @@
 //
 //  Created by Julio Sampaio on 13/08/26.
 //
-// test
 import Foundation
-import CoreData
+import SwiftUI
 import Combine
 import PhotosUI
+import SwiftData
 
 class BooksViewModel: ObservableObject {
+    
+//    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @Published var savedBooks: [Books] = []
-    
-    
     
     enum BookError: LocalizedError {
         case invalidTitle
@@ -50,10 +50,9 @@ class BooksViewModel: ObservableObject {
     let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
     
     init(){
-        self.fetchBooks()
     }
     
-    func countReadedPages() -> Int16{
+    func countGeralReadedPages() -> Int16{
         var totalReadedPages: Int16 = 0
         for book in self.savedBooks{
             totalReadedPages += book.bookCurrentPage
@@ -62,12 +61,17 @@ class BooksViewModel: ObservableObject {
         return totalReadedPages
     }
     
+    func countBookReadedPages(book: Books) -> Int16 {
+        let pagesReaded = book.bookCurrentPage
+        return pagesReaded
+    }
+    
     // funcao que carrega todos os livros do banco e atrbui na lista books
-    func fetchBooks(){
-        let request = NSFetchRequest<Books>(entityName: "Books")
+    func fetchBooks(context: ModelContext){
+        let descriptor = FetchDescriptor<Books>()
         do{
-            try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
-            countReadedPages()
+            self.savedBooks = try context.fetch(descriptor)
+            countGeralReadedPages()
 
         } catch let error{
             fatalError("Error when trying to fetch books data: \(error)")
@@ -76,22 +80,22 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao para salvar livros (chama ela sempre que quer subir efetivamente para o banco)
-    func saveBook() throws{
+    func saveBook(context: ModelContext) throws{
         do{
-            try CoreDataManager.shared.viewContext.save()
+            try context.save()
         } catch let error{
-            CoreDataManager.shared.viewContext.rollback()
+            // swiftdata nao tem roolback apenas avisamos a ui
             print("Error when trying to save new book: \(error)")
             throw BookError.savingError
         }
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, bookCurrentPage: String) throws{
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws{
         
         
         let totalPagesInt = Int16(bookTotalPages) ?? 0
-        let currentePageInt = Int16(bookCurrentPage) ?? 0
+//        let currentePageInt = Int16(bookCurrentPage) ?? 0
         //let lastPageInt = Int16(bookLastPage) ?? 0
         
         let cleanTitle = bookTitle.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -109,9 +113,39 @@ class BooksViewModel: ObservableObject {
             throw BookError.invalidTotalPages
         }
         
-        if currentePageInt <= 0 {
-            throw BookError.invalidCurrentPage
-        }
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        var coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        
+        //-----------------------depois resolver o bookCurrentPage e bookGoal-----------------------
+        
+        let newBook = Books(
+            bookAuthor: cleanAuthor,
+            bookCategory: bookCategory,
+            bookCover: coverData,
+            bookCurrentPage: 0,
+            bookGoal: 0,
+            bookTitle: cleanTitle,
+            bookTotalPages: totalPagesInt,
+            isTimerRunning: false,
+            wasLastPageAdded: true
+        )
+        //salvando livro no banco
+        context.insert(newBook)
+        
+//        newBook.bookTitle = cleanTitle
+//        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
+//        newBook.bookCover = coverData
+//        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
+//        newBook.bookTotalPages = totalPagesInt
+//        newBook.bookCurrentPage = bookCurrentPage
+//        newBook.bookGoal = bookGoal
+//        newBook.isTimerRunning = false
+//        newBook.wasLastPageAdded = true
+
+        
+//        if currentePageInt <= 0 {
+//            throw BookError.invalidCurrentPage
+//        }
         
         
 //        if bookCurrentPage < 0{
@@ -125,63 +159,68 @@ class BooksViewModel: ObservableObject {
 //        if bookGoal <= 0{
 //            throw BookError.invalidGoal
 //        }
+
         
-//        let newBook = Books(context: CoreDataManager.shared.viewContext)
-//        newBook.bookTitle = cleanTitle
-//        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
-//        newBook.bookCover = bookCover
-//        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
-//        newBook.bookTotalPages = bookTotalPages
-//        newBook.bookCurrentPage = bookCurrentPage
-//        newBook.bookGoal = bookGoal
-//        newBook.isTimerRunning = false
-//        newBook.wasLastPageAdded = true
+        try self.saveBook(context: context)
         
-        try self.saveBook()
-        
-        self.fetchBooks()
+        self.fetchBooks(context: context)
     }
     
     // funcao para deletar livros
-    func deleteBook(indexSet: IndexSet) throws{
+    func deleteBook(book: Books, context: ModelContext) throws{
 
-        guard let index = indexSet.first else { return }
-        let book = self.savedBooks[index]
+//        guard let index = indexSet.first else { return }
+//        let book = self.savedBooks[index]
         
-        CoreDataManager.shared.viewContext.delete(book)
+        context.delete(book)
+        self.savedBooks.removeAll(where: { $0.persistentModelID == book.persistentModelID })
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
 
     }
     
-    func updateBook(IndexSet: IndexSet, bookTitle: String?, bookAuthor: String?, bookCover: Data?, bookCategory: String?, bookTotalPages: Int16?, bookCurrentPage: Int16?, bookGoal: Int16?) throws {
+    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws {
         
-        guard let index = IndexSet.first else { return }
+//        guard let index = IndexSet.first else { return }
+//        
+//        let book = self.savedBooks[index]
         
-        let book = self.savedBooks[index]
+        let totalPagesInt = Int16(bookTotalPages) ?? 0
         
-        // valores finais que serão aplicados (novo valor, ou o valor atual se nil)
-        let finalTitle = (bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)) ?? book.bookTitle
-        let finalTotalPages = bookTotalPages ?? book.bookTotalPages
-        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
-        let finalGoal = bookGoal ?? book.bookGoal
+        let finalTitle = (bookTitle.trimmingCharacters(in: .whitespacesAndNewlines))
         
-        if let finalTitle, finalTitle.isEmpty {
+        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+        
+        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+
+        if finalTitle.isEmpty {
             throw BookError.invalidTitle
         }
         
-        if finalTotalPages <= 0 {
+        if totalPagesInt <= 0 {
             throw BookError.invalidTotalPages
         }
         
-        if finalCurrentPage < 0 {
-            throw BookError.invalidCurrentPage
-        }
         
-        if finalCurrentPage > finalTotalPages {
-            throw BookError.invalidPageLogic
-        }
+        //let finalTotalPages = bookTotalPages ?? book.bookTotalPages
+        
+
+//        let finalCurrentPage = bookCurrentPage ?? book.bookCurrentPage
+//        let finalGoal = bookGoal ?? book.bookGoal
+        
+//        if finalTotalPages <= 0 {
+//            throw BookError.invalidTotalPages
+//        }
+       
+        
+//        if finalCurrentPage < 0 {
+//            throw BookError.invalidCurrentPage
+//        }
+//        
+//        if finalCurrentPage > finalTotalPages {
+//            throw BookError.invalidPageLogic
+//        }
         
 //        if finalGoal <= 0 {
 //            throw BookError.invalidGoal
@@ -189,15 +228,105 @@ class BooksViewModel: ObservableObject {
         
         // só aplica as mudanças se passou em todas as validações
 //        book.id = UUID()
-        book.bookTitle = finalTitle
-        book.bookAuthor = bookAuthor ?? book.bookAuthor
-        book.bookCover = bookCover ?? book.bookCover
-        book.bookCategory = bookCategory ?? book.bookCategory
-        book.bookTotalPages = finalTotalPages
-        book.bookCurrentPage = finalCurrentPage
-        book.bookGoal = finalGoal
         
-        try self.saveBook()
-        self.fetchBooks()
+        if(book.bookTitle != finalTitle){
+            book.bookTitle = finalTitle
+        }
+        
+        if(book.bookAuthor != bookAuthor){
+            book.bookAuthor = bookAuthor
+        }
+        
+        if(book.bookCategory != bookCategory){
+            book.bookCategory = bookCategory
+        }
+        
+        if(book.bookTotalPages != totalPagesInt){
+            book.bookTotalPages = totalPagesInt
+        }
+        
+        if(book.bookCover != coverData){
+            book.bookCover = coverData
+        }
+        
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
     }
+        
+    @Published var dailyGoalMinutes: Int = 0
+    
+    func fetchDailyGoal(context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
+        do {
+            let results = try context.fetch(descriptor)
+            if let settings = results.first {
+                self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
+            }
+        } catch {
+            print("Error when fetching daily goal: \(error)")
+        }
+    }
+    
+    func saveDailyGoal(minutes: Int, context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
+        
+        
+        do {
+            let results = try context.fetch(descriptor)
+            
+            if let existingSettings = results.first {
+                // se já existir configuração, apenas atualiza
+                existingSettings.dailyGoalMinutes = Int16(minutes)
+            } else {
+                // se for a primeira vez, cria o registro
+                let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
+                //newSettings.dailyGoalMinutes = Int16(minutes)
+            }
+            
+            try context.save()
+            
+            self.dailyGoalMinutes = minutes
+            
+        } catch {
+            print("Error when saving daily goal: \(error.localizedDescription)")
+            context.rollback()
+        }
+    }
+    
+    
+    func updateCurrentPage(book: Books, currentPage: String, context: ModelContext) throws{
+        let convertedCurrentPage = Int16(currentPage) ?? 0
+        
+        if convertedCurrentPage == 0 {
+            throw BookError.invalidCurrentPage
+        }
+        
+        book.bookCurrentPage = convertedCurrentPage
+        
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
+    }
+    
+//    func saveDailyGoal(minutes: Int) {
+//        let context = CoreDataManager.shared.viewContext
+//        let request = NSFetchRequest<UserSettings>(entityName: "Database")
+//        
+//        do {
+//            let results = try context.fetch(request)
+//            
+//            if let existingSettings = results.first {
+//                existingSettings.dailyGoalMinutes = Int32(minutes)
+//            } else {
+//                let newSettings = UserSettings(context: context)
+//                newSettings.dailyGoalMinutes = Int32(minutes)
+//            }
+//            
+//            // 2. Salve as alterações no Core Data
+//            try context.save()
+//            print("Meta diária de \(minutes) minutos salva com sucesso!")
+//            
+//        } catch {
+//            print("Erro ao salvar meta diária: \(error.localizedDescription)")
+//        }
+//    }
 }

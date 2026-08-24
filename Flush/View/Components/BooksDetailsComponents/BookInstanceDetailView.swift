@@ -25,14 +25,7 @@ struct BookInstanceDetailView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            /*
-            Text(book.bookTitle ?? "Título desconhecido")
-                .font(.custom("Georgia", size: 32))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-             */
-            
+
             TitleComponent(title: book.bookTitle ?? "Título desconhecido")
             
             if let coverData = photoLibraryViewModel.getCoverImage(for: book){
@@ -55,26 +48,6 @@ struct BookInstanceDetailView: View {
                 .shadow(radius: 5)
             }
             
-//            if let coverData = book.bookCover, let uiImage = UIImage(data: coverData) {
-//                Image(uiImage: uiImage)
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(width: 200, height: 300)
-//                    .clipShape(RoundedRectangle(cornerRadius: 12))
-//                    .shadow(radius: 5)
-//            } else {
-//                ZStack {
-//                    RoundedRectangle(cornerRadius: 12)
-//                        .fill(Color(.systemGray2))
-//                    
-//                    Image("defaultBook")
-//                        .font(.system(size: 40))
-//                        .foregroundColor(.gray)
-//                }
-//                .frame(width: 200, height: 300)
-//                .shadow(radius: 5)
-//            }
-            
             Text("Autor: \(book.bookAuthor ?? "Erro")")
                 .font(.body)
                 .foregroundColor(.white)
@@ -83,42 +56,54 @@ struct BookInstanceDetailView: View {
                 .font(.system(.footnote, weight: .medium))
                 .foregroundColor(.black)
                 .padding(.horizontal, 40)
-                .padding(.vertical, 8)
+                .padding(.vertical, 6)
                 .background(Color("TagNoteColor"))
                 .opacity(0.8)
                 .clipShape(Capsule())
             
             VStack(spacing: 16) {
-                Divider().background(Color.white.opacity(0.3))
+                Divider()
+                    .frame(height: 0.3)
+                    .background(Color("LinesColor"))
+                    .padding(.horizontal, 20)
                 
                 HStack {
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Início da leitura")
                             .font(.footnote).foregroundColor(Color("InfosDetailsView"))
-                        Text("adicionar data de leitura")
-                            .font(.subheadline).bold().foregroundColor(.white)
+                        Text("24/02/2026")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color("Texts"))
                     }
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Páginas").font(.footnote).foregroundColor(Color("InfosDetailsView"))
                         Text("\(book.bookTotalPages) páginas")
-                            .font(.subheadline).bold().foregroundColor(.white)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color("Texts"))
+
                     }
                     Spacer()
                     VStack(spacing: 4) {
                         Text("Progresso").font(.footnote)
                             .foregroundColor(Color("InfosDetailsView"))
                         Text("\(formattedReadingProgress)")
-                            .font(.subheadline).bold().foregroundColor(.white)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color("Texts"))
                     }
                     Spacer()
                 }
                 
                 Divider()
-                    .background(Color("LinesColor").opacity(0.3))
+                    .frame(height: 0.3)
+                    .background(Color("LinesColor"))
+                    .padding(.horizontal, 20)
             }
-            .padding(.top, 8)
+            .padding(.bottom, 10)
         }
     }
 }

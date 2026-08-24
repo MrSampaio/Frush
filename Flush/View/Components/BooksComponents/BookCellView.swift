@@ -9,6 +9,12 @@ import SwiftUI
 
 struct BookCellView: View {
     let book: Books
+    var isSelected: Bool = false 
+    
+    var progress: Double {
+        guard book.bookTotalPages > 0 else { return 0 }
+        return min(1, Double(book.bookCurrentPage) / Double(book.bookTotalPages))
+    }
     
     var body: some View {
         HStack(spacing: 16) {
@@ -29,28 +35,39 @@ struct BookCellView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.bookTitle ?? "Sem Título")
-                    .font(.custom("Bitter-SemiBold", size: 17))
-                    .lineLimit(2)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    // ✨ Se estiver selecionado, usa a ActionColor, senão usa branco
+                    .foregroundStyle(isSelected ? Color("ActionColor") : .white)
+                    .lineLimit(1)
                 
                 Text(book.bookAuthor ?? "Desconhecido")
-                    .font(.custom("Bitter-Regular", size: 15))
-                    .foregroundStyle(.secondary)
+                    .font(.callout)
+                    .foregroundStyle(.white.opacity(0.7))
                 
                 Spacer(minLength: 0)
                 
-                Gauge(value: Double(book.bookCurrentPage), in: 0...Double(max(1, book.bookTotalPages))) {
-                    EmptyView()
-                } currentValueLabel: {
-                    Text("\(book.bookCurrentPage)/\(book.bookTotalPages)")
-                        // Substituindo .caption2.weight(.medium)
-                        .font(.custom("Bitter-Medium", size: 12))
-                        .foregroundStyle(.tertiary)
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.white.opacity(0.15))
+                            .frame(height: 6)
+                        
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.yellow, Color.orange],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geometry.size.width * CGFloat(progress), height: 6)
+                    }
                 }
-                .gaugeStyle(.accessoryLinearCapacity)
-                .tint(.blue)
+                .frame(height: 8)
             }
-            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 4)
         }
     }
 }
-

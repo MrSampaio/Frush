@@ -10,17 +10,22 @@ import SwiftUI
 struct SheetHeaderView: ToolbarContent {
     let title: String
     let actionIcon: String
+    let hasChanges: Bool
     
     @Binding var showingDiscardAlert: Bool
     
     var onCancel: () -> Void
     var onConfirm: () -> Void
     var onDiscard: () -> Void
-  
+    
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button(action: {
-                showingDiscardAlert = true
+                if hasChanges {
+                    showingDiscardAlert = true
+                } else {
+                    onDiscard()
+                }
             }) {
                 Image(systemName: "xmark")
                     .fontWeight(.semibold)
@@ -57,14 +62,12 @@ struct SheetHeaderView: ToolbarContent {
                     .font(.body.bold())
                     .foregroundColor(.title)
             }
-            
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
             .tint(Color("ActionColor"))
         }
     }
 }
-
 #Preview {
     struct PreviewWrapper: View {
         @State private var showAlert = false
@@ -76,6 +79,7 @@ struct SheetHeaderView: ToolbarContent {
                         SheetHeaderView (
                             title: "Cadastrar livro",
                             actionIcon: "checkmark",
+                            hasChanges: false,
                             showingDiscardAlert: $showAlert,
                             onCancel: { print("Clicou no X") },
                             onConfirm: { print("Clicou no Check") },
@@ -88,3 +92,4 @@ struct SheetHeaderView: ToolbarContent {
     
     return PreviewWrapper()
 }
+

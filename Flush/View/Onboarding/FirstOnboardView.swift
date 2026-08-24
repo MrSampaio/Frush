@@ -8,59 +8,77 @@
 import SwiftUI
 
 struct FirstOnboardView: View {
+    var onAdvance: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
             Color("BackgroundColorViews")
                 .ignoresSafeArea()
             
-            VStack {
+            Image("OnboardingOficial")
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .black, location: 0.68),
+                            .init(color: .clear, location: 0.52)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            
+            VStack(spacing: 16) {
                 Spacer()
+        
+                Capsule()
+                    .fill(Color("ProgressBar"))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 8)
                 
-                    Image("Onboarding")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150, height: 150)
-                    
-                    Text("Olá, seja bem-vindo(a)!")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding(.bottom, 30)
-                        .multilineTextAlignment(.center)
-                    
-                    Rectangle()
-                    .frame(width: 100, height: 2.5)
-                        .foregroundColor(Color("ActionColor"))
-                        .padding(.bottom, 30)
-                    
-                    Text("No Frush você consegue cadastrar seus livros, registrar seus momentos de leitura e alcançar suas metas no seu próprio ritmo.")
-                        .font(.body)
-                        .fontWeight(.light)
-                        .padding(.bottom, 10)
-                        .multilineTextAlignment(.center)
+
+                VStack(spacing: 2) {
+                    Text("Bem-vindo(a)")
+                        .font(.largeTitle)
+                        .fontWeight(.regular)
                         .foregroundColor(.white)
                     
-                    Spacer()
-                    Spacer()
-                    
-                    Button(action: {
-                        
-                    }) {
-                        Text("Avançar")
-                            .font(.title3)
-                            .frame(maxWidth: .infinity)
-                            .fontWeight(.medium)
-                            .padding(.vertical, 14)
-                            .background(Color("ActionColor"))
+                    HStack(spacing: 6) {
+                        Text("ao")
+                            .font(.largeTitle)
+                            .fontWeight(.regular)
                             .foregroundColor(.white)
-                            .clipShape(Capsule())
+                        
+                        Text("Frush")
+                            .font(.bitter(.bold, style: .largeTitle))
+                            .foregroundColor(.white)
+ 
                     }
-                    .padding(.bottom, 30)
-                    
                 }
-                .padding(.horizontal, 26)
+                
+                // Subtítulo com destaque final em amarelo
+                (Text("Venha cadastrar seus livros, registrar suas notas de leitura e alcançar suas metas ")
+                    .foregroundColor(.white.opacity(0.85)) +
+                 Text("no seu próprio ritmo.")
+                    .foregroundColor(Color("ProgressBar"))
+                    .bold())
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                
+                Spacer()
+                
+                ButtonAction(text: "Avançar", colorButton: "ActionColor"){
+                    onAdvance?()
+                }
+                .padding(.bottom, 40)
+                
             }
-        
-       
+            .padding(.horizontal, 26)
+            .padding(.top, 420)
+        }
     }
 }
 

@@ -9,7 +9,7 @@ import SwiftUI
 
     
 struct StopwatchView: View {
-    @State private var selectedBook = "Livro 1"
+    @State var selectedBook: Books
     @State private var isShowingSheet = false
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     //@State private var progress: Double = 0.5
@@ -25,7 +25,7 @@ struct StopwatchView: View {
                     .ignoresSafeArea()
                 
                 // 10 Anéis Concentricos ao Fundo
-                ConcentricRingsView(progress: stopwatchViewModel.timeProgress)
+                ConcentricRingsView(progress: Double(stopwatchViewModel.getBookProgress(book: selectedBook)))
                     .ignoresSafeArea()
                 
                 VStack {
@@ -49,13 +49,13 @@ struct StopwatchView: View {
                                     .foregroundColor(.white)
                                     .fontWeight(.regular)
                                 
-                                Text("\(Int(stopwatchViewModel.bookProgress * 100))%")
+                                Text("\(stopwatchViewModel.getBookProgress(book: selectedBook) * 100)%")
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundColor(Color("ProgressBar"))
                             }
                             
-                            ProgressView(value: stopwatchViewModel.bookProgress)
+                            ProgressView(value: stopwatchViewModel.getBookProgress(book: selectedBook))
                                 .tint(Color("ProgressBar"))
                                 .frame(width: 170)
                             
@@ -75,14 +75,14 @@ struct StopwatchView: View {
                                     Text("Livro 3").tag("Livro 3")
                                 }
                             } label: {
-                                Text(selectedBook)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white.opacity(0.7))
-                                    .padding(.horizontal, 24)
-                                    .padding(.vertical, 8)
-                                    .background(Color.white.opacity(0.12))
-                                    .clipShape(Capsule())
+//                                Text(verbatim: selectedBook.bookTitle)
+//                                    .font(.caption)
+//                                    .fontWeight(.medium)
+//                                    .foregroundColor(.white.opacity(0.7))
+//                                    .padding(.horizontal, 24)
+//                                    .padding(.vertical, 8)
+//                                    .background(Color.white.opacity(0.12))
+//                                    .clipShape(Capsule())
                             }
                             
                             //botao inciar
@@ -147,9 +147,8 @@ struct StopwatchView: View {
                     }
                     .glassEffect(.regular, in: Circle())
                     .sheet(isPresented: $isShowingSheet) {
-                        NoteSheetView(book: PreviewProviderHelper.sampleBook)
+                        NoteSheetView(book: selectedBook)
                     }
-                    
                     
                 }
                 .padding(.horizontal, 24)
@@ -162,9 +161,9 @@ struct StopwatchView: View {
     }
 }
 
-#Preview {
-    StopwatchView()
-        .preferredColorScheme(.dark)
-        .environmentObject(StopwatchViewModel())
-        .environmentObject(PhotoLibraryViewModel())
-}
+//#Preview {
+//    StopwatchView()
+//        .preferredColorScheme(.dark)
+//        .environmentObject(StopwatchViewModel())
+//        .environmentObject(PhotoLibraryViewModel())
+//}

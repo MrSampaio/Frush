@@ -1,5 +1,5 @@
 //
-//  SheetNotes.swift
+//  NoteSheetView.swift
 //  CH4-Books
 //
 //  Created by Lucas on 14/08/26.
@@ -7,112 +7,125 @@
 
 import SwiftUI
 import PhotosUI
-import CoreData
+import SwiftData
 
 struct NoteSheetView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
-    @EnvironmentObject var booksViewModel: BooksViewModel
-    @EnvironmentObject var notesViewModel: NotesViewModel
+
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var notesViewModel: NotesViewModel
+
+    let book: Books
+    let noteToEdit: Notes?
+
+    @State private var noteTitle: String
+    @State private var noteDescription: String
+    @State private var noteImages: [SelectableImage]
+    @State private var selectedCategory: String
     
-    @State var showingDiscardAlert: Bool = false
+    @State private var initialImagesCount: Int
+
+    @State private var pickedItems: [PhotosPickerItem] = []
+    @State private var isShowingPhotoPicker = false
+    @State private var isShowingCamera = false
+
+    @State private var showingDiscardAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+
+    @Environment(\.modelContext) private var modelContext
+
+    private static let maxImages = 3
     
-    @State private var titleText: String = ""
-    @State private var noteText: String = ""
-    @State var image: UIImage? = nil
-    @State var selectedCategory: String = ""
-    
-    @State private var selectedBook: Books? = nil
-    
-    @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var showCameraPicker = false
-    @State private var capturedImage: UIImage? = nil
-    @State private var showMediaSourceMenu = false
-    @State private var showPhotoPicker = false
-    
-    var book: Books
-   
+    private var hasChanges: Bool {
+        let initialTitle = noteToEdit?.noteTitle ?? ""
+        let initialDescription = noteToEdit?.noteDescription ?? ""
+        let initialCategory = noteToEdit?.noteCategory ?? ""
+        
+        let titleChanged = noteTitle != initialTitle
+        let descriptionChanged = noteDescription != initialDescription
+        let categoryChanged = selectedCategory != initialCategory
+        let imagesChanged = noteImages.count != initialImagesCount
+        
+        return titleChanged || descriptionChanged || categoryChanged || imagesChanged
+    }
+
+    init(book: Books, noteToEdit: Notes? = nil) {
+        self.book = book
+        self.noteToEdit = noteToEdit
+
+        _noteTitle = State(initialValue: noteToEdit?.noteTitle ?? "")
+        _noteDescription = State(initialValue: noteToEdit?.noteDescription ?? "")
+        _selectedCategory = State(initialValue: noteToEdit?.noteCategory ?? "")
+
+        let existingImages = ((noteToEdit?.notePhoto as? [Data]) ?? [])
+            .compactMap { UIImage(data: $0) }
+            .prefix(Self.maxImages)
+            .map { SelectableImage(image: $0) }
+
+        _noteImages = State(initialValue: Array(existingImages))
+        _initialImagesCount = State(initialValue: existingImages.count)
+    }
+
+    private var toolbarTitle: String {
+        noteToEdit != nil ? "Editar nota" : "Adicionar nota"
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color("BackgroundColorViews")
                     .ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 17) {
-                            noteContentHeader
-                            titleField
-                            noteTextEditor
-                            selectedImagePreview
-                            mediaSection
-                        }
-                        .padding(.horizontal)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 17) {
+                        noteContentHeader
+                        titleField
+                        noteTextEditor
+                        mediaSection
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
                 }
-                
-                .toolbar {
-                    SheetHeaderView(
-                        title: "Adicionar nota",
-                        actionIcon: "checkmark",
-                        showingDiscardAlert: $showingDiscardAlert,
-                        onCancel: { dismiss() },
-                        onConfirm: handleConfirm,
-                        onDiscard: { dismiss() }
-                    )
+                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                    Button("Tentar novamente", role: .cancel) { }
+                } message: {
+                    Text(errorMessage)
                 }
-  
             }
-            .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
-                Button("Tentar novamente", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                SheetHeaderView(
+                    title: toolbarTitle,
+                    actionIcon: "checkmark",
+                    hasChanges: hasChanges,
+                    showingDiscardAlert: $showingDiscardAlert,
+                    onCancel: {
+                        hideKeyboard()
+                        dismiss()
+                    },
+                    onConfirm: handleConfirm,
+                    onDiscard: {
+                        hideKeyboard()
+                        dismiss()
+                    }
+                )
             }
-            .onChange(of: selectedItems) { newItems in
-                photoLibraryViewModel.loadPickedItems(newItems)
-                selectedItems.removeAll()
+            .onTapGesture {
+                #if canImport(UIKit)
+                                hideKeyboard()
+                #endif
             }
-            .fullScreenCover(isPresented: $showCameraPicker) {
-                CameraPicker(selectedImage: $capturedImage)
-                    .ignoresSafeArea()
-            }
-            .photosPicker(
-                isPresented: $showPhotoPicker,
-                selection: $selectedItems,
-                maxSelectionCount: 3 - photoLibraryViewModel.noteImages.count,
-                matching: .images
-            )
-            .onChange(of: capturedImage) { newImage in
-                photoLibraryViewModel.appendCapturedImage(newImage)
-                capturedImage = nil
+            .scrollDismissesKeyboard(.interactively)
+            
+            .fullScreenCover(isPresented: $isShowingCamera) {
+                CameraPicker { image in
+                    appendImage(image)
+                }
+                .ignoresSafeArea()
             }
         }
     }
-    
-    private func handleConfirm() {
-        do {
-            try notesViewModel.addNote(
-                noteTitle: titleText,
-                noteDescription: noteText,
-                noteCategory: selectedCategory,
-                notePhotos: photoLibraryViewModel.noteImages.map(\.image),
-                to: book
-            )
-            
-            photoLibraryViewModel.resetNoteImages()
-            dismiss()
-            
-        } catch let error as LocalizedError {
-            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-            showErrorAlert = true
-        } catch {
-            errorMessage = "Erro inesperado."
-            showErrorAlert = true
-        }
-    }
-    
+
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Livro: \(book.bookTitle ?? "Sem título")")
@@ -120,30 +133,28 @@ struct NoteSheetView: View {
                 .foregroundColor(Color("TextFieldPlaceholderColor"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
-            
+
             Text("Conteúdo da nota")
                 .font(.system(.title, weight: .medium))
                 .foregroundColor(Color("Texts"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
-            
-            TipsComponent(
-                content: "Adicione um título e um conteúdo para a sua nota."
-            )
+
+            TipsComponent(content: "Adicione um título e um conteúdo para a sua nota.")
         }
     }
-    
+
     private var titleField: some View {
         TextFieldSheets(
-            text: $titleText,
+            text: $noteTitle,
             placeholder: "Adicione o título",
             label: nil
         )
     }
-    
+
     private var noteTextEditor: some View {
         ZStack(alignment: .topLeading) {
-            if noteText.isEmpty {
+            if noteDescription.isEmpty {
                 Text("Escreva sua nota...")
                     .foregroundColor(Color("TextFieldPlaceholderColor"))
                     .padding(.horizontal, 16)
@@ -152,8 +163,8 @@ struct NoteSheetView: View {
                     .allowsHitTesting(false)
                     .font(.system(.body, weight: .regular))
             }
-            
-            TextEditor(text: $noteText)
+
+            TextEditor(text: $noteDescription)
                 .padding(8)
                 .scrollContentBackground(.hidden)
                 .cornerRadius(10)
@@ -166,102 +177,140 @@ struct NoteSheetView: View {
                 )
         }
     }
-    
-    @ViewBuilder
-    private var selectedImagePreview: some View {
-        if let selectedImage = photoLibraryViewModel.selectedImage {
-            Image(uiImage: selectedImage)
-                .resizable()
-                .scaledToFill()
-                .frame(height: 200)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .cornerRadius(10)
-        }
-    }
-    
+
     private var mediaSection: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            
-            if !photoLibraryViewModel.noteImages.isEmpty {
+        VStack(alignment: .leading, spacing: 12) {
+            if !noteImages.isEmpty {
                 mediaThumbnailsRow
             }
-            
-            mediaPickerMenu
-            
-            TipsComponent(
-                content: "Você pode adicionar até 3 fotos em uma mesma nota."
-            )
+            mediaSourceMenu
+            TipsComponent(content: "Você pode adicionar até 3 fotos em uma mesma nota.")
+        }
+        .photosPicker(
+            isPresented: $isShowingPhotoPicker,
+            selection: $pickedItems,
+            maxSelectionCount: max(1, Self.maxImages - noteImages.count),
+            matching: .images,
+            photoLibrary: .shared()
+        )
+        .onChange(of: pickedItems) { _, newItems in
+            guard !newItems.isEmpty else { return }
+            Task { await loadPickedItems(newItems) }
         }
     }
-    
+
     private var mediaThumbnailsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(photoLibraryViewModel.noteImages) { item in
+                ForEach(noteImages) { item in
                     MediaThumbnailView(image: item.image) {
-                        photoLibraryViewModel.removeNoteImage(id: item.id)
+                        noteImages.removeAll { $0.id == item.id }
                     }
                 }
             }
         }
     }
     
-    private var mediaPickerMenu: some View {
-        let imagesCount = photoLibraryViewModel.noteImages.count
-        let isLimitReached = imagesCount >= 3
-        let mediaButtonText: String = imagesCount == 0
-            ? "Adicionar fotos"
-            : "Adicionar mais fotos (\(imagesCount)/3)"
-        
-        return Menu {
+    private var mediaSourceMenu: some View {
+        Menu {
             Button {
-                showCameraPicker = true
+                isShowingCamera = true
             } label: {
-                Label("Tirar foto com a Câmera", systemImage: "camera")
+                Label("Tirar foto", systemImage: "camera")
             }
-            .disabled(isLimitReached)
-            
+            .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+
             Button {
-                showPhotoPicker = true
+                isShowingPhotoPicker = true
             } label: {
-                Label("Escolher da Galeria", systemImage: "photo.on.rectangle")
+                Label("Escolher da galeria", systemImage: "photo.on.rectangle")
             }
-            .disabled(isLimitReached)
-            
         } label: {
             HStack {
                 Image(systemName: "camera.viewfinder")
-                    .foregroundColor(Color("AddNoteImage"))
-                
-                Text(mediaButtonText)
-                    .foregroundColor(Color("AddNoteImage"))
+
+                Text(noteImages.isEmpty ? "Adicionar fotos" : "Adicionar mais fotos (\(noteImages.count)/\(Self.maxImages))")
                     .font(.system(.body, weight: .regular))
-                
+
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(Color("AddNoteImage"))
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote.weight(.semibold))
             }
+            .foregroundColor(Color("AddNoteImage"))
             .padding()
-            .cornerRadius(10)
+            .contentShape(Rectangle())
             .overlay(
                 RoundedRectangle(cornerRadius: 100)
                     .stroke(Color("LinesColor"), lineWidth: 0.5)
             )
         }
-        .disabled(isLimitReached)
-        .opacity(isLimitReached ? 0.5 : 1.0)
+        .menuOrder(.fixed)
+        .buttonStyle(.plain)
+        .disabled(noteImages.count >= Self.maxImages)
+        .opacity(noteImages.count >= Self.maxImages ? 0.5 : 1.0)
     }
-    
-    
 
-     
-}
+    @MainActor
+    private func loadPickedItems(_ items: [PhotosPickerItem]) async {
+        for item in items {
+            guard noteImages.count < Self.maxImages else { break }
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else { continue }
 
-#Preview {
-    NoteSheetView(book: PreviewProviderHelper.sampleBook)
-        .environmentObject(PhotoLibraryViewModel())
-        .environmentObject(BooksViewModel())
-        .environmentObject(NotesViewModel())
+            noteImages.append(SelectableImage(image: image))
+        }
+        pickedItems.removeAll()
+    }
+
+    private func appendImage(_ image: UIImage?) {
+        guard let image, noteImages.count < Self.maxImages else { return }
+        noteImages.append(SelectableImage(image: image))
+    }
+
+    private func handleConfirm() {
+        hideKeyboard()
+
+        do {
+            if let note = noteToEdit {
+                try notesViewModel.updateNote(
+                    note: note,
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    notePhotos: noteImages.map(\.image), context: modelContext
+                )
+            } else {
+                try notesViewModel.addNote(
+                    noteTitle: noteTitle,
+                    noteDescription: noteDescription,
+                    noteCategory: selectedCategory,
+                    notePhotos: noteImages.map(\.image),
+                    to: book, context: modelContext
+                )
+            }
+
+            notesViewModel.fetchNotes(for: book, context: modelContext)
+            dismiss()
+
+        } catch let error as LocalizedError {
+            errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+            showErrorAlert = true
+        } catch {
+            errorMessage = "Erro inesperado."
+            showErrorAlert = true
+        }
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
 }
+//#Preview {
+//    NoteSheetView(book: PreviewProviderHelper.sampleBook)
+//        .environmentObject(NotesViewModel())
+//}
