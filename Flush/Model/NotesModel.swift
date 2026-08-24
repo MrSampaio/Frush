@@ -8,18 +8,25 @@
 import Foundation
 import SwiftData
 
-final class NotesModel{
-    @Attribute(.unique) var id: UUID
+@Model
+final class Notes1 {
     var noteCategory: String
-    var noteDescrioption: String
-    //------------------refazer essa opcao usando o Codable------------------
-    //var notePhoto: Transformable
+    var noteDescription: String
     var noteTitle: String
     
-    init(id: UUID, noteCategory: String, noteDescrioption: String, noteTitle: String) {
-        self.id = id
+    // transformador padrao para imagens
+    @Attribute(.transformable(by: NSSecureUnarchiveFromDataTransformer.self))
+    var notePhoto: Data?
+    
+    var book: Books1?
+    
+    @Relationship(inverse: \NoteImage.note)
+    var images: [NoteImage]? = []
+    
+    init(noteCategory: String, noteDescription: String, noteTitle: String, notePhoto: Data? = nil) {
         self.noteCategory = noteCategory
-        self.noteDescrioption = noteDescrioption
+        self.noteDescription = noteDescription
         self.noteTitle = noteTitle
+        self.notePhoto = notePhoto
     }
 }

@@ -8,18 +8,23 @@
 import Foundation
 import SwiftData
 
-final class UserSettingsModel {
-    @Attribute(.unique) var id: UUID
+@Model
+final class UserSettings1 {
     var dailyGoalMinutes: Int16
-    //------------------refazer essa opcao usando o Codable------------------
-    //var lastBookSelected:
     var lastReadingDate: Date?
     var minutesReadToday: Int16
     
-    init(id: UUID, dailyGoalMinutes: Int16, lastReadingDate: Date?, minutesReadToday: Int16) {
-        self.id = id
+    
+    @Attribute(.transformable(by: NSSecureUnarchiveFromDataTransformer.self))
+    var lastBookSelected: Data?
+    
+    @Relationship(inverse: \Books1.userSetttings)
+    var lastBookReaded: Books1?
+    
+    init(dailyGoalMinutes: Int16, lastReadingDate: Date? = nil, minutesReadToday: Int16, lastBookSelected: Data? = nil) {
         self.dailyGoalMinutes = dailyGoalMinutes
         self.lastReadingDate = lastReadingDate
         self.minutesReadToday = minutesReadToday
+        self.lastBookSelected = lastBookSelected
     }
 }

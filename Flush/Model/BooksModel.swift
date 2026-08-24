@@ -9,30 +9,32 @@ import Foundation
 import SwiftData
 
 @Model
-final class Book{
-    @Attribute(.unique) var id: UUID
+final class Books1 {
     var bookAuthor: String
     var bookCategory: String
     var bookCover: Data?
-    var bookcurrentPage: Int16
+    var bookCurrentPage: Int16
     var bookGoal: Int16
     var bookTitle: String
     var bookTotalPages: Int16
-    var isTimeRunning: Bool
+    var isTimerRunning: Bool
     var wasLastPageAdded: Bool
     
-    init(id: UUID, bookAuthor: String, bookCategory: String, bookCover: Data? = nil, bookcurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimeRunning: Bool, wasLastPageAdded: Bool) {
-        self.id = id
+    @Relationship(inverse: \Notes.book)
+    var notes: [Notes]? = []
+    
+    var userSetttings: UserSettings1?
+    
+    init(bookAuthor: String, bookCategory: String, bookCover: Data? = nil, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool) {
         self.bookAuthor = bookAuthor
         self.bookCategory = bookCategory
         self.bookCover = bookCover
-        self.bookcurrentPage = bookcurrentPage
+        self.bookCurrentPage = bookCurrentPage
         self.bookGoal = bookGoal
         self.bookTitle = bookTitle
         self.bookTotalPages = bookTotalPages
-        self.isTimeRunning = isTimeRunning
+        self.isTimerRunning = isTimerRunning
         self.wasLastPageAdded = wasLastPageAdded
     }
-    
-    
 }
+
