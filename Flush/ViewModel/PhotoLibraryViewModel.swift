@@ -86,7 +86,7 @@ class PhotoLibraryViewModel: ObservableObject {
 //            }
 //        }
     
-    func convertImageToData(image: UIImage) -> Data?{
+    func convertImageToData(image: UIImage) -> Data{
 
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
         let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData

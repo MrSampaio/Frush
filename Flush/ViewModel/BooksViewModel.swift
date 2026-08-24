@@ -114,9 +114,21 @@ class BooksViewModel: ObservableObject {
         }
         
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
-        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        var coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        
         //-----------------------depois resolver o bookCurrentPage e bookGoal-----------------------
-        let newBook = Books(bookAuthor: cleanAuthor, bookCategory: bookCategory, bookCurrentPage: 0, bookGoal: 0, bookTitle: cleanTitle, bookTotalPages: totalPagesInt, isTimerRunning: false, wasLastPageAdded: true)
+        
+        let newBook = Books(
+            bookAuthor: cleanAuthor,
+            bookCategory: bookCategory,
+            bookCover: coverData,
+            bookCurrentPage: 0,
+            bookGoal: 0,
+            bookTitle: cleanTitle,
+            bookTotalPages: totalPagesInt,
+            isTimerRunning: false,
+            wasLastPageAdded: true
+        )
         //salvando livro no banco
         context.insert(newBook)
         

@@ -13,6 +13,7 @@ struct BookCaseView: View {
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     @EnvironmentObject var filterViewModel: BookFilterViewModel
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     //injetando o contexto do banco
     @Environment(\.modelContext) private var modelContext
     
@@ -94,7 +95,7 @@ struct BookCaseView: View {
             switch sheet {
             case .addBook:
                 BookSheetView(bookToEdit: nil)
-                    .environmentObject(PhotoLibraryViewModel())
+                    .environmentObject(photoLibraryViewModel)
                     .environmentObject(bookViewModel)
                 
             case .editGoal:

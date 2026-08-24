@@ -83,18 +83,30 @@ class NotesViewModel: ObservableObject {
         //if noteCategory.isEmpty { throw NoteError.invalidCategory }
         guard let book else { throw NoteError.invalidBook }
         
-        let newNote = Notes(noteCategory: noteCategory, noteDescription: cleanDescription, noteTitle: cleanTitle, notePhoto: notePhotos as! [Data])
-        newNote.noteTitle = cleanTitle
-        newNote.noteDescription = cleanDescription
-        newNote.noteCategory = noteCategory
-        newNote.book = book
-        
         var photosDataArray: [Data] = []
         for photo in notePhotos {
             if let data = photo.jpegData(compressionQuality: 0.8) {
                 photosDataArray.append(data)
             }
         }
+        
+        let newNote = Notes(
+            noteCategory: noteCategory,
+            noteDescription: cleanDescription,
+            noteTitle: cleanTitle,
+            notePhoto: photosDataArray
+        )
+        newNote.noteTitle = cleanTitle
+        newNote.noteDescription = cleanDescription
+        newNote.noteCategory = noteCategory
+        newNote.book = book
+        
+//        var photosDataArray: [Data] = []
+//        for photo in notePhotos {
+//            if let data = photo.jpegData(compressionQuality: 0.8) {
+//                photosDataArray.append(data)
+//            }
+//        }
         //--------------------------depois resolver notephoto--------------------------
         //newNote.notePhoto = photosDataArray
         

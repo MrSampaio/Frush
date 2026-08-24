@@ -41,22 +41,30 @@ struct TextFieldSheets: View {
 }
 
 #Preview {
-    ZStack {
-        Color.black.ignoresSafeArea()
+    struct PreviewWrapper: View {
+        @State private var text1: String = ""
+        @State private var text2: String = ""
         
-        VStack(spacing: 20) {
-            TextFieldSheets(
-                text: .constant(""),
-                placeholder: "Digite aqui...",
-                label: "Título do Campo"
-            )
-            
-           
-            TextFieldSheets(
-                text: .constant(""),
-                placeholder: "Apenas com placeholder"
-            )
+        var body: some View {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    TextFieldSheets(
+                        text: $text1,
+                        placeholder: "Digite aqui...",
+                        label: "Título do Campo"
+                    )
+                    
+                    TextFieldSheets(
+                        text: $text2,
+                        placeholder: "Apenas com placeholder"
+                    )
+                }
+                .padding()
+            }
         }
-        .padding()
     }
+    
+    return PreviewWrapper()
 }

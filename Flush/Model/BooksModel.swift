@@ -25,7 +25,7 @@ final class Books {
     
     var userSetttings: UserSettings?
     
-    init(bookAuthor: String, bookCategory: String, bookCover: Data? = nil, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool) {
+    init(bookAuthor: String, bookCategory: String, bookCover: Data, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool) {
         self.bookAuthor = bookAuthor
         self.bookCategory = bookCategory
         self.bookCover = bookCover

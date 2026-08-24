@@ -310,7 +310,7 @@ struct NoteSheetView: View {
         )
     }
 }
-#Preview {
-    NoteSheetView(book: PreviewProviderHelper.sampleBook)
-        .environmentObject(NotesViewModel())
-}
+//#Preview {
+//    NoteSheetView(book: PreviewProviderHelper.sampleBook)
+//        .environmentObject(NotesViewModel())
+//}

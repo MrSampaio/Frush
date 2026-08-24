@@ -147,7 +147,7 @@ struct StopwatchView: View {
                     }
                     .glassEffect(.regular, in: Circle())
                     .sheet(isPresented: $isShowingSheet) {
-                        NoteSheetView(book: PreviewProviderHelper.sampleBook)
+                        NoteSheetView(book: selectedBook)
                     }
                     
                 }
