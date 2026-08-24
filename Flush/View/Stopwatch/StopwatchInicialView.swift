@@ -10,38 +10,21 @@ import SwiftData
 
 struct StopwatchInitialView: View {
     var namespace: Namespace.ID
+    @Binding var selectedBook: Books?
+    
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @Environment(\.modelContext) private var modelContext
-
-    
-    @State var selectedBook: Books?
     
     @State private var isShowingNoteSheet = false
     @State private var isShowingSelectBookSheet = false
     @State private var isShowingTimerPicker = false
     @State private var isShowingNoBookAlert = false
-    @State private var showAbandonAlert = false
-    @State private var tempReadedPages: String = ""
-    
-    @State private var showErrorAlert = false
-    @State private var errorMessage = ""
     
     @State private var selectedDuration: TimeInterval = 15 * 60
-    
-    private var buttonTitle: String {
-        switch stopwatchViewModel.timerState {
-        case .running:
-            return "Pausar leitura"
-        case .paused:
-            return "Continuar leitura"
-        case .stopped:
-            return "Iniciar leitura"
-        }
-    }
     
     private var timePickerSection: some View {
         VStack(spacing: 8) {
@@ -64,137 +47,110 @@ struct StopwatchInitialView: View {
                     .overlay(timerCapsuleBorder)
                     .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
             }
-            .disabled(stopwatchViewModel.timerState != .stopped)
             .buttonStyle(.plain)
         }
     }
 
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                ZStack {
-                    Color("BackgroundColorViews")
-                        .ignoresSafeArea()
-                    
-                    backgroundWithGradient(geometry)
-                    
-                    VStack(spacing: 20) {
-                        Spacer()
-                        timePickerSection
+        GeometryReader { geometry in
+            ZStack {
+                Color("BackgroundColorViews")
+                    .ignoresSafeArea()
+                
+                backgroundWithGradient(geometry)
+                
+                VStack(spacing: 20) {
+                    Spacer()
+                    timePickerSection
 
-                        VStack(spacing: 24) {
-                            bookSelectionButton
-                            
-                            if let existingBook = selectedBook {
-                                bookProgressSection(existingBook)
-                            }
-
-                            VStack(spacing: 12) {
-                                ButtonAction(text: buttonTitle, colorButton: "ActionColor"){
-                                    guard selectedBook != nil && stopwatchViewModel.timerFormater() != "00:00" else {
-                                        isShowingNoBookAlert = true
-                                        return
-                                    }
-                                    
-                                    if stopwatchViewModel.timerState == .running {
-                                        stopwatchViewModel.pauseTimer()
-                                    } else {
-                                        stopwatchViewModel.startTimer()
-                                    }
-                                }
-                                .padding(.top, 8)
-
-                                abandonButton
-                            }
-                            .padding(.horizontal)
-                        }
+                    VStack(spacing: 24) {
+                        bookSelectionButton
                         
-                        Spacer()
-                    }
-                }
-                .toolbar {
-                    ToolBarButton(
-                        action: {
-                            if selectedBook != nil {
-                                isShowingNoteSheet = true
-                            } else {
-                                isShowingNoBookAlert = true
-                            }
-                        },
-                        icon: "square.and.pencil"
-                    )
-                }
-                
-                .sheet(isPresented: $isShowingNoteSheet) {
-                    if let currentBook = selectedBook {
-                        NoteSheetView(book: currentBook)
-                    }
-                }
-                .alert("Atenção", isPresented: $isShowingNoBookAlert) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text("Selecione um livro e um tempo de leitura.")
-                }
-                
-                .alert("Abandonar leitura", isPresented: $showAbandonAlert) {
-                    Button("Cancelar", role: .cancel) { }
-                    Button("Abandonar", role: .destructive) {
-                        stopwatchViewModel.abandonTimer()
-                    }
-                } message: {
-                    Text("Tem certeza que deseja abandonar a leitura? O progresso será perdido.")
-                }
-                
-                .sheet(isPresented: $isShowingSelectBookSheet) {
-                    SelectBookSheetView(selectedBook: self.$selectedBook)
-                        .environmentObject(self.booksViewModel)
-                }
+                        if let existingBook = selectedBook {
+                            bookProgressSection(existingBook)
+                        }
 
-                .sheet(isPresented: $isShowingTimerPicker) {
-                    timerPickerSheet
-                }
-                
-                .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
-                    progressSheet
-                }
-                
-                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
-                    Button("Tentar novamente", role: .cancel) { }
-                } message: {
-                    Text(errorMessage)
-                }
-                
-                .onAppear {
-                    booksViewModel.fetchBooks(context: modelContext)
-                    userSettingsViewModel.fetchUserSettings(context: modelContext)
-                    
-                    if selectedBook == nil {
-                        selectedBook = userSettingsViewModel.lastBookReaded
-                    }
-                    
-                    if let safeBook = selectedBook {
-                        stopwatchViewModel.getTotalPages(book: safeBook)
-                        stopwatchViewModel.getCurrentPage(book: safeBook)
-                    }
-                }
-                //utilizado para atualizar o cronometro caso haja modificacoes 
-                .onChange(of: selectedBook) { newBook in
-                                    if let safeBook = newBook {
-                                        stopwatchViewModel.getTotalPages(book: safeBook)
-                                        stopwatchViewModel.getCurrentPage(book: safeBook)
-                                    }
+                        VStack(spacing: 12) {
+                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor"){
+                                guard selectedBook != nil && stopwatchViewModel.timerFormater() != "00:00" else {
+                                    isShowingNoBookAlert = true
+                                    return
                                 }
+                                
+                                stopwatchViewModel.startTimer()
+                            }
+                            .padding(.top, 8)
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    Spacer()
+                }
+            }
+            .toolbar {
+                ToolBarButton(
+                    action: {
+                        if selectedBook != nil {
+                            isShowingNoteSheet = true
+                        } else {
+                            isShowingNoBookAlert = true
+                        }
+                    },
+                    icon: "square.and.pencil"
+                )
+            }
+            
+            .sheet(isPresented: $isShowingNoteSheet) {
+                if let currentBook = selectedBook {
+                    NoteSheetView(book: currentBook)
+                }
+            }
+            .alert("Atenção", isPresented: $isShowingNoBookAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Selecione um livro e um tempo de leitura.")
+            }
+            
+            .sheet(isPresented: $isShowingSelectBookSheet) {
+                SelectBookSheetView(selectedBook: self.$selectedBook)
+                    .environmentObject(self.booksViewModel)
+            }
+
+            .sheet(isPresented: $isShowingTimerPicker) {
+                timerPickerSheet
+            }
+            
+            .onAppear {
+                booksViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                
+                if selectedBook == nil {
+                    selectedBook = userSettingsViewModel.lastBookReaded
+                }
+                
+                if let safeBook = selectedBook {
+                    stopwatchViewModel.getTotalPages(book: safeBook)
+                    stopwatchViewModel.getCurrentPage(book: safeBook)
+                }
+            }
+            // utilizado para atualizar o cronometro caso haja modificacoes
+            .onChange(of: selectedBook) { _, newBook in
+                if let safeBook = newBook {
+                    stopwatchViewModel.getTotalPages(book: safeBook)
+                    stopwatchViewModel.getCurrentPage(book: safeBook)
+                }
             }
         }
     }
-     var timerCapsuleBackground: some View {
+    
+    var timerCapsuleBackground: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 100, style: .continuous)
                 .fill(Color("StopwatchSelectors").opacity(0.2))
         }
     }
 
-     var timerCapsuleBorder: some View {
+    var timerCapsuleBorder: some View {
         RoundedRectangle(cornerRadius: 100, style: .continuous)
             .stroke(
                 LinearGradient(
@@ -205,21 +161,8 @@ struct StopwatchInitialView: View {
                 lineWidth: 0.5
             )
     }
-    @ViewBuilder
-     var abandonButton: some View {
-        if stopwatchViewModel.timerState != .stopped {
-            Button(action: {
-                showAbandonAlert = true
-            }) {
-                Text("Abandonar leitura")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.red)
-                    .padding(.vertical, 8)
-            }
-        }
-    }
     
-     var bookSelectionButton: some View {
+    var bookSelectionButton: some View {
         VStack(spacing: 8) {
             Text("Selecione o livro")
                 .font(.body)
@@ -257,13 +200,11 @@ struct StopwatchInitialView: View {
                             .lineLimit(1)
                     }
                     
-                    if stopwatchViewModel.timerState == .stopped {
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -286,7 +227,6 @@ struct StopwatchInitialView: View {
                 )
                 .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
             }
-            .disabled(stopwatchViewModel.timerState != .stopped)
         }
         .padding(.horizontal, 24)
     }
@@ -318,7 +258,7 @@ struct StopwatchInitialView: View {
         }
     }
     
-     func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
+    func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
         Group {
             if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                 Image(uiImage: uiImage)
@@ -356,13 +296,10 @@ struct StopwatchInitialView: View {
                     get: { Int(selectedDuration) / 3600 },
                     set: { newHours in
                         let currentMinutes = (Int(selectedDuration) % 3600) / 60
-                        let hoursInSeconds = Double(newHours * 3600)
-                        let minutesInSeconds = Double(currentMinutes * 60)
-                        let newTotal = hoursInSeconds + minutesInSeconds
+                        let newTotal = Double(newHours * 3600) + Double(currentMinutes * 60)
                         
                         selectedDuration = newTotal
-                        stopwatchViewModel.totalTime = newTotal
-                        stopwatchViewModel.elapsedTime = newTotal
+                        stopwatchViewModel.setDuration(newTotal)
                     }
                 )) {
                     ForEach(0..<24, id: \.self) { hour in
@@ -375,13 +312,10 @@ struct StopwatchInitialView: View {
                     get: { (Int(selectedDuration) % 3600) / 60 },
                     set: { newMinutes in
                         let currentHours = Int(selectedDuration) / 3600
-                        let hoursInSeconds = Double(currentHours * 3600)
-                        let minutesInSeconds = Double(newMinutes * 60)
-                        let newTotal = hoursInSeconds + minutesInSeconds
+                        let newTotal = Double(currentHours * 3600) + Double(newMinutes * 60)
                         
                         selectedDuration = newTotal
-                        stopwatchViewModel.totalTime = newTotal
-                        stopwatchViewModel.elapsedTime = newTotal
+                        stopwatchViewModel.setDuration(newTotal)
                     }
                 )) {
                     ForEach(0..<60, id: \.self) { minute in
@@ -400,48 +334,5 @@ struct StopwatchInitialView: View {
             .padding(.bottom)
         }
         .presentationDetents([.height(260)])
-    }
-    
-    private var progressSheet: some View {
-        Group {
-            if let currentBook = selectedBook {
-                BottomSheet(
-                    minutesPerDay: .constant(0),
-                    isPickerShown: false,
-                    readedPages: $tempReadedPages,
-                    onDismiss: {
-                        stopwatchViewModel.showProgressSheet = false
-                    },
-                    onSave: {
-                        if let newPage = Int16(tempReadedPages) {
-                            currentBook.bookCurrentPage = newPage
-                            
-                            do {
-                                try booksViewModel.saveBook(context: modelContext)
-                            } catch let error as LocalizedError {
-                                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                showErrorAlert = true
-                            } catch {
-                                errorMessage = "Erro inesperado."
-                                showErrorAlert = true
-                            }
-                        }
-                        
-                        let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
-                        let minutesRead = max(1, rawMinutes)
-                        
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead, context: modelContext)
-                        
-                        booksViewModel.fetchBooks(context: modelContext)
-                        userSettingsViewModel.fetchUserSettings(context: modelContext)
-                        tempReadedPages = ""
-                        stopwatchViewModel.showProgressSheet = false
-                    }
-                )
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(Color("BackgroundColorViews"))
-            }
-        }
     }
 }
