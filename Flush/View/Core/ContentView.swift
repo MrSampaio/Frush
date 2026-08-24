@@ -45,9 +45,9 @@ struct ContentView: View {
                    // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-                StopwatchInitialView(
+                StopwatchFlowView(
                     namespace: stopwatchNamespace,
-                    selectedBook: selectedBook
+                    selectedBook: $selectedBook
                 )
 //                .tint(.blue)
             }

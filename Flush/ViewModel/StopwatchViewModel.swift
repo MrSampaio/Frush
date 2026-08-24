@@ -4,6 +4,7 @@
 //
 //  Created by Lucas on 15/08/26.
 //
+
 import Combine
 import Foundation
 import UIKit
@@ -107,7 +108,7 @@ class StopwatchViewModel: ObservableObject {
             } else {
                 // se o tempo acabou ENQUANTO o app estava fechado
                 self.elapsedTime = 0
-                self.stop()// ou a sua função que pausa/invalida o timer
+                self.finishTimer() // ou a sua função que pausa/invalida o timer
                 
                 // dispara a bottom sheet para ele preencher as páginas
                 DispatchQueue.main.async {
@@ -192,7 +193,7 @@ class StopwatchViewModel: ObservableObject {
             if self.elapsedTime > 0 {
                 self.elapsedTime -= 0.1
             } else {
-                self.stop()
+                self.finishTimer()
                 
                 SoundManager.shared.playSound(named: .success)
                 DispatchQueue.main.async {
@@ -278,6 +279,13 @@ class StopwatchViewModel: ObservableObject {
         
         guard totalPages > 0 else { return 0.0 }
         return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
+    }
+    
+    func finishTimer() {
+        timerState = .paused
+        isRunning = false
+        timer?.invalidate()
+        timer = nil
     }
     
 }
