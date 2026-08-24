@@ -20,8 +20,8 @@ final class Books1 {
     var isTimerRunning: Bool
     var wasLastPageAdded: Bool
     
-    @Relationship(inverse: \Notes.book)
-    var notes: [Notes]? = []
+    @Relationship(deleteRule: .cascade, inverse: \Notes1.book)
+    var notes: [Notes1]? = []
     
     var userSetttings: UserSettings1?
     

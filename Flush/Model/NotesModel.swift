@@ -21,7 +21,9 @@ final class Notes1 {
     var book: Books1?
     
     @Relationship(inverse: \NoteImage.note)
-    var images: [NoteImage]? = []
+    var images: [NoteImage1]? = []
+    
+
     
     init(noteCategory: String, noteDescription: String, noteTitle: String, notePhoto: Data? = nil) {
         self.noteCategory = noteCategory
