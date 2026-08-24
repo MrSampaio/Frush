@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BookCaseView: View {
     @EnvironmentObject var bookViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     @EnvironmentObject var filterViewModel: BookFilterViewModel
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    //injetando o contexto do banco
+    @Environment(\.modelContext) private var modelContext
     
     enum ActiveSheet: Identifiable {
         case addBook
@@ -75,8 +79,8 @@ struct BookCaseView: View {
         }
         .onAppear {
             withAnimation {
-                bookViewModel.fetchBooks()
-                userSettingsViewModel.fetchUserSettings()
+                bookViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
             
             NotificationManager.shared.requestPermission()
@@ -84,14 +88,14 @@ struct BookCaseView: View {
 
         .sheet(item: $activeSheet, onDismiss: {
             withAnimation {
-                bookViewModel.fetchBooks()
-                userSettingsViewModel.fetchUserSettings()
+                bookViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
         }) { sheet in
             switch sheet {
             case .addBook:
                 BookSheetView(bookToEdit: nil)
-                    .environmentObject(PhotoLibraryViewModel())
+                    .environmentObject(photoLibraryViewModel)
                     .environmentObject(bookViewModel)
                 
             case .editGoal:
@@ -100,11 +104,11 @@ struct BookCaseView: View {
                     isPickerShown: true,
                     readedPages: .constant(""),
                     onDismiss: {
-                        userSettingsViewModel.fetchUserSettings()
+                        userSettingsViewModel.fetchUserSettings(context: modelContext)
                         activeSheet = nil
                     },
                     onSave: {
-                        userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes)
+                        userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes, context: modelContext)
                         activeSheet = nil
                     }
                 )
@@ -131,7 +135,7 @@ struct BookCaseView: View {
                             currentBook.bookCurrentPage = newPage
                             
                             do {
-                                try bookViewModel.saveBook()
+                                try bookViewModel.saveBook(context: modelContext)
                             } catch {
                                 print("Error when trying to save last readed page by home: \(error)")
                             }
@@ -140,10 +144,10 @@ struct BookCaseView: View {
                         let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
                         let minutesRead = max(1, rawMinutes)
                         
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
+                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead, context: modelContext)
                         
-                        bookViewModel.fetchBooks()
-                        userSettingsViewModel.fetchUserSettings()
+                        bookViewModel.fetchBooks(context: modelContext)
+                        userSettingsViewModel.fetchUserSettings(context: modelContext)
                         tempReadedPages = ""
                         stopwatchViewModel.showProgressSheet = false
                     }

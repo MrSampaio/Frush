@@ -6,9 +6,9 @@
 //
 import Foundation
 import SwiftUI
-import CoreData
 import Combine
 import PhotosUI
+import SwiftData
 
 class BooksViewModel: ObservableObject {
     
@@ -50,7 +50,6 @@ class BooksViewModel: ObservableObject {
     let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
     
     init(){
-        self.fetchBooks()
     }
     
     func countGeralReadedPages() -> Int16{
@@ -68,10 +67,10 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao que carrega todos os livros do banco e atrbui na lista books
-    func fetchBooks(){
-        let request = NSFetchRequest<Books>(entityName: "Books")
+    func fetchBooks(context: ModelContext){
+        let descriptor = FetchDescriptor<Books>()
         do{
-            try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
+            self.savedBooks = try context.fetch(descriptor)
             countGeralReadedPages()
 
         } catch let error{
@@ -81,18 +80,18 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao para salvar livros (chama ela sempre que quer subir efetivamente para o banco)
-    func saveBook() throws{
+    func saveBook(context: ModelContext) throws{
         do{
-            try CoreDataManager.shared.viewContext.save()
+            try context.save()
         } catch let error{
-            CoreDataManager.shared.viewContext.rollback()
+            // swiftdata nao tem roolback apenas avisamos a ui
             print("Error when trying to save new book: \(error)")
             throw BookError.savingError
         }
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws{
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws{
         
         
         let totalPagesInt = Int16(bookTotalPages) ?? 0
@@ -115,18 +114,33 @@ class BooksViewModel: ObservableObject {
         }
         
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
-        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        var coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
         
-        let newBook = Books(context: CoreDataManager.shared.viewContext)
-        newBook.bookTitle = cleanTitle
-        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
-        newBook.bookCover = coverData
-        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
-        newBook.bookTotalPages = totalPagesInt
+        //-----------------------depois resolver o bookCurrentPage e bookGoal-----------------------
+        
+        let newBook = Books(
+            bookAuthor: cleanAuthor,
+            bookCategory: bookCategory,
+            bookCover: coverData,
+            bookCurrentPage: 0,
+            bookGoal: 0,
+            bookTitle: cleanTitle,
+            bookTotalPages: totalPagesInt,
+            isTimerRunning: false,
+            wasLastPageAdded: true
+        )
+        //salvando livro no banco
+        context.insert(newBook)
+        
+//        newBook.bookTitle = cleanTitle
+//        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
+//        newBook.bookCover = coverData
+//        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
+//        newBook.bookTotalPages = totalPagesInt
 //        newBook.bookCurrentPage = bookCurrentPage
 //        newBook.bookGoal = bookGoal
-        newBook.isTimerRunning = false
-        newBook.wasLastPageAdded = true
+//        newBook.isTimerRunning = false
+//        newBook.wasLastPageAdded = true
 
         
 //        if currentePageInt <= 0 {
@@ -147,26 +161,26 @@ class BooksViewModel: ObservableObject {
 //        }
 
         
-        try self.saveBook()
+        try self.saveBook(context: context)
         
-        self.fetchBooks()
+        self.fetchBooks(context: context)
     }
     
     // funcao para deletar livros
-    func deleteBook(book: Books) throws{
+    func deleteBook(book: Books, context: ModelContext) throws{
 
 //        guard let index = indexSet.first else { return }
 //        let book = self.savedBooks[index]
         
-        CoreDataManager.shared.viewContext.delete(book)
-        self.savedBooks.removeAll(where: { $0.objectID == book.objectID })
+        context.delete(book)
+        self.savedBooks.removeAll(where: { $0.persistentModelID == book.persistentModelID })
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
 
     }
     
-    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws {
+    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws {
         
 //        guard let index = IndexSet.first else { return }
 //        
@@ -235,17 +249,16 @@ class BooksViewModel: ObservableObject {
             book.bookCover = coverData
         }
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
     }
         
     @Published var dailyGoalMinutes: Int = 0
     
-    func fetchDailyGoal() {
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
-        
+    func fetchDailyGoal(context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
         do {
-            let results = try CoreDataManager.shared.viewContext.fetch(request)
+            let results = try context.fetch(descriptor)
             if let settings = results.first {
                 self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
             }
@@ -254,20 +267,20 @@ class BooksViewModel: ObservableObject {
         }
     }
     
-    func saveDailyGoal(minutes: Int) {
-        let context = CoreDataManager.shared.viewContext
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    func saveDailyGoal(minutes: Int, context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
+        
         
         do {
-            let results = try context.fetch(request)
+            let results = try context.fetch(descriptor)
             
             if let existingSettings = results.first {
                 // se já existir configuração, apenas atualiza
                 existingSettings.dailyGoalMinutes = Int16(minutes)
             } else {
                 // se for a primeira vez, cria o registro
-                let newSettings = UserSettings(context: context)
-                newSettings.dailyGoalMinutes = Int16(minutes)
+                let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
+                //newSettings.dailyGoalMinutes = Int16(minutes)
             }
             
             try context.save()
@@ -281,7 +294,7 @@ class BooksViewModel: ObservableObject {
     }
     
     
-    func updateCurrentPage(book: Books, currentPage: String) throws{
+    func updateCurrentPage(book: Books, currentPage: String, context: ModelContext) throws{
         let convertedCurrentPage = Int16(currentPage) ?? 0
         
         if convertedCurrentPage == 0 {
@@ -290,8 +303,8 @@ class BooksViewModel: ObservableObject {
         
         book.bookCurrentPage = convertedCurrentPage
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
     }
     
 //    func saveDailyGoal(minutes: Int) {

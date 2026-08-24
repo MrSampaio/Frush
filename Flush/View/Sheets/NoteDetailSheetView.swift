@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct NoteDetailSheetView: View {
     @EnvironmentObject private var notesViewModel: NotesViewModel
     
-    @ObservedObject var note: Notes
+    var note: Notes
     
     @Environment(\.dismiss) private var dismiss
     
@@ -19,7 +20,8 @@ struct NoteDetailSheetView: View {
     @State private var errorMessage = ""
     
     @State private var showingDeleteAlert = false
-    
+    @Environment(\.modelContext) private var modelContext
+
     private var noteImages: [UIImage] {
         if let photosData = note.notePhoto as? [Data] {
             return photosData.compactMap { UIImage(data: $0) }
@@ -90,8 +92,8 @@ struct NoteDetailSheetView: View {
                     Button("Cancelar", role: .cancel) { }
                     Button("Apagar", role: .destructive) {
                         do{
-                            try notesViewModel.deleteNote(note: note)
-                            notesViewModel.fetchNotes(for: note.book)
+                            try notesViewModel.deleteNote(note: note, context: modelContext)
+                            notesViewModel.fetchNotes(for: note.book, context: modelContext)
                             dismiss()
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -129,7 +131,7 @@ struct NoteDetailSheetView: View {
                 //                }
                 //            }
                 .sheet(isPresented: $isShowingEditSheet, onDismiss: {
-                    notesViewModel.fetchNotes(for: note.book)
+                    notesViewModel.fetchNotes(for: note.book, context: modelContext)
                 }) {
                     if let book = note.book {
                         NoteSheetView(book: book, noteToEdit: note)

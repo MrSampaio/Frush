@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct ContentView: View {
     @State private var searchText = ""
@@ -68,4 +68,5 @@ struct ContentView: View {
         .environmentObject(StopwatchViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
+        .environmentObject(BookFilterViewModel())
 }

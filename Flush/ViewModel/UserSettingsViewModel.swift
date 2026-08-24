@@ -7,8 +7,8 @@
 
 import Foundation
 import SwiftUI
-import CoreData
 import Combine
+import SwiftData
 
 class UserSettingsViewModel: ObservableObject {
     
@@ -21,15 +21,17 @@ class UserSettingsViewModel: ObservableObject {
     private var currentSettings: UserSettings?
     
     init(){
-        self.fetchUserSettings()
+        //self.fetchUserSettings()
     }
     
-    func fetchUserSettings() {
-            let context = CoreDataManager.shared.viewContext
-            let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    func fetchUserSettings(context: ModelContext) {
+//            let context = CoreDataManager.shared.viewContext
+//            let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        // e o equivalente ao NSFatchRequest
+        let descriptor = FetchDescriptor<UserSettings>()
             
             do {
-                let results = try context.fetch(request)
+                let results = try context.fetch(descriptor)
                 
                 if let settings = results.first {
                     self.currentSettings = settings
@@ -48,6 +50,7 @@ class UserSettingsViewModel: ObservableObject {
                         // Se a última leitura foi em outro dia (ou nunca leu), zera na tela e no banco
                         self.minutesReadToday = 0
                         settings.minutesReadToday = 0
+                        // o swift ja tem autosave porem podemos deixar
                         try? context.save()
                     }
                     
@@ -60,11 +63,9 @@ class UserSettingsViewModel: ObservableObject {
                 } else {
                     // 👇 A MÁGICA ACONTECE AQUI:
                     // Se o banco estiver vazio, cria as configurações padrão para o app não quebrar mais!
-                    let newSettings = UserSettings(context: context)
-                    newSettings.dailyGoalMinutes = 0
-                    newSettings.minutesReadToday = 0
-                    
-                    try? context.save()
+                    let newSettings = UserSettings(dailyGoalMinutes: 0)
+                    context.insert(newSettings)
+                    //try? context.save()
                     
                     self.currentSettings = newSettings
                     self.dailyGoal = 0
@@ -76,11 +77,11 @@ class UserSettingsViewModel: ObservableObject {
             }
         }
         
-        func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil) {
+    func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil, context: ModelContext) {
             
             // Se por algum milagre o currentSettings não estiver carregado, força a criação/busca
             if currentSettings == nil {
-                fetchUserSettings()
+                fetchUserSettings(context: context)
             }
             
             guard let settings = currentSettings else { return }
@@ -96,27 +97,30 @@ class UserSettingsViewModel: ObservableObject {
             }
             
             do {
-                try CoreDataManager.shared.viewContext.save()
-                fetchUserSettings() // Recarrega os dados na ViewModel
+                try context.save()
+                fetchUserSettings(context: context) // Recarrega os dados na ViewModel
                 print("UserSetting updated successfully")
             } catch {
                 fatalError("Error when trying to update UserSettings: \(error)")
             }
         }
-    func saveDailyGoal(minutes: Int) {
-        let context = CoreDataManager.shared.viewContext
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    
+    
+    func saveDailyGoal(minutes: Int,context: ModelContext) {
+//        let context = CoreDataManager.shared.viewContext
+//        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        let desciptor = FetchDescriptor<UserSettings>()
         
         do {
-            let results = try context.fetch(request)
+            let results = try context.fetch(desciptor)
             
             if let existingSettings = results.first {
                 // se já existir configuração, apenas atualiza
                 existingSettings.dailyGoalMinutes = Int16(minutes)
             } else {
                 // se for a primeira vez, cria o registro
-                let newSettings = UserSettings(context: context)
-                newSettings.dailyGoalMinutes = Int16(minutes)
+                let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
+                context.insert(newSettings)
             }
             
             // faz uma função de save separada 
@@ -131,11 +135,11 @@ class UserSettingsViewModel: ObservableObject {
         }
     }
     
-    func addCompletedReadingTime(minutes: Int) {
+    func addCompletedReadingTime(minutes: Int, context: ModelContext) {
 
         // faz o fetch caso detecte que o não carregou a currentSettings do usuário, evita crashs sinistros
         if currentSettings == nil {
-            fetchUserSettings()
+            fetchUserSettings(context: context)
         }
         
         guard let settings = currentSettings else { return }
@@ -153,7 +157,7 @@ class UserSettingsViewModel: ObservableObject {
         settings.lastReadingDate = today
         
         do {
-            try CoreDataManager.shared.viewContext.save()
+            try context.save()
             self.minutesReadToday = Int(settings.minutesReadToday)
             print("Reading updated: \(self.minutesReadToday)")
             

@@ -6,13 +6,15 @@
 //
  
 import Foundation
-import CoreData
 import Combine
 import UIKit
+import SwiftData
+import SwiftUI
  
 class NotesViewModel: ObservableObject {
     @Published var savedNotes: [Notes] = []
-    
+    @Environment(\.modelContext) private var modelContext
+
     enum NoteError: LocalizedError {
         case invalidTitle
         case invalidDescription
@@ -40,50 +42,38 @@ class NotesViewModel: ObservableObject {
     let noteCategories = ["Citação", "Resumo", "Pensamento", "Crítica", "Conceito", "Lição", "Pergunta", "Favorito"]
     
     init() {
-        self.fetchNotes()
     }
     
     // funcao que carrega todas as notas do banco e atribui na lista savedNotes
-    func fetchNotes() {
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
+    func fetchNotes(context: ModelContext) {
+        //let request = NSFetchRequest<Notes>(entityName: "Notes")
+        let descriptor = FetchDescriptor<Notes>()
         do {
-            try self.savedNotes = CoreDataManager.shared.viewContext.fetch(request)
+            try self.savedNotes = context.fetch(descriptor)
         } catch let error {
             fatalError("Error when trying to fetch notes data: \(error)")
         }
     }
     
     //depois avaliar se realemtne e necessaria
-    func fetchNotes(for book: Books?) {
-        guard let book = book else {
+    func fetchNotes(for book: Books?, context: ModelContext) {
+        guard let targetBook = book else {
             self.savedNotes = []
             return
         }
         
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
-        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
-        request.predicate = NSPredicate(format: "book == %@", book)
+        let descriptor = FetchDescriptor<Notes>()
         
         do {
-            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
+            let allNotes = try context.fetch(descriptor)
+            self.savedNotes = allNotes.filter { $0.book?.persistentModelID == targetBook.persistentModelID }
         } catch let error {
             print("Erro ao buscar anotações do livro: \(error)")
         }
     }
     
-    // funcao para salvar notas (chama ela sempre que quer subir efetivamente para o banco)
-    func saveNote() throws {
-        do {
-            try CoreDataManager.shared.viewContext.save()
-        } catch let error {
-            CoreDataManager.shared.viewContext.rollback()
-            print("Error when trying to save new note: \(error)")
-            throw NoteError.savingError
-        }
-    }
-    
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?) throws {
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?, context: ModelContext) throws {
         
         let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -93,12 +83,6 @@ class NotesViewModel: ObservableObject {
         //if noteCategory.isEmpty { throw NoteError.invalidCategory }
         guard let book else { throw NoteError.invalidBook }
         
-        let newNote = Notes(context: CoreDataManager.shared.viewContext)
-        newNote.noteTitle = cleanTitle
-        newNote.noteDescription = cleanDescription
-        newNote.noteCategory = noteCategory
-        newNote.book = book
-        
         var photosDataArray: [Data] = []
         for photo in notePhotos {
             if let data = photo.jpegData(compressionQuality: 0.8) {
@@ -106,14 +90,31 @@ class NotesViewModel: ObservableObject {
             }
         }
         
-        newNote.notePhoto = photosDataArray as NSObject
+        let newNote = Notes(
+            noteCategory: noteCategory,
+            noteDescription: cleanDescription,
+            noteTitle: cleanTitle,
+            notePhoto: photosDataArray
+        )
+        newNote.noteTitle = cleanTitle
+        newNote.noteDescription = cleanDescription
+        newNote.noteCategory = noteCategory
+        newNote.book = book
         
-        try self.saveNote()
+//        var photosDataArray: [Data] = []
+//        for photo in notePhotos {
+//            if let data = photo.jpegData(compressionQuality: 0.8) {
+//                photosDataArray.append(data)
+//            }
+//        }
+        //--------------------------depois resolver notephoto--------------------------
+        //newNote.notePhoto = photosDataArray
         
-        self.fetchNotes()
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     }
     
-    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage]) throws {
+    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage], context: ModelContext) throws {
 
         
 //        let totalPagesInt = Int16(bookTotalPages) ?? 0
@@ -150,26 +151,34 @@ class NotesViewModel: ObservableObject {
             }
         }
         
-        if(note.notePhoto != photosDataArray as NSObject){
-            note.notePhoto = photosDataArray as NSObject
-        }
+//        if(note.notePhoto != photosDataArray as NSObject){
+//            note.notePhoto = photosDataArray as NSObject
+//        }
+        //--------------------------resolver comparacao depois--------------------------
+//        if(note.notePhoto != photosDataArray){
+//                    note.notePhoto = photosDataArray
+//                }
         
         
 //        if(book.bookCover != coverData){
 //            book.bookCover = coverData
 //        }
         
-        try self.saveNote()
-        self.fetchNotes()
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     }
     
     // funcao para deletar notas
-    func deleteNote(note: Notes) throws{
-        CoreDataManager.shared.viewContext.delete(note)
-        self.savedNotes.removeAll(where: { $0.objectID == note.objectID })
+    func deleteNote(note: Notes, context: ModelContext) throws{
+//        CoreDataManager.shared.viewContext.delete(note)
+//        self.savedNotes.removeAll(where: { $0.objectID == note.objectID })
         
-        try self.saveNote()
-        self.fetchNotes()
+        
+        context.delete(note)
+        //objectID vira persistentModelID no SwiftData
+        self.savedNotes.removeAll(where: { $0.persistentModelID == note.persistentModelID })
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     
     }
 }

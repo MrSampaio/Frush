@@ -5,8 +5,10 @@
 //  Created by Lucas on 18/08/26.
 //
 import SwiftUI
+import SwiftData
 
 struct NoteCellView: View {
+    @Environment(\.modelContext) private var modelContext
     var note: Notes
     
     @ObservedObject var noteViewModel: NotesViewModel
@@ -26,8 +28,8 @@ struct NoteCellView: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
             
-            if let description = note.noteDescription, !description.isEmpty {
-                Text(description)
+            if  !note.noteDescription.isEmpty {
+                Text(note.noteDescription)
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -57,7 +59,7 @@ struct NoteCellView: View {
             Button("Cancelar", role: .cancel) { }
             Button("Apagar", role: .destructive) {
                 do{
-                    try noteViewModel.deleteNote(note: note)
+                    try noteViewModel.deleteNote(note: note, context: modelContext)
                     
                 } catch let error as LocalizedError {
                    errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."

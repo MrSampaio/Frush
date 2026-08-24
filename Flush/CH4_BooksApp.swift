@@ -6,11 +6,11 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 @main
 struct CH4_BooksApp: App {
-    let persistenceController = CoreDataManager.shared
+    //let persistenceController = CoreDataManager.shared
     @StateObject var photoViewModel = PhotoLibraryViewModel()
     @StateObject var booksViewModel = BooksViewModel()
     @StateObject var notesViewModel = NotesViewModel()
@@ -21,7 +21,7 @@ struct CH4_BooksApp: App {
     var body: some Scene {
         WindowGroup {
             RootFlowView()
-                .environment(\.managedObjectContext, persistenceController.viewContext)
+                //.environment(\.managedObjectContext, persistenceController.viewContext)
                 .environmentObject(userSettingsViewModel)
                 .environmentObject(photoViewModel)
                 .environmentObject(booksViewModel)
@@ -29,6 +29,12 @@ struct CH4_BooksApp: App {
                 .environmentObject(stopWatchViewModel)
                 .environmentObject(filterViewModel)
         }
+        .modelContainer(for: [
+                    Books.self,
+                    Notes.self,
+                    NoteImage.self,
+                    UserSettings.self
+                ])
     }
 }
 

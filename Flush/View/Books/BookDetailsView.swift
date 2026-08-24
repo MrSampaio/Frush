@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookDetailView: View {
     @ObservedObject var bookViewModel: BooksViewModel
@@ -23,6 +23,8 @@ struct BookDetailView: View {
     
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @Environment(\.modelContext) private var modelContext
+
     
     var book: Books
     
@@ -59,7 +61,7 @@ struct BookDetailView: View {
                             VStack{
                                 VStack() {
                                     NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-                                        notesViewModel.fetchNotes(for: book)
+                                        notesViewModel.fetchNotes(for: book, context: modelContext)
                                     }
                                     Divider()
                                         .frame(height: 0.3)
@@ -103,13 +105,13 @@ struct BookDetailView: View {
                 }
             }
             .onAppear {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }
             .onDisappear {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }) {
                 NoteSheetView(book: book)
                     .environmentObject(notesViewModel)
@@ -126,7 +128,7 @@ struct BookDetailView: View {
                     onSave: {
                         
                         do{
-                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages)
+                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages, context: modelContext)
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true
@@ -148,7 +150,7 @@ struct BookDetailView: View {
                 .presentationBackground(Color("BackgroundColorViews"))
             }
             .sheet(isPresented: $isPresentedEditBook, onDismiss: {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }){
                 BookSheetView(bookToEdit: book)
                     .environmentObject(photoLibraryViewModel)

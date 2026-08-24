@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 import PhotosUI
 import UIKit
-import CoreData
+import SwiftData
 
 struct SelectableImage: Identifiable {
     let id = UUID()
@@ -52,23 +52,41 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
-    func saveImageToCoreData(image: UIImage){
-        let newPhoto = Books(context: CoreDataManager.shared.viewContext)
-        
-        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
-        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
-        
-        newPhoto.bookCover = imageData
-        
-        do {
-            try CoreDataManager.shared.viewContext.save()
-            print("Success when saving the book cover")
-        } catch let error {
-            print("Error when saving the book cover \(error)")
-        }
-    }
+//    func saveImageToCoreData(image: UIImage){
+//        let newPhoto = Books(context: CoreDataManager.shared.viewContext)
+//        
+//        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+//        
+//        newPhoto.bookCover = imageData
+//        
+//        do {
+//            try CoreDataManager.shared.viewContext.save()
+//            print("Success when saving the book cover")
+//        } catch let error {
+//            print("Error when saving the book cover \(error)")
+//        }
+//    }
+    //-------------------------depois resolver essa questao de imagem-------------------------
+//    func saveImage(image: UIImage, context: ModelContext) {
+//            let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//            let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+//            
+//            
+//            let newPhotoBook = Books()
+//            newPhotoBook.bookCover = imageData
+//            
+//            context.insert(newPhotoBook)
+//            
+//            do {
+//                try context.save()
+//                print("Success when saving the book cover")
+//            } catch let error {
+//                print("Error when saving the book cover \(error)")
+//            }
+//        }
     
-    func convertImageToData(image: UIImage) -> Data?{
+    func convertImageToData(image: UIImage) -> Data{
 
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
         let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
@@ -76,26 +94,31 @@ class PhotoLibraryViewModel: ObservableObject {
         return imageData
     }
     
+//    func getCoverImage(for book: Books) -> UIImage? {
+//        if book.entity.attributesByName.keys.contains("bookCover") {
+//            
+//            if let imageData = book.value(forKey: "bookCover") as? Data, let uiImage = UIImage(data: imageData) {
+//                return uiImage
+//            }
+//            
+//            if let imageName = book.value(forKey: "bookCover") as? String, !imageName.isEmpty, let uiImage = UIImage(named: imageName) {
+//                return uiImage
+//            }
+//        }
+//        
+//        if book.entity.attributesByName.keys.contains("bookImage") {
+//            if let imageData = book.value(forKey: "bookImage") as? Data, let uiImage = UIImage(data: imageData) {
+//                return uiImage
+//            }
+//        }
+//        return nil
+//    }
     func getCoverImage(for book: Books) -> UIImage? {
-        if book.entity.attributesByName.keys.contains("bookCover") {
-            
-            if let imageData = book.value(forKey: "bookCover") as? Data, let uiImage = UIImage(data: imageData) {
-                return uiImage
-            }
-            
-            if let imageName = book.value(forKey: "bookCover") as? String, !imageName.isEmpty, let uiImage = UIImage(named: imageName) {
-                return uiImage
-            }
-        }
         
-        if book.entity.attributesByName.keys.contains("bookImage") {
-            if let imageData = book.value(forKey: "bookImage") as? Data, let uiImage = UIImage(data: imageData) {
-                return uiImage
-            }
-        }
-        return nil
+        guard let data = book.bookCover else { return nil }
+        return UIImage(data: data)
     }
-    
+
     func loadPickedItems(_ items: [PhotosPickerItem]) {
         Task {
             for item in items {
