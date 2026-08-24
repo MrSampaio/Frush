@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct SelectBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
     @Binding var selectedBook: Books?
     
@@ -26,13 +28,13 @@ struct SelectBookSheetView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(booksViewModel.savedBooks, id: \.objectID) { book in
+                        ForEach(booksViewModel.savedBooks, id: \.self) { book in
                             let isSelected = selectedBook == book
                             
                             Button(action: {
                                 selectedBook = book
-                                userSettingsViewModel.updateUserSettings(newLastBook: book)
-                                userSettingsViewModel.fetchUserSettings()
+                                userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
+                                userSettingsViewModel.fetchUserSettings(context: modelContext)
                                 
                                 stopwatchViewModel.getTotalPages(book: book)
                                 stopwatchViewModel.getCurrentPage(book: book)
@@ -73,10 +75,10 @@ struct SelectBookSheetView: View {
                 )
             }
             .onAppear {
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
             }
             .onDisappear{
-                userSettingsViewModel.fetchUserSettings()
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
         }
     }

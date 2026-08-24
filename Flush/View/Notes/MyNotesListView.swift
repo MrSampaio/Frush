@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct MyNotesListView: View {
     @StateObject private var viewModel = NotesViewModel()
     @Environment(\.dismiss) var dismiss
     @State private var selectedNote: Notes?
     @State private var isPresentedAddNote: Bool = false
+    @Environment(\.modelContext) private var modelContext
+
     
     var book: Books?
     
@@ -52,13 +54,13 @@ struct MyNotesListView: View {
                 })
             }
             .onAppear {
-                viewModel.fetchNotes(for: book)
+                viewModel.fetchNotes(for: book, context: modelContext)
             }
     //        .sheet(item: $selectedNote) { note in
     //            NoteDetailSheetView(note: note)
     //        }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                viewModel.fetchNotes(for: book)
+                viewModel.fetchNotes(for: book, context: modelContext)
             }) {
                 if let book = book {
                     NoteSheetView(book: book)

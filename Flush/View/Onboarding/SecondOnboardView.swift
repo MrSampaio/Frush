@@ -80,11 +80,14 @@
  */
 
 import SwiftUI
+import SwiftData
 
 struct SecondOnboardView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @State private var selectedGoal: String = ""
     var onStart: (() -> Void)? = nil
+    @Environment(\.modelContext) private var modelContext
+
 
     var body: some View {
         ZStack {
@@ -152,7 +155,7 @@ struct SecondOnboardView: View {
                 
                 ButtonAction(text: "Iniciar jornada", colorButton: "ActionColor"){
                     if let minutes = Int(selectedGoal) {
-                            booksViewModel.saveDailyGoal(minutes: minutes)
+                        booksViewModel.saveDailyGoal(minutes: minutes, context: modelContext)
                     }
                     onStart?()
                 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct StopwatchInitialView: View {
     var namespace: Namespace.ID
@@ -14,6 +15,8 @@ struct StopwatchInitialView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
     @State var selectedBook: Books?
     
@@ -39,6 +42,32 @@ struct StopwatchInitialView: View {
             return "Iniciar leitura"
         }
     }
+    
+    private var timePickerSection: some View {
+        VStack(spacing: 8) {
+            Text("Selecione o tempo de leitura")
+                .font(.body)
+                .foregroundColor(.white)
+            
+            Button(action: {
+                isShowingTimerPicker = true
+            }) {
+                Text(stopwatchViewModel.timerFormater())
+                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .monospacedDigit()
+                    .matchedGeometryEffect(id: "timerText", in: namespace)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(timerCapsuleBackground)
+                    .overlay(timerCapsuleBorder)
+                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+            }
+            .disabled(stopwatchViewModel.timerState != .stopped)
+            .buttonStyle(.plain)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -51,47 +80,8 @@ struct StopwatchInitialView: View {
                     
                     VStack(spacing: 20) {
                         Spacer()
-                        
-                        // Campo de Seleção do Tempo
-                        VStack(spacing: 8) {
-                            Text("Selecione o tempo de leitura")
-                                .font(.body)
-                                .foregroundColor(.white)
-                            
-                            Button(action: {
-                                isShowingTimerPicker = true
-                            }) {
-                                Text(stopwatchViewModel.timerFormater())
-                                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .monospacedDigit()
-                                    .matchedGeometryEffect(id: "timerText", in: namespace)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                                .fill(Color("StopwatchSelectors").opacity(0.2))
-                                        }
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                            .stroke(
-                                                LinearGradient(
-                                                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 0.5
-                                            )
-                                    )
-                                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                            }
-                            .disabled(stopwatchViewModel.timerState != .stopped)
-                            .buttonStyle(.plain)
-                        }
-                        
+                        timePickerSection
+
                         VStack(spacing: 24) {
                             bookSelectionButton
                             
@@ -113,18 +103,8 @@ struct StopwatchInitialView: View {
                                     }
                                 }
                                 .padding(.top, 8)
-                                
 
-                                if stopwatchViewModel.timerState != .stopped {
-                                    Button(action: {
-                                        showAbandonAlert = true
-                                    }) {
-                                        Text("Abandonar leitura")
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.red)
-                                            .padding(.vertical, 8)
-                                    }
-                                }
+                                abandonButton
                             }
                             .padding(.horizontal)
                         }
@@ -185,8 +165,8 @@ struct StopwatchInitialView: View {
                 }
                 
                 .onAppear {
-                    booksViewModel.fetchBooks()
-                    userSettingsViewModel.fetchUserSettings()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    userSettingsViewModel.fetchUserSettings(context: modelContext)
                     
                     if selectedBook == nil {
                         selectedBook = userSettingsViewModel.lastBookReaded
@@ -207,8 +187,39 @@ struct StopwatchInitialView: View {
             }
         }
     }
+     var timerCapsuleBackground: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 100, style: .continuous)
+                .fill(Color("StopwatchSelectors").opacity(0.2))
+        }
+    }
+
+     var timerCapsuleBorder: some View {
+        RoundedRectangle(cornerRadius: 100, style: .continuous)
+            .stroke(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                lineWidth: 0.5
+            )
+    }
+    @ViewBuilder
+     var abandonButton: some View {
+        if stopwatchViewModel.timerState != .stopped {
+            Button(action: {
+                showAbandonAlert = true
+            }) {
+                Text("Abandonar leitura")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.red)
+                    .padding(.vertical, 8)
+            }
+        }
+    }
     
-    private var bookSelectionButton: some View {
+     var bookSelectionButton: some View {
         VStack(spacing: 8) {
             Text("Selecione o livro")
                 .font(.body)
@@ -279,8 +290,9 @@ struct StopwatchInitialView: View {
         }
         .padding(.horizontal, 24)
     }
-    
-    private func bookProgressSection(_ book: Books) -> some View {
+        
+    @ViewBuilder
+    func bookProgressSection(_ book: Books) -> some View {
         VStack(spacing: 10) {
             HStack {
                 Text("Progresso do livro")
@@ -306,7 +318,7 @@ struct StopwatchInitialView: View {
         }
     }
     
-    private func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
+     func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
         Group {
             if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                 Image(uiImage: uiImage)
@@ -405,7 +417,7 @@ struct StopwatchInitialView: View {
                             currentBook.bookCurrentPage = newPage
                             
                             do {
-                                try booksViewModel.saveBook()
+                                try booksViewModel.saveBook(context: modelContext)
                             } catch let error as LocalizedError {
                                 errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                                 showErrorAlert = true
@@ -418,10 +430,10 @@ struct StopwatchInitialView: View {
                         let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
                         let minutesRead = max(1, rawMinutes)
                         
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
+                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead, context: modelContext)
                         
-                        booksViewModel.fetchBooks()
-                        userSettingsViewModel.fetchUserSettings()
+                        booksViewModel.fetchBooks(context: modelContext)
+                        userSettingsViewModel.fetchUserSettings(context: modelContext)
                         tempReadedPages = ""
                         stopwatchViewModel.showProgressSheet = false
                     }

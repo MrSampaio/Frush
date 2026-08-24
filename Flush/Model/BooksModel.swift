@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Books1 {
+final class Books {
     var bookAuthor: String
     var bookCategory: String
     var bookCover: Data?
@@ -23,7 +23,7 @@ final class Books1 {
     @Relationship(inverse: \Notes.book)
     var notes: [Notes]? = []
     
-    var userSetttings: UserSettings1?
+    var userSetttings: UserSettings?
     
     init(bookAuthor: String, bookCategory: String, bookCover: Data? = nil, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool) {
         self.bookAuthor = bookAuthor

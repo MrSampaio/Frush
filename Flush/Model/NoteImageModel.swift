@@ -9,11 +9,11 @@ import Foundation
 import SwiftData
 
 @Model
-final class NoteImage1 {
+final class NoteImage {
     @Attribute(.unique) var id: UUID
     var fileName: String
     
-    var note: Notes1?
+    var note: Notes?
     
     init(id: UUID, fileName: String) {
         self.id = id
