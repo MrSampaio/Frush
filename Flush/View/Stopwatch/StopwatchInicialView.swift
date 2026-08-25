@@ -84,13 +84,15 @@ struct StopwatchInitialView: View {
                         
                         VStack(spacing: 12) {
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor"){
-                                guard selectedBook != nil && stopwatchViewModel.timerFormater() != "00:00" else {
+                                guard let book = selectedBook, stopwatchViewModel.timerFormater() != "00:00" else {
                                     isShowingNoBookAlert = true
                                     return
                                 }
                                 
+                                userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
                                 stopwatchViewModel.startTimer()
                             }
+                            
                             .padding(.top, 8)
                         }
                         .padding(.horizontal)
