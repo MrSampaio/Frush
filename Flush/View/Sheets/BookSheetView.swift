@@ -8,11 +8,14 @@
 import Foundation
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct BookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
     @State var bookToEdit: Books?
     @State private var initialCoverImage: UIImage? = nil
@@ -167,6 +170,13 @@ struct BookSheetView: View {
                             initialCoverImage = nil
                         }
                     }
+                    
+                    .onTapGesture {
+                        #if canImport(UIKit)
+                                        hideKeyboard()
+                        #endif
+                    }
+                    .scrollDismissesKeyboard(.interactively)
                 }
             }
         }
@@ -180,9 +190,9 @@ struct BookSheetView: View {
                     bookAuthor: bookAuthor,
                     bookCover: photoLibraryViewModel.selectedCoverImage,
                     bookCategory: selectedCategory,
-                    bookTotalPages: bookTotalPages
+                    bookTotalPages: bookTotalPages, context: modelContext
                 )
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
                 dismiss()
             } catch let error as LocalizedError {
                 errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -198,9 +208,9 @@ struct BookSheetView: View {
                     bookAuthor: bookAuthor,
                     bookCover: photoLibraryViewModel.selectedCoverImage,
                     bookCategory: selectedCategory,
-                    bookTotalPages: bookTotalPages
+                    bookTotalPages: bookTotalPages, context: modelContext
                 )
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
                 dismiss()
             } catch let error as LocalizedError {
                 errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."

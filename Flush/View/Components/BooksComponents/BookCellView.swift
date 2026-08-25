@@ -9,10 +9,11 @@ import SwiftUI
 
 struct BookCellView: View {
     let book: Books
+    var isSelected: Bool = false 
     
     var progress: Double {
-            guard book.bookTotalPages > 0 else { return 0 }
-            return min(1, Double(book.bookCurrentPage) / Double(book.bookTotalPages))
+        guard book.bookTotalPages > 0 else { return 0 }
+        return min(1, Double(book.bookCurrentPage) / Double(book.bookTotalPages))
     }
     
     var body: some View {
@@ -36,7 +37,8 @@ struct BookCellView: View {
                 Text(book.bookTitle ?? "Sem Título")
                     .font(.title2)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    // ✨ Se estiver selecionado, usa a ActionColor, senão usa branco
+                    .foregroundStyle(isSelected ? Color("ActionColor") : .white)
                     .lineLimit(1)
                 
                 Text(book.bookAuthor ?? "Desconhecido")
@@ -69,4 +71,3 @@ struct BookCellView: View {
         }
     }
 }
-

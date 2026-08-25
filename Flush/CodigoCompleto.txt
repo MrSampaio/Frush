@@ -1,7 +1,7 @@
-### Link Github: https://github.com/MrSampaio/Frush 
+// ========================================
+// Arquivo: ./ViewModel/BookFilterViewModel.swift
+// ========================================
 
-### Arquivo: \⁠ ./ViewModel/BookFilterViewModel.swift\ ⁠
-⁠ swift
 //
 //  BookFilterViewModel.swift
 //  CH4-Books
@@ -45,12 +45,13 @@ class BookFilterViewModel: ObservableObject {
         return result
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./ViewModel/UserSettingsViewModel.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./ViewModel/UserSettingsViewModel.swift
+// ========================================
+
 //
 //  UserSettingsViewModel.swift
 //  CH4-Books
@@ -226,12 +227,13 @@ extension View {
     }
 }
 #endif
- ⁠
 
----
 
-### Arquivo: \⁠ ./ViewModel/StopwatchViewModel.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./ViewModel/StopwatchViewModel.swift
+// ========================================
+
 //
 //  stopwatchViewModel.swift
 //  CH4-Books
@@ -515,12 +517,13 @@ class StopwatchViewModel: ObservableObject {
     }
     
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./ViewModel/NotesViewModel.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./ViewModel/NotesViewModel.swift
+// ========================================
+
 //
 //  NotesViewModel.swift
 //  CH4-Books
@@ -714,12 +717,13 @@ class NotesViewModel: ObservableObject {
 //        }
 //    }
     
- ⁠
 
----
 
-### Arquivo: \⁠ ./ViewModel/PhotoLibraryViewModel.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./ViewModel/PhotoLibraryViewModel.swift
+// ========================================
+
 //
 //  PhotoLibraryViewModel.swift
 //  CH4-Books
@@ -846,12 +850,13 @@ class PhotoLibraryViewModel: ObservableObject {
         noteImages.removeAll()
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./ViewModel/BooksViewModel.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./ViewModel/BooksViewModel.swift
+// ========================================
+
 //
 //  BooksViewModel.swift
 //  CH4-Books
@@ -1171,12 +1176,13 @@ class BooksViewModel: ObservableObject {
 //        }
 //    }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./CH4_BooksApp.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./CH4_BooksApp.swift
+// ========================================
+
 //
 //  CH4_BooksApp.swift
 //  CH4-Books
@@ -1257,12 +1263,13 @@ struct RootFlowView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./Managers/CoreDataManager.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./Managers/CoreDataManager.swift
+// ========================================
+
 //
 //  CoreDataManager.swift
 //  CH4-Books
@@ -1338,12 +1345,13 @@ class CoreDataManager{
 //    }
 //}
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./Managers/SoundManager.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./Managers/SoundManager.swift
+// ========================================
+
 //
 //  SoundManager.swift
 //  CH4-Books
@@ -1388,12 +1396,13 @@ class SoundManager {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./Managers/NotificationManager.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./Managers/NotificationManager.swift
+// ========================================
+
 //
 //  NotificationManager.swift
 //  CH4-Books
@@ -1471,12 +1480,13 @@ class NotificationManager {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./Extensions/FontTypography.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./Extensions/FontTypography.swift
+// ========================================
+
 //
 //  FontTypography.swift
 //  CH4-Books
@@ -1515,12 +1525,13 @@ extension Font {
         return Font.custom(weight.rawValue, size: pointSize, relativeTo: style)
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/PreviewHelper/PreviewProviderHelper.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/PreviewHelper/PreviewProviderHelper.swift
+// ========================================
+
 //
 //  test.swift
 //  CH4-Books
@@ -1572,12 +1583,13 @@ struct PreviewProviderHelper {
     }
     .environment(\.managedObjectContext, PreviewProviderHelper.sharedContainer.viewContext)
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/SelectBookSheetView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/SelectBookSheetView.swift
+// ========================================
+
 //
 //  SelectBookSheetView.swift
 //  CH4-Books
@@ -1670,12 +1682,13 @@ struct SelectBookSheetView: View {
         .environmentObject(UserSettingsViewModel())
         .environmentObject(StopwatchViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/NoteSheetView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/NoteSheetView.swift
+// ========================================
+
 //
 //  NoteSheetView.swift
 //  CH4-Books
@@ -1990,12 +2003,13 @@ struct NoteSheetView: View {
     NoteSheetView(book: PreviewProviderHelper.sampleBook)
         .environmentObject(NotesViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/NoteDetailSheetView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/NoteDetailSheetView.swift
+// ========================================
+
 //
 //  NoteDetailSheetView.swift
 //  CH4-Books
@@ -2138,12 +2152,13 @@ struct NoteDetailSheetView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/BottomSheet.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/BottomSheet.swift
+// ========================================
+
 //
 //  EditDailyGoalSheet.swift
 //  CH4-Books
@@ -2323,12 +2338,13 @@ struct BottomSheet: View {
 
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/PageProgressSheet.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/PageProgressSheet.swift
+// ========================================
+
 //
 //  PageProgressSheet.swift
 //  CH4-Books
@@ -2435,12 +2451,13 @@ struct PageProgressSheetView: View {
 
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Sheets/BookSheetView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Sheets/BookSheetView.swift
+// ========================================
+
 //
 //  AddBookSheetView.swift
 //  CH4-Books
@@ -2668,12 +2685,13 @@ struct BookSheetView: View {
         .environmentObject(BooksViewModel())
 }
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Core/ContentView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Core/ContentView.swift
+// ========================================
+
 //
 //  ContentView.swift
 //  CH4-Books
@@ -2745,12 +2763,13 @@ struct ContentView: View {
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Books/BookSearchView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Books/BookSearchView.swift
+// ========================================
+
 //
 //  BookSearchView.swift
 //  CH4-Books
@@ -2933,12 +2952,13 @@ struct BookSearchView: View {
         .environmentObject(booksVM)
         .environmentObject(notesVM)
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Books/BookDetailsView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Books/BookDetailsView.swift
+// ========================================
+
 //
 //  BookDetailView.swift
 //  CH4-Books
@@ -3115,12 +3135,13 @@ struct BookDetailView: View {
 //        .environmentObject(PhotoLibraryViewModel())
 //        .environmentObject(NotesViewModel())
 //}
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Books/BookCaseView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Books/BookCaseView.swift
+// ========================================
+
 //
 //  BookCaseView.swift (REFATORADO)
 //  CH4-Books
@@ -3287,12 +3308,13 @@ struct BookCaseView: View {
         .environmentObject(StopwatchViewModel())
         .environmentObject(BookFilterViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/StopwatchComponents/TimePickerView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/StopwatchComponents/TimePickerView.swift
+// ========================================
+
 ////
 ////  TimePickerView.swift
 ////  CH4-Books
@@ -3351,12 +3373,13 @@ struct BookCaseView: View {
 //
 //    }
 //}
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/StopwatchComponents/ConcentricRingsView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/StopwatchComponents/ConcentricRingsView.swift
+// ========================================
+
 //
 //  ConcentricRingsView.swift
 //  CH4-Books
@@ -3416,12 +3439,13 @@ struct ConcentricRingsView: View {
         return progress >= threshold
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/OnboardingComponents/MenuSheetPickerOnboarding.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/OnboardingComponents/MenuSheetPickerOnboarding.swift
+// ========================================
+
 //
 //  MenuSheetPickerOnboarding.swift
 //  CH4-Books
@@ -3484,12 +3508,13 @@ struct MenuSheetPickerOnboarding: View {
 
 
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/NotesComponents/NoteCardView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/NotesComponents/NoteCardView.swift
+// ========================================
+
 //
 //  NoteCardView.swift
 //  CH4-Books
@@ -3554,12 +3579,13 @@ struct NotesCardView: View {
         description: "Descrição inicial da primeira..."
     )
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/NotesComponents/NoteDetailsToolbar.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/NotesComponents/NoteDetailsToolbar.swift
+// ========================================
+
 //
 //  NoteDetailsToolbar.swift
 //  CH4-Books
@@ -3610,12 +3636,13 @@ struct NoteDetailsToolbar: ToolbarContent {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/NotesComponents/NoteCellView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/NotesComponents/NoteCellView.swift
+// ========================================
+
 //
 //  NoteCellView.swift
 //  CH4-Books
@@ -3697,12 +3724,13 @@ struct NoteCellView: View {
     }
 }
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/NotesComponents/MyNotesToolBar.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/NotesComponents/MyNotesToolBar.swift
+// ========================================
+
 //
 //  MyNotesTollBar.swift
 //  CH4-Books
@@ -3759,12 +3787,13 @@ struct MyNotesToolBar: ToolbarContent {
     }
 }
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/BookCellView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/BookCellView.swift
+// ========================================
+
 //
 //  BookCellView.swift
 //  CH4-Books
@@ -3838,12 +3867,13 @@ struct BookCellView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/TitleComponent.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/TitleComponent.swift
+// ========================================
+
 //
 //  TitleComponent.swift
 //  CH4-Books
@@ -3868,12 +3898,13 @@ struct TitleComponent: View {
 #Preview {
     TitleComponent(title: "Teste")
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/BookCardView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/BookCardView.swift
+// ========================================
+
 //
 //  BookCardView.swift
 //  CH4-Books
@@ -4005,12 +4036,13 @@ struct BookCardView: View {
 //    }
 //}
 //
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/CardTotalPages.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/CardTotalPages.swift
+// ========================================
+
 //
 //  CardTotalPages.swift
 //  CH4-Books
@@ -4073,12 +4105,13 @@ struct CardTotalPages: View {
 #Preview {
     CardTotalPages(totalPages: 0)
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/ToolBarAddButton.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/ToolBarAddButton.swift
+// ========================================
+
 //
 //  ToolBarAddButton.swift
 //  CH4-Books
@@ -4162,12 +4195,13 @@ struct BookCaseToolbar: ToolbarContent {
     
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksComponents/DailyGoalCard.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksComponents/DailyGoalCard.swift
+// ========================================
+
 //
 //  DailyGoalCard.swift
 //  CH4-Books
@@ -4314,12 +4348,13 @@ struct DailyGoalCardView: View {
         .padding()
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksDetailsComponents/BooksDetailsToolbar.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksDetailsComponents/BooksDetailsToolbar.swift
+// ========================================
+
 //
 //  BooksDetailsToolbar.swift
 //  CH4-Books
@@ -4368,12 +4403,13 @@ struct BooksDetailsToolbar: ToolbarContent {
     
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksDetailsComponents/BookInstanceDetailView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksDetailsComponents/BookInstanceDetailView.swift
+// ========================================
+
 //
 //  teste.swift
 //  CH4-Books
@@ -4483,12 +4519,13 @@ struct BookInstanceDetailView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/BooksDetailsComponents/NotesHeaderview.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/BooksDetailsComponents/NotesHeaderview.swift
+// ========================================
+
 //
 //  NotesHeaderview.swift
 //  CH4-Books
@@ -4523,12 +4560,13 @@ struct NotesHeaderview: View {
 #Preview {
     NotesHeaderview(isPresentedAddNote: .constant(false))
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/NoteFieldView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/NoteFieldView.swift
+// ========================================
+
 //
 //  NoteFieldView.swift
 //  CH4-Books
@@ -4581,12 +4619,13 @@ struct NoteFieldView: View {
             }
         }
     }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/BottomSheetToolbar.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/BottomSheetToolbar.swift
+// ========================================
+
 //
 //  BottomSheetToolbar.swift
 //  CH4-Books
@@ -4660,12 +4699,13 @@ struct BottomSheetToolbar: ToolbarContent {
     
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/TextFieldSheets.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/TextFieldSheets.swift
+// ========================================
+
 //
 //  TextFieldSheets.swift
 //  CH4-Books
@@ -4728,12 +4768,13 @@ struct TextFieldSheets: View {
         .padding()
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/MenuSheetPicker.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/MenuSheetPicker.swift
+// ========================================
+
 //
 //  MenuSheetPicker.swift
 //  CH4-Books
@@ -4791,12 +4832,13 @@ struct MenuSheetPicker: View {
 
 
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/MediaThumbView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/MediaThumbView.swift
+// ========================================
+
 //
 //  MediaThumbView.swift
 //  CH4-Books
@@ -4830,12 +4872,13 @@ struct MediaThumbnailView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/NotesToolBar.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/NotesToolBar.swift
+// ========================================
+
 //
 //  NotesHeaderEditView.swift
 //  CH4-Books
@@ -4907,12 +4950,13 @@ struct NotesToolBar: ToolbarContent {
     
     return PreviewWrapper()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/CategorySelectGroup.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/CategorySelectGroup.swift
+// ========================================
+
 //
 //  CategorySelectGroup.swift
 //  CH4-Books
@@ -4978,12 +5022,13 @@ struct CategoryMenuView: View {
         .padding()
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/NotesSectionView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/NotesSectionView.swift
+// ========================================
+
 //
 //  NotesSectionView.swift
 //  CH4-Books
@@ -5146,12 +5191,13 @@ struct NoteRowView: View {
     }
     .environmentObject(NotesViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/SheetsComponents/SheetHeaderView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/SheetsComponents/SheetHeaderView.swift
+// ========================================
+
 //
 //  SheetHeaderView.swift
 //  CH4-Books
@@ -5247,12 +5293,13 @@ struct SheetHeaderView: ToolbarContent {
     return PreviewWrapper()
 }
 
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/GeralComponents/ButtonAction.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/GeralComponents/ButtonAction.swift
+// ========================================
+
 //
 //  ButtonAction.swift
 //  CH4-Books
@@ -5319,12 +5366,13 @@ extension View {
     }
     .padding()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/GeralComponents/TipsComponent.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/GeralComponents/TipsComponent.swift
+// ========================================
+
 //
 //  TipsComponent.swift
 //  CH4-Books
@@ -5352,12 +5400,13 @@ struct TipsComponent: View {
         content: "Tips"
     )
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Components/GeralComponents/ToolBarButton.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Components/GeralComponents/ToolBarButton.swift
+// ========================================
+
 //
 //  StopwatchToolbar.swift
 //  CH4-Books
@@ -5407,12 +5456,13 @@ struct ToolBarButton: ToolbarContent {
     }
     .preferredColorScheme(.dark)
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Notes/MyNotesListView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Notes/MyNotesListView.swift
+// ========================================
+
 //
 //  NoteListView.swift
 //  CH4-Books
@@ -5492,12 +5542,13 @@ struct NotesListView_Previews: PreviewProvider {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Notes/NotesView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Notes/NotesView.swift
+// ========================================
+
 //
 //  NotesView.swift
 //  CH4-Books
@@ -5549,12 +5600,13 @@ struct NotesView: View {
 #Preview {
     NotesView()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Stopwatch/StopwatchView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Stopwatch/StopwatchView.swift
+// ========================================
+
 //
 //  StopWatchView.swift
 //  CH4-Books
@@ -5724,12 +5776,13 @@ struct StopwatchView: View {
 //        .environmentObject(StopwatchViewModel())
 //        .environmentObject(PhotoLibraryViewModel())
 //}
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Stopwatch/StopwatchInicialView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Stopwatch/StopwatchInicialView.swift
+// ========================================
+
 //
 //  StopwatchInitialView.swift
 //  CH4-Books
@@ -6165,12 +6218,13 @@ struct StopwatchInitialView: View {
         }
     }
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Onboarding/FirstOnboardView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Onboarding/FirstOnboardView.swift
+// ========================================
+
 //
 //  FirstOnboardView.swift
 //  CH4-Books
@@ -6258,12 +6312,13 @@ struct FirstOnboardView: View {
 #Preview {
     FirstOnboardView()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Onboarding/SecondOnboardView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Onboarding/SecondOnboardView.swift
+// ========================================
+
 //
 //  SecondOnboardView.swift
 //  CH4-Books
@@ -6434,12 +6489,13 @@ struct SecondOnboardView: View {
     SecondOnboardView()
         .environmentObject(BooksViewModel())
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./View/Onboarding/SplashView.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./View/Onboarding/SplashView.swift
+// ========================================
+
 //
 //  SplashView.swift
 //  CH4-Books
@@ -6509,12 +6565,13 @@ extension Color {
 #Preview {
     SplashView()
 }
- ⁠
 
----
 
-### Arquivo: \⁠ ./Services/CameraPicker.swift\ ⁠
-⁠ swift
+
+// ========================================
+// Arquivo: ./Services/CameraPicker.swift
+// ========================================
+
 //
 //  CameraPicker.swift
 //  CH4-Books
@@ -6573,7 +6630,6 @@ struct CameraPicker: UIViewControllerRepresentable {
         }
     }
 }
- ⁠
 
----
+
 

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookSearchView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
@@ -15,13 +15,14 @@ struct BookSearchView: View {
     @State private var isSearchPresented = false
     @State private var selectedBook: Books?
     @State private var selectedNote: Notes?
+    @Environment(\.modelContext) private var modelContext
 
     var filteredBooks: [Books] {
         if searchText.isEmpty {
             return booksViewModel.savedBooks
         } else {
             return booksViewModel.savedBooks.filter { book in
-                book.bookTitle?.localizedCaseInsensitiveContains(searchText) ?? false
+                book.bookTitle.localizedCaseInsensitiveContains(searchText) ?? false
             }
         }
     }
@@ -31,7 +32,7 @@ struct BookSearchView: View {
             return notesViewModel.savedNotes
         } else {
             return notesViewModel.savedNotes.filter { note in
-                note.noteTitle?.localizedCaseInsensitiveContains(searchText) ?? false
+                note.noteTitle.localizedCaseInsensitiveContains(searchText) ?? false
             }
         }
     }
@@ -110,21 +111,27 @@ struct BookSearchView: View {
                 )
                 .onAppear {
                     isSearchPresented = true
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }
                 .sheet(item: $selectedBook, onDismiss: {
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }) { book in
                     BookDetailView(bookViewModel: booksViewModel, book: book)
                 }
                 .sheet(item: $selectedNote, onDismiss: {
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }) { note in
                     NoteDetailSheetView(note: note)
                 }
+                .onTapGesture {
+                    #if canImport(UIKit)
+                                    hideKeyboard()
+                    #endif
+                }
+                .scrollDismissesKeyboard(.interactively)
             }
             
         }
@@ -132,45 +139,100 @@ struct BookSearchView: View {
 }
 
 
-#Preview {
-    let context = CoreDataManager.shared.viewContext
-    
-    let book1 = Books(context: context)
-    book1.bookTitle = "Dom Casmurro"
-    book1.bookAuthor = "Machado de Assis"
-    book1.bookCategory = "Romance"
-    book1.bookTotalPages = 256
-    book1.bookCurrentPage = 120
-    book1.isTimerRunning = false
-    book1.wasLastPageAdded = true
-    
-    let book2 = Books(context: context)
-    book2.bookTitle = "O Pequeno Príncipe"
-    book2.bookAuthor = "Antoine de Saint-Exupéry"
-    book2.bookCategory = "Infantil"
-    book2.bookTotalPages = 96
-    book2.bookCurrentPage = 96
-    book2.isTimerRunning = false
-    book2.wasLastPageAdded = true
-    
-    let note1 = Notes(context: context)
-    note1.noteTitle = "Anotações sobre "
-    note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
-    note1.noteCategory = "Pensamento"
-    note1.book = book1
-    
-    let note2 = Notes(context: context)
-    note2.noteTitle = "Ideias para resumo"
-    note2.noteDescription = "Pontos principais do capítulo 3."
-    note2.noteCategory = "Resumo"
-    note2.book = book2
-    
-    try? context.save()
-    
-    let booksVM = BooksViewModel()
-    let notesVM = NotesViewModel()
-    
-    return BookSearchView()
-        .environmentObject(booksVM)
-        .environmentObject(notesVM)
-}
+//#Preview {
+//    do {
+//        // Configura um banco de dados temporário na memória para o Preview
+//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//        let container = try ModelContainer(for: Books.self, Notes.self, configurations: config)
+//        let context = container.mainContext
+//        
+//        let book1 = Books()
+//        book1.bookTitle = "Dom Casmurro"
+//        book1.bookAuthor = "Machado de Assis"
+//        book1.bookCategory = "Romance"
+//        book1.bookTotalPages = 256
+//        book1.bookCurrentPage = 120
+//        book1.isTimerRunning = false
+//        book1.wasLastPageAdded = true
+//        
+//        let book2 = Books()
+//        book2.bookTitle = "O Pequeno Príncipe"
+//        book2.bookAuthor = "Antoine de Saint-Exupéry"
+//        book2.bookCategory = "Infantil"
+//        book2.bookTotalPages = 96
+//        book2.bookCurrentPage = 96
+//        book2.isTimerRunning = false
+//        book2.wasLastPageAdded = true
+//        
+//        let note1 = Notes()
+//        note1.noteTitle = "Anotações sobre "
+//        note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
+//        note1.noteCategory = "Pensamento"
+//        note1.book = book1
+//        
+//        let note2 = Notes()
+//        note2.noteTitle = "Ideias para resumo"
+//        note2.noteDescription = "Pontos principais do capítulo 3."
+//        note2.noteCategory = "Resumo"
+//        note2.book = book2
+//        
+//        context.insert(book1)
+//        context.insert(book2)
+//        context.insert(note1)
+//        context.insert(note2)
+//        
+//        let booksVM = BooksViewModel()
+//        let notesVM = NotesViewModel()
+//        
+//        BookSearchView()
+//            .environmentObject(booksVM)
+//            .environmentObject(notesVM)
+//            .modelContainer(container)
+//    } catch {
+//        fatalError("Failed to create model container for preview: \(error)")
+//    }
+//}
+
+
+//#Preview {
+//    let context = CoreDataManager.shared.viewContext
+//    
+//    let book1 = Books(context: context)
+//    book1.bookTitle = "Dom Casmurro"
+//    book1.bookAuthor = "Machado de Assis"
+//    book1.bookCategory = "Romance"
+//    book1.bookTotalPages = 256
+//    book1.bookCurrentPage = 120
+//    book1.isTimerRunning = false
+//    book1.wasLastPageAdded = true
+//    
+//    let book2 = Books(context: context)
+//    book2.bookTitle = "O Pequeno Príncipe"
+//    book2.bookAuthor = "Antoine de Saint-Exupéry"
+//    book2.bookCategory = "Infantil"
+//    book2.bookTotalPages = 96
+//    book2.bookCurrentPage = 96
+//    book2.isTimerRunning = false
+//    book2.wasLastPageAdded = true
+//    
+//    let note1 = Notes(context: context)
+//    note1.noteTitle = "Anotações sobre "
+//    note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
+//    note1.noteCategory = "Pensamento"
+//    note1.book = book1
+//    
+//    let note2 = Notes(context: context)
+//    note2.noteTitle = "Ideias para resumo"
+//    note2.noteDescription = "Pontos principais do capítulo 3."
+//    note2.noteCategory = "Resumo"
+//    note2.book = book2
+//    
+//    try? context.save()
+//    
+//    let booksVM = BooksViewModel()
+//    let notesVM = NotesViewModel()
+//    
+//    return BookSearchView()
+//        .environmentObject(booksVM)
+//        .environmentObject(notesVM)
+//}

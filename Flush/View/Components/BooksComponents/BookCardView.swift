@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookCardView: View {
-    @ObservedObject var book: Books
+    @Environment(\.modelContext) private var modelContext
+    //nao e mais necessario observedObject
+    var book: Books
     
     @State private var isEditingSheetPresented = false
     @State private var isShowingDeleteAlert = false
@@ -95,7 +97,7 @@ struct BookCardView: View {
         
         .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
             withAnimation{
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }
         }) {
             BookSheetView(bookToEdit: book)
@@ -107,7 +109,7 @@ struct BookCardView: View {
             Button("Apagar", role: .destructive) {
                 withAnimation {
                     do {
-                        try bookViewModel.deleteBook(book: book)
+                        try bookViewModel.deleteBook(book: book, context: modelContext)
                     } catch {
                         print("Erro ao tentar apagar o livro: \(error.localizedDescription)")
                     }

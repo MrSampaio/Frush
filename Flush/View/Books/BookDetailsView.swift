@@ -6,15 +6,20 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookDetailView: View {
     @ObservedObject var bookViewModel: BooksViewModel
+    @ObservedObject var userSettingsViewModel = UserSettingsViewModel()
     @StateObject private var notesViewModel = NotesViewModel()
     @State private var isPresentedAddNote: Bool = false
     @State private var isPresentedEditBook: Bool = false
     @State private var isPresentedBottomSheet: Bool = false
     @State private var tempGoalMinutes: Int = 15
+    
+    @State private var navigateToTimer: Bool = false
+    @State private var bookForTimer: Books? = nil
+    @Namespace private var stopwatchNamespace
     
     @State private var tempReadedPages: String = ""
     
@@ -22,6 +27,8 @@ struct BookDetailView: View {
     
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @Environment(\.modelContext) private var modelContext
+
     
     var book: Books
     
@@ -44,6 +51,28 @@ struct BookDetailView: View {
                             .environmentObject(PhotoLibraryViewModel())
                             .id(book.bookCover ?? Data())
                         
+                        VStack(spacing: 16) {
+                            
+                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
+                                isPresentedBottomSheet.toggle()
+                            }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                    .stroke(Color.orange, lineWidth: 1)
+                            )
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
+                            
+                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor") {
+                                bookForTimer = book
+                                navigateToTimer = true
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .padding(.bottom, 24)
+                        
+                        
                         CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
                             .padding(.horizontal)
                         
@@ -58,10 +87,8 @@ struct BookDetailView: View {
                             VStack{
                                 VStack() {
                                     NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-                                        notesViewModel.fetchNotes(for: book)
+                                        notesViewModel.fetchNotes(for: book, context: modelContext)
                                     }
-                                    
-                                    
                                     Divider()
                                         .frame(height: 0.3)
                                         .background(Color("LinesColor"))
@@ -83,34 +110,14 @@ struct BookDetailView: View {
 =======
 >>>>>>> dev
                             }
-                            
-//                            NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-//                                notesViewModel.fetchNotes(for: book)
-//                            }
-//                            
-//                            NavigationLink(destination: MyNotesListView(book: book)) {
-//                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
-//                                        .font(.system(size: 14, weight: .semibold))
-//                                        .foregroundColor(Color(.action))
-//                                        .frame(maxWidth: .infinity, alignment: .leading)
-//                                        .padding(.horizontal,28)
-//                                        .padding(.vertical)
-//                                        .padding(.bottom, 10)
-//                                }
-//                                
-//                            }
-//                            .background(Color("CardNoteColor"))
-//                            .cornerRadius(30)
-//                            .padding(.horizontal)
+
                             
                             NavigationLink(destination: MyNotesListView(book: book)) {
                                 
-//                                Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver todas as anotações")
                                 Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(Color(.action))
                                     .frame(maxWidth: .infinity, alignment: .leading)
-//                                    .padding(.horizontal)
                                     .padding(.horizontal,28)
                                     .padding(.vertical)
                                     .padding(.bottom, 10)
@@ -120,47 +127,18 @@ struct BookDetailView: View {
                         .background(Color("CardNoteColor"))
                         .cornerRadius(30)
                         .padding(.horizontal)
-                        VStack(spacing: 16) {
-                            /*
-                            Button(action: {
-                            }) {
-                                Text("Adicionar leitura")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
-                             */
-                            
-                            
-                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
-                                isPresentedBottomSheet.toggle()
-                            }
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
-                            
-                            // Button preenchido com cor
-                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
-                                .padding(.horizontal, 24)
-                        }
-       
-                        
                     }
                     .padding(.bottom, 40)
                 }
             }
             .onAppear {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }
             .onDisappear {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }) {
                 NoteSheetView(book: book)
                     .environmentObject(notesViewModel)
@@ -177,7 +155,7 @@ struct BookDetailView: View {
                     onSave: {
                         
                         do{
-                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages)
+                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages, context: modelContext)
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true
@@ -191,7 +169,7 @@ struct BookDetailView: View {
                     }
                 )
                 .onAppear {
-                    tempGoalMinutes = bookViewModel.dailyGoalMinutes
+                    tempGoalMinutes = userSettingsViewModel.dailyGoal
                     tempReadedPages = ""
                 }
                 .presentationDetents([.height(340)])
@@ -199,7 +177,7 @@ struct BookDetailView: View {
                 .presentationBackground(Color("BackgroundColorViews"))
             }
             .sheet(isPresented: $isPresentedEditBook, onDismiss: {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }){
                 BookSheetView(bookToEdit: book)
                     .environmentObject(photoLibraryViewModel)
@@ -216,6 +194,17 @@ struct BookDetailView: View {
                     isPresentedEditBook.toggle()
                     
                 })
+            }
+            
+            .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(isPresented: $navigateToTimer) {
+                withAnimation {
+                    StopwatchInitialView(
+                        namespace: stopwatchNamespace,
+                        selectedBook: $bookForTimer
+                    )
+                }
+                
             }
         }
     }

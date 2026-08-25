@@ -7,7 +7,7 @@
 
 import SwiftUI
 import PhotosUI
-import CoreData
+import SwiftData
 
 struct NoteSheetView: View {
 
@@ -31,6 +31,8 @@ struct NoteSheetView: View {
     @State private var showingDiscardAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+
+    @Environment(\.modelContext) private var modelContext
 
     private static let maxImages = 3
     
@@ -108,6 +110,13 @@ struct NoteSheetView: View {
                     }
                 )
             }
+            .onTapGesture {
+                #if canImport(UIKit)
+                                hideKeyboard()
+                #endif
+            }
+            .scrollDismissesKeyboard(.interactively)
+            
             .fullScreenCover(isPresented: $isShowingCamera) {
                 CameraPicker { image in
                     appendImage(image)
@@ -212,7 +221,9 @@ struct NoteSheetView: View {
             .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
             Button {
-                isShowingPhotoPicker = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isShowingPhotoPicker = true
+                }
             } label: {
                 Label("Escolher da galeria", systemImage: "photo.on.rectangle")
             }
@@ -268,7 +279,7 @@ struct NoteSheetView: View {
                     note: note,
                     noteTitle: noteTitle,
                     noteDescription: noteDescription,
-                    notePhotos: noteImages.map(\.image)
+                    notePhotos: noteImages.map(\.image), context: modelContext
                 )
             } else {
                 try notesViewModel.addNote(
@@ -276,11 +287,11 @@ struct NoteSheetView: View {
                     noteDescription: noteDescription,
                     noteCategory: selectedCategory,
                     notePhotos: noteImages.map(\.image),
-                    to: book
+                    to: book, context: modelContext
                 )
             }
 
-            notesViewModel.fetchNotes(for: book)
+            notesViewModel.fetchNotes(for: book, context: modelContext)
             dismiss()
 
         } catch let error as LocalizedError {
@@ -301,7 +312,7 @@ struct NoteSheetView: View {
         )
     }
 }
-#Preview {
-    NoteSheetView(book: PreviewProviderHelper.sampleBook)
-        .environmentObject(NotesViewModel())
-}
+//#Preview {
+//    NoteSheetView(book: PreviewProviderHelper.sampleBook)
+//        .environmentObject(NotesViewModel())
+//}
