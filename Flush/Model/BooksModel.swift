@@ -19,13 +19,14 @@ final class Books {
     var bookTotalPages: Int16
     var isTimerRunning: Bool
     var wasLastPageAdded: Bool
+    var readingStartDate: Date?
     
     @Relationship(inverse: \Notes.book)
     var notes: [Notes]? = []
     
     var userSetttings: UserSettings?
     
-    init(bookAuthor: String, bookCategory: String, bookCover: Data, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool) {
+    init(bookAuthor: String, bookCategory: String, bookCover: Data, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool, readingStartDate: Date?) {
         self.bookAuthor = bookAuthor
         self.bookCategory = bookCategory
         self.bookCover = bookCover
@@ -35,6 +36,6 @@ final class Books {
         self.bookTotalPages = bookTotalPages
         self.isTimerRunning = isTimerRunning
         self.wasLastPageAdded = wasLastPageAdded
+        self.readingStartDate = nil
     }
 }
-

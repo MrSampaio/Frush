@@ -142,6 +142,7 @@ struct BookDetailView: View {
                         
                         do{
                             try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages, context: modelContext)
+                            try bookViewModel.markReadingStartDate(for: book, context: modelContext)
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true

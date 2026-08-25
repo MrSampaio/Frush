@@ -199,8 +199,6 @@ class StopwatchViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.showProgressSheet = true
                 }
-                
-                
             }
         }
     }
