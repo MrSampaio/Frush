@@ -29,7 +29,7 @@ struct MyNotesListView: View {
                     
                     ScrollView(showsIndicators: false) {
                         LazyVStack(spacing: 24) {
-                            ForEach(viewModel.savedNotes, id: \.self) { note in
+                            ForEach(viewModel.savedNotes) { note in
                                 NavigationLink(destination: NoteDetailSheetView(note: note)){
                                     NoteRowView(note: note)
                                 }
