@@ -25,7 +25,7 @@ struct NotesView: View {
                         VStack(spacing: 16) {
                             ForEach(0..<5) { _ in
                                 NotesCardView(
-                                    imageName: "defaultBook",
+                                    imageName: nil,
                                     tagText: "Referência",
                                     title: "Título da nota",
                                     description: "Descrição inicial da primeira..."
