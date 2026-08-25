@@ -84,10 +84,11 @@ import SwiftData
 
 struct SecondOnboardView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
-    @State private var selectedGoal: String = ""
     var onStart: (() -> Void)? = nil
     @Environment(\.modelContext) private var modelContext
-
+    @State private var minutosDeLeitura: Int? = nil
+    
+    @State private var showingZeroTimeAlert = false
 
     var body: some View {
         ZStack {
@@ -99,7 +100,7 @@ struct SecondOnboardView: View {
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .ignoresSafeArea()
-               
+                
             VStack(spacing: 20) {
                 Spacer()
                 
@@ -137,11 +138,9 @@ struct SecondOnboardView: View {
                 .padding(.horizontal, 16)
                 
                 MenuSheetPickerOnboarding(
-                    title: "",
-                    placeholder: "Selecione uma meta",
-                    selectedValue: $selectedGoal,
-                    options: booksViewModel.goalOptions,
-                    formatOption: { "\($0) minutos" }
+                    title: "Meta Diária",
+                    placeholder: "Selecione o tempo",
+                    selectedTotalMinutes: $minutosDeLeitura
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -154,15 +153,25 @@ struct SecondOnboardView: View {
                 Spacer()
                 
                 ButtonAction(text: "Iniciar jornada", colorButton: "ActionColor"){
-                    if let minutes = Int(selectedGoal) {
+                    if let minutes = minutosDeLeitura, minutes > 0 {
+                        print(minutes)
                         booksViewModel.saveDailyGoal(minutes: minutes, context: modelContext)
+                        onStart?()
+                    } else {
+                        showingZeroTimeAlert = true
                     }
-                    onStart?()
                 }
                 .padding(.bottom, 40)
             }
             .padding(.horizontal, 26)
             
+        }
+        .alert(isPresented: $showingZeroTimeAlert) {
+            Alert(
+                title: Text("Tempo Inválido"),
+                message: Text("A meta diária precisa ser de pelo menos 1 minuto."),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 }
