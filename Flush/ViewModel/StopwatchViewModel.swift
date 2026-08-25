@@ -75,6 +75,8 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "savedBackgroundDate")
         // salva o tempo que faltava
         UserDefaults.standard.set(elapsedTime, forKey: "savedElapsedTime")
+        // salva a duração total escolhida
+        UserDefaults.standard.set(totalTime, forKey: "savedTotalTime") 
         // salva o estado do timer (se estava rodando ou pausado)
         UserDefaults.standard.set(timerState == .running ? "running" : "paused", forKey: "savedTimerState")
     }
@@ -131,7 +133,9 @@ class StopwatchViewModel: ObservableObject {
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {
         guard totalTime > 0 else { return 0 }
-        return (totalTime - elapsedTime) / totalTime
+        //return (totalTime - elapsedTime) / totalTime
+        let raw = (totalTime - elapsedTime) / totalTime
+        return (raw * 100).rounded() / 100
     }
     
     

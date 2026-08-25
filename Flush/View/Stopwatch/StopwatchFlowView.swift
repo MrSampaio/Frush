@@ -31,11 +31,16 @@ struct StopwatchFlowView: View {
                         .transition(.opacity)
                 }
             }
-            .animation(.spring(response: 0.5, dampingFraction: 0.85),
-                       value: stopwatchViewModel.timerState)
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.85),
                                value: stopwatchViewModel.timerState)
+        .onAppear {
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                
+                if selectedBook == nil {
+                    selectedBook = userSettingsViewModel.lastBookReaded
+                }
+        }
         .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
                 BottomSheet(
                             minutesPerDay: .constant(0),

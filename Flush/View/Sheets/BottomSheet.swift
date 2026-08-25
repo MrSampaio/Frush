@@ -121,23 +121,23 @@ struct BottomSheet: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                         }
-//                        .foregroundColor(Color("ActionColor"))
-//                        Button("Cancelar") {
-//                            
-//                        }
                         
                     }
                     
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
                             onSave()
                         }) {
                             Image(systemName: "checkmark")
-                                .fontWeight(.bold)
-                                .foregroundColor(Color("ActionColor"))
+                                .fontWeight(.semibold)
+                                .font(.body.bold())
+                                .foregroundColor(.title)
                         }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.circle)
                         .tint(Color("ActionColor"))
                     }
+                    
                 }
             }
             .interactiveDismissDisabled(!isPickerShown)

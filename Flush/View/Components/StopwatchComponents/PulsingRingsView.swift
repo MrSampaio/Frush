@@ -21,6 +21,7 @@ struct PulsingRingsView: View {
     /// Opacidade de um arco que ainda não acendeu
     var dimOpacity: Double = 0.15
     
+    @Environment(\.scenePhase) private var scenePhase
     @State private var pulse = false
     
     private var ringGradient: LinearGradient {
@@ -60,7 +61,7 @@ struct PulsingRingsView: View {
                         isAnimating
                         ? .easeInOut(duration: 2.6)
                             .repeatForever(autoreverses: true)
-                            .delay(Double(index) * 0.18)
+                            //.delay(Double(index) * 0.18)
                         : .default,
                         value: pulse
                     )
@@ -80,9 +81,21 @@ struct PulsingRingsView: View {
                     value: pulse
                 )
         }
+        .frame(width: baseDiameter + CGFloat(ringCount) * 130,
+                   height: baseDiameter + CGFloat(ringCount) * 130)
         .onAppear { pulse = isAnimating }
         .onChange(of: isAnimating) { _, newValue in
             pulse = newValue
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active, isAnimating else { return }
+            
+            // o sistema descarta o repeatForever ao ir para background;
+            // reinicia o ciclo ao voltar
+            pulse = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                pulse = true
+            }
         }
     }
 }

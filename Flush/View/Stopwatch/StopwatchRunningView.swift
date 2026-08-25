@@ -32,6 +32,7 @@ struct StopwatchRunningView: View {
             Color("BackgroundColorViews")
                 .ignoresSafeArea(.all)
             
+            /*
             PulsingRingsView(
                 isAnimating: isRunning,
                 baseDiameter: 440,
@@ -42,40 +43,51 @@ struct StopwatchRunningView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
             .ignoresSafeArea(.all)
+            */
+            GeometryReader { geo in
+                PulsingRingsView(
+                    isAnimating: isRunning,
+                    baseDiameter: 440,
+                    ringCount: 3,
+                    timeProgress: stopwatchViewModel.timeProgress
+                )
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)   // 👈 centro fixo
+            }
+            .allowsHitTesting(false)
+            .clipped()
+            .ignoresSafeArea(.all)
             
             // Conteúdo dentro dos arcos amarelos
             VStack(spacing: 0) {
                 Text("Tempo de leitura")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(Color("TextFieldPlaceholderColor"))
                     .padding(.bottom, 2)
                 
                 Text(stopwatchViewModel.timerFormater())
-                    .font(.custom("Bitter", size: 52, relativeTo: .largeTitle))
+                    .font(.custom("Bitter", size: 70, relativeTo: .largeTitle))
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color("Texts"))
                     .monospacedDigit()
-                    .matchedGeometryEffect(id: "timerText", in: namespace)
+                    //.matchedGeometryEffect(id: "timerText", in: namespace)
                     .padding(.bottom, 14)
                 
                 HStack(spacing: 8) {
                     Rectangle()
-                        .fill(Color.white.opacity(0.25))
-                        .frame(width: 20, height: 1)
+                        .fill(Color("LinesColor"))
+                        .frame(width: 20, height: 0.5)
                     
-                    Text("Progresso do livro")
-                        .font(.footnote)
-                        .foregroundColor(.white.opacity(0.7))
+                    Text(selectedBook?.bookTitle ?? "Sem livro")
+                        .font(.subheadline)
+                        .foregroundColor(Color("TextFieldPlaceholderColor"))
+                    
                     
                     Rectangle()
-                        .fill(Color.white.opacity(0.25))
-                        .frame(width: 20, height: 1)
+                        .fill(Color("LinesColor"))
+                        .frame(width: 20, height: 0.5)
                 }
-                .padding(.bottom, 10)
-                
-                progressBar
-                    .padding(.bottom, 16)
-                
+                .padding(.bottom, 20)
+
                 ButtonAction(
                     text: isRunning ? "Pausar leitura" : "Continuar leitura",
                     colorButton: "ActionColor"
@@ -92,10 +104,11 @@ struct StopwatchRunningView: View {
                     showAbandonAlert = true
                 } label: {
                     Text("Abandonar leitura")
-                        .font(.footnote.weight(.semibold))
+                        .font(.subheadline)
                         .foregroundColor(Color("ActionColor"))
                         .underline()
                 }
+                .padding(.top, 20)
             }
             .frame(width: 215)
         }
@@ -130,38 +143,50 @@ struct StopwatchRunningView: View {
             }
         }
     }
+}
+
+
+#Preview {
+    let container = try! ModelContainer(
+        for: Books.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
     
-    private var progressBar: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.12))
-                
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.yellow, .orange],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: max(70, geo.size.width * CGFloat(progress)))
-                
-                HStack {
-                    Text(selectedBook?.bookTitle ?? "Sem livro")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(.black.opacity(0.85))
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    Text("\(Int(progress * 100))%")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(Color("ActionColor"))
-                }
-                .padding(.horizontal, 12)
-            }
+    let book = Books(
+        bookAuthor: "Becca Fitzpatrick",
+        bookCategory: "Romance",
+        bookCover: Data(),
+        bookCurrentPage: 120,
+        bookGoal: 0,
+        bookTitle: "Hush, Hush",
+        bookTotalPages: 200,
+        isTimerRunning: true,
+        wasLastPageAdded: true,
+        readingStartDate: nil
+    )
+    container.mainContext.insert(book)
+    
+    let stopwatchVM = StopwatchViewModel()
+    stopwatchVM.totalTime = 15 * 60
+    stopwatchVM.elapsedTime = 6 * 60      // ~60% do tempo já passou
+    stopwatchVM.timerState = .running
+    
+    return PreviewWrapper(book: book)
+        .modelContainer(container)
+        .environmentObject(stopwatchVM)
+}
+
+private struct PreviewWrapper: View {
+    @Namespace var namespace
+    @State var book: Books?
+    
+    init(book: Books) {
+        _book = State(initialValue: book)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            StopwatchRunningView(namespace: namespace, selectedBook: $book)
         }
-        .frame(height: 30)
     }
 }
