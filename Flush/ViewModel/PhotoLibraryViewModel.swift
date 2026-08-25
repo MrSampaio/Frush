@@ -46,6 +46,10 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
+//    func loadDataImage(image: Data) -> UIImage{
+//        return UIImage(data: image)
+//    }
+//    
     func loadExistingImages(_ images: [UIImage]) {
         for image in images.prefix(maxNoteImages) {
             noteImages.append(SelectableImage(image: image))

@@ -9,11 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    
     @State private var searchText = ""
     @State private var selectedBook: Books? = nil
     @Namespace private var stopwatchNamespace
-    
-    @EnvironmentObject var booksViewModel: BooksViewModel
     
     init() {
         let appearance = UITabBarAppearance()
@@ -35,29 +34,25 @@ struct ContentView: View {
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
+    
      
     var body: some View {
-        
         TabView {
             Tab("Estante", systemImage: "book"){
                 BookCaseView()
-//                    .tint(.blue)
-                   // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
                 StopwatchFlowView(
                     namespace: stopwatchNamespace,
                     selectedBook: $selectedBook
                 )
-//                .tint(.blue)
             }
             Tab(role: .search){
                 BookSearchView()
-//                    .tint(.blue)
             }
             
         }
-//        .tint(Color("ActionColor"))
+                  
     }
 }
 

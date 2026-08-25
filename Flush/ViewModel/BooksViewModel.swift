@@ -285,6 +285,7 @@ class BooksViewModel: ObservableObject {
                 // se for a primeira vez, cria o registro
                 let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
                 //newSettings.dailyGoalMinutes = Int16(minutes)
+                context.insert(newSettings)
             }
             
             try context.save()

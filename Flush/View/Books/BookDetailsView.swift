@@ -100,6 +100,20 @@ struct BookDetailView: View {
                                         .padding(.horizontal, 28)
                                     
                                 }
+//<<<<<<< HEAD
+//                                
+//                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+//                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
+//                                        .font(.system(size: 14, weight: .semibold))
+//                                        .foregroundColor(Color(.action))
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                        .padding(.horizontal,28)
+//                                        .padding(.vertical)
+//                                        .padding(.bottom, 10)
+//                                }
+//                                
+//=======
+//>>>>>>> dev
                             }
 
                             
