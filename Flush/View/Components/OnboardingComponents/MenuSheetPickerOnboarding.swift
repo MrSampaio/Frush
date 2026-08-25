@@ -10,9 +10,12 @@ import SwiftUI
 struct MenuSheetPickerOnboarding: View {
     var title: String? = nil
     var placeholder: String
-    @Binding var selectedValue: String
-    var options: [String]
-    var formatOption: (String) -> String = { $0 }
+    
+    @Binding var selectedTotalMinutes: Int?
+
+    @State private var isShowingSheet = false
+    @State private var tempHours: Int = 0
+    @State private var tempMinutes: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -23,20 +26,23 @@ struct MenuSheetPickerOnboarding: View {
                     .padding(.leading, 4)
             }
 
-            Menu {
-                ForEach(options, id: \.self) { option in
-                    Button(formatOption(option)) {
-                        selectedValue = option
-                    }
+            Button {
+                if let total = selectedTotalMinutes {
+                    tempHours = total / 60
+                    tempMinutes = total % 60
+                } else {
+                    tempHours = 0
+                    tempMinutes = 0
                 }
+                isShowingSheet = true
             } label: {
                 HStack {
-                    Text(selectedValue.isEmpty ? placeholder : formatOption(selectedValue))
+                    Text(formattedDuration)
                         .font(.system(.body, weight: .regular))
-                        .foregroundColor(selectedValue.isEmpty ? Color("TextFieldPlaceholderColor") : .white)
-
+                        .foregroundColor(selectedTotalMinutes == nil ? Color("TextFieldPlaceholderColor") : .white)
+                    
                     Spacer()
-
+                    
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.footnote.weight(.semibold))
                         .foregroundColor(Color("ActionColor"))
@@ -54,9 +60,67 @@ struct MenuSheetPickerOnboarding: View {
             }
             .buttonStyle(.plain)
         }
+        .sheet(isPresented: $isShowingSheet) {
+            pickerSheetContent
+        }
+    }
+
+    private var pickerSheetContent: some View {
+        NavigationView {
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    Picker("Horas", selection: $tempHours) {
+                        ForEach(0..<24) { i in
+                            Text("\(i) h").tag(i)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+
+                    Picker("Minutos", selection: $tempMinutes) {
+                        ForEach(0..<60) { i in
+                            Text("\(i) m").tag(i)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+                }
+            }
+            .navigationTitle(title ?? "Duração")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancelar") {
+                        isShowingSheet = false
+                    }
+                    .foregroundColor(.red)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Concluir") {
+                        // Apenas salva e fecha o Picker
+                        selectedTotalMinutes = (tempHours * 60) + tempMinutes
+                        isShowingSheet = false
+                    }
+                    .fontWeight(.bold)
+                }
+            }
+        }
+        .presentationDetents([.height(300), .medium])
+    }
+
+    private var formattedDuration: String {
+        guard let total = selectedTotalMinutes else { return placeholder }
+        let h = total / 60
+        let m = total % 60
+        
+        if h > 0 && m > 0 {
+            return "\(h)h \(m)m"
+        } else if h > 0 {
+            return "\(h)h"
+        } else {
+            return "\(m)m"
+        }
     }
 }
-
-
-
-
