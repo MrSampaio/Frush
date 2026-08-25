@@ -21,7 +21,7 @@ class StopwatchViewModel: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var totalTime: TimeInterval = 0
     @Published var isRunning: Bool = false
-    @Published var timer: Timer? = nil
+    private var timer: Timer? = nil
     
     @Published var showProgressSheet: Bool = false
     
@@ -128,48 +128,6 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "savedTimerState")
     }
 
-//    // função para trazer os estados de volta pro app
-//    private func resumeStateOnForeground() {
-//        let savedDate = UserDefaults.standard.double(forKey: "savedBackgroundDate")
-//        let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
-//        let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
-//
-//        // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
-//        guard savedDate > 0 else { return }
-//
-//        let backgroundDate = Date(timeIntervalSince1970: savedDate)
-//        let timeAway = Date().timeIntervalSince(backgroundDate) // quanto tempo o app ficou fora de foco
-//
-//        if savedStateStr == "running" {
-//            // subtrai do cronômetro o tempo que o cara passou fora do app
-//            let newElapsedTime = savedElapsed - timeAway
-//
-//            if newElapsedTime > 0 {
-//                // se ainda sobrou tempo, atualiza e volta a rodar o timer visual
-//                self.elapsedTime = newElapsedTime
-//                self.startTimer()
-//            } else {
-//                // se o tempo acabou ENQUANTO o app estava fechado
-//                self.elapsedTime = 0
-//                self.stop() // ou a sua função que pausa/invalida o timer
-//                
-//                // dispara a bottom sheet para ele preencher as páginas
-//                DispatchQueue.main.async {
-//                    self.showProgressSheet = true
-//                }
-//            }
-//        } else if savedStateStr == "paused" {
-//            // se estava pausado, só devolve o tempo exato, não subtrai o tempo fora
-//            self.elapsedTime = savedElapsed
-//            self.timerState = .paused
-//        }
-//
-//        // limpa o UserDefaults para não correr o risco de puxar esses dados numa próxima leitura do zero
-//        UserDefaults.standard.removeObject(forKey: "savedBackgroundDate")
-//        UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
-//        UserDefaults.standard.removeObject(forKey: "savedTimerState")
-//    }
-    
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {
         guard totalTime > 0 else { return 0 }
@@ -229,12 +187,6 @@ class StopwatchViewModel: ObservableObject {
         self.currentPage = Int16(newPage)
     }
     
-    /*
-     func timerFormater() -> String{
-     let current = max(0, Int(elapsedTime))
-     return String(format: "%02d:%02d", current / 60, current % 60)
-     }
-     */
     func timerFormater() -> String {
         let current = max(0, Int(elapsedTime))
         let hours = current / 3600
@@ -257,21 +209,6 @@ class StopwatchViewModel: ObservableObject {
         totalPages = book.bookTotalPages
         return Int(totalPages)
     }
-    
-//    func getBookProgress(book: Books) -> Int{
-//        //        bookProgress = Double(book.bookCurrentPage) / Double(book.bookTotalPages)
-//        //        return bookProgress
-//        
-//        let totalPages = book.bookTotalPages
-//        let currentPage = book.bookCurrentPage
-//        var bookProgress: Double {
-//            guard totalPages > 0 else { return 0 }
-//            return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
-//        }
-//        
-//        return Int(bookProgress)
-//        
-//    }
     
     func getBookProgress(book: Books) -> Double {
         let totalPages = book.bookTotalPages

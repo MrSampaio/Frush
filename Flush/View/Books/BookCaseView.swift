@@ -27,7 +27,7 @@ struct BookCaseView: View {
     @State private var activeSheet: ActiveSheet? = nil
     
     @State private var tempGoalMinutes: Int = 15
-    @State private var tempReadedPages: String = ""
+    //@State private var tempReadedPages: String = ""
     
     var filteredBooks: [Books] {
         return filterViewModel.applyFilters(to: bookViewModel.savedBooks)
@@ -115,43 +115,6 @@ struct BookCaseView: View {
                 .onAppear {
                     tempGoalMinutes = userSettingsViewModel.dailyGoal
                 }
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(Color("BackgroundColorViews"))
-            }
-        }
-        
-        .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
-            if let currentBook = userSettingsViewModel.lastBookReaded {
-                BottomSheet(
-                    minutesPerDay: .constant(0),
-                    isPickerShown: false,
-                    readedPages: $tempReadedPages,
-                    onDismiss: {
-                        stopwatchViewModel.showProgressSheet = false
-                    },
-                    onSave: {
-                        if let newPage = Int16(tempReadedPages) {
-                            currentBook.bookCurrentPage = newPage
-                            
-                            do {
-                                try bookViewModel.saveBook(context: modelContext)
-                            } catch {
-                                print("Error when trying to save last readed page by home: \(error)")
-                            }
-                        }
-                        
-                        let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
-                        let minutesRead = max(1, rawMinutes)
-                        
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead, context: modelContext)
-                        
-                        bookViewModel.fetchBooks(context: modelContext)
-                        userSettingsViewModel.fetchUserSettings(context: modelContext)
-                        tempReadedPages = ""
-                        stopwatchViewModel.showProgressSheet = false
-                    }
-                )
                 .presentationDetents([.height(340)])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Color("BackgroundColorViews"))
