@@ -152,6 +152,7 @@ class UserSettingsViewModel: ObservableObject {
             settings.minutesReadToday = 0
         }
         
+        
        // soma os minutos atuais com os que já existem
         settings.minutesReadToday += Int16(minutes)
         settings.lastReadingDate = today

@@ -9,7 +9,7 @@ import SwiftUI
 struct BottomSheet: View {
     @Binding var minutesPerDay: Int
     @State private var showAlert = false
-    @State var isPickerShown: Bool = false
+    var isPickerShown: Bool = false
     
     @Binding var readedPages: String
     

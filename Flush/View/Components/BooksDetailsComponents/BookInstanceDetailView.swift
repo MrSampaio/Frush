@@ -1,9 +1,10 @@
 //
-//  teste.swift
+//  BookInstanceDetailView.swift (ATUALIZADO)
 //  CH4-Books
 //
 //  Created by Lucas on 17/08/26.
 //
+
 import SwiftUI
 
 struct BookInstanceDetailView: View {
@@ -12,16 +13,26 @@ struct BookInstanceDetailView: View {
     
     var readingProgress: Double {
         guard book.bookTotalPages > 0 else { return 0.0 }
-            let current = Double(book.bookCurrentPage)
-            let total = Double(book.bookTotalPages)
-            return min(max(current / total, 0.0), 1.0)
+        let current = Double(book.bookCurrentPage)
+        let total = Double(book.bookTotalPages)
+        return min(max(current / total, 0.0), 1.0)
+    }
+    
+    var formattedReadingProgress: String {
+        let percentage = readingProgress * 100
+        return String(format: "%.0f%%", percentage)
+    }
+    
+    // Formata a data de início da leitura
+    var formattedReadingStartDate: String {
+        guard let date = book.readingStartDate else {
+            return "Ainda não iniciado"
         }
         
-        var formattedReadingProgress: String {
-            let percentage = readingProgress * 100
-            return String(format: "%.0f%%", percentage)
-        }
-    
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        return formatter.string(from: date)
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -66,35 +77,57 @@ struct BookInstanceDetailView: View {
                     .frame(height: 0.3)
                     .background(Color("LinesColor"))
                     .padding(.horizontal, 20)
+                    .padding(.top, 12)
                 
                 HStack {
                     Spacer()
+                    
                     VStack(spacing: 4) {
                         Text("Início da leitura")
-                            .font(.footnote).foregroundColor(Color("InfosDetailsView"))
-                        Text("24/02/2026")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color("Texts"))
+                            .font(.footnote)
+                            .foregroundColor(Color("InfosDetailsView"))
+                        
+                        if book.readingStartDate != nil {
+                            Text(formattedReadingStartDate)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color("Texts"))
+                        } else {
+                            Text("Clique em 'Iniciar leitura'")
+                                .fontWeight(.bold)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color("InfosDetailsView"))
+                        }
                     }
+                    
                     Spacer()
+                    
+                    // SEÇÃO: Páginas Totais
                     VStack(spacing: 4) {
-                        Text("Páginas").font(.footnote).foregroundColor(Color("InfosDetailsView"))
+                        Text("Páginas")
+                            .font(.footnote)
+                            .foregroundColor(Color("InfosDetailsView"))
                         Text("\(book.bookTotalPages) páginas")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color("Texts"))
 
                     }
+                    
                     Spacer()
+                    
+                    // SEÇÃO: Progresso
                     VStack(spacing: 4) {
-                        Text("Progresso").font(.footnote)
+                        Text("Progresso")
+                            .font(.footnote)
                             .foregroundColor(Color("InfosDetailsView"))
                         Text("\(formattedReadingProgress)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color("Texts"))
                     }
+                    
                     Spacer()
                 }
                 

@@ -17,7 +17,7 @@ struct FirstOnboardView: View {
             
             Image("OnboardingOficial")
                 .resizable()
-                .scaledToFit()
+                .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .mask(
                     LinearGradient(

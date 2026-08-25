@@ -130,7 +130,8 @@ class BooksViewModel: ObservableObject {
             bookTitle: cleanTitle,
             bookTotalPages: totalPagesInt,
             isTimerRunning: false,
-            wasLastPageAdded: true
+            wasLastPageAdded: true,
+            readingStartDate: nil
         )
         //salvando livro no banco
         context.insert(newBook)
@@ -311,6 +312,26 @@ class BooksViewModel: ObservableObject {
         
         book.bookCurrentPage = convertedCurrentPage
         
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
+    }
+    
+    // marca a data de início da leitura na primeira vez que um cronômetro é completado
+    // chame isso quando o usuário salva o progresso de leitura pela primeira vez
+    func markReadingStartDate(for book: Books, context: ModelContext) throws {
+        // só marca a data se ainda não foi marcada (primeira vez)
+        if book.readingStartDate == nil {
+            book.readingStartDate = Date()
+        }
+        
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
+    }
+
+
+    // reseta a data de início da leitura (use com cuidado)
+    func resetReadingStartDate(for book: Books, context: ModelContext) throws {
+        book.readingStartDate = nil
         try self.saveBook(context: context)
         self.fetchBooks(context: context)
     }

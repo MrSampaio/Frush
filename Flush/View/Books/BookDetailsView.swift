@@ -45,43 +45,48 @@ struct BookDetailView: View {
                     .ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
-                    VStack() {
+                    VStack(spacing: 16) {
                         
                         BookInstanceDetailView(book: book)
                             .environmentObject(PhotoLibraryViewModel())
                             .id(book.bookCover ?? Data())
                         
-                        VStack(spacing: 16) {
-                            
-                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
-                                isPresentedBottomSheet.toggle()
-                            }
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                    .stroke(Color.orange, lineWidth: 1)
-                            )
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
+                        CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
+                            .padding(.horizontal)
+                        
+                        VStack(spacing: 10) {
                             
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor") {
                                 bookForTimer = book
                                 navigateToTimer = true
                             }
+//                            .padding(.top, 16)
                             .padding(.horizontal, 24)
+                            
+                            
+                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
+                                isPresentedBottomSheet.toggle()
+                            }
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 100, style: .continuous)
+//                                    .stroke(Color.orange, lineWidth: 1)
+//                            )
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+//                            .padding(.horizontal, 24)
+                            
+                            
+                            
                         }
-                        .padding(.bottom, 24)
+//                        .padding(.bottom, 16)
                         
-                        
-                        CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
-                            .padding(.horizontal)
                         
                         NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
                                .padding(.horizontal, 24)
                                .padding(.top, 10)
                         
 
-                        VStack(spacing: 16) {
+                        VStack() {
                             
                                
                             VStack{
@@ -156,6 +161,7 @@ struct BookDetailView: View {
                         
                         do{
                             try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages, context: modelContext)
+                            try bookViewModel.markReadingStartDate(for: book, context: modelContext)
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true
