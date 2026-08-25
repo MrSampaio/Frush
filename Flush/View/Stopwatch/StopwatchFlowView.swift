@@ -60,17 +60,16 @@ struct StopwatchFlowView: View {
                         stopwatchViewModel.abandonTimer()
                     },
                     onSave: {
-                        if let newPage = Int16(tempReadedPages) {
+                        let book = selectedBook ?? userSettingsViewModel.lastBookReaded
+                        
+                        if let currentBook = book, let newPage = Int16(tempReadedPages) {
                             currentBook.bookCurrentPage = newPage
                             
                             do {
                                 try booksViewModel.saveBook(context: modelContext)
-                            } catch let error as LocalizedError {
-                                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                showErrorAlert = true
+                                try booksViewModel.markReadingStartDate(for: currentBook, context: modelContext)
                             } catch {
-                                errorMessage = "Erro inesperado."
-                                showErrorAlert = true
+                                print("Error when trying to save last readed page: \(error)")
                             }
                         }
                         

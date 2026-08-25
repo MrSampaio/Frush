@@ -77,6 +77,7 @@ struct BookInstanceDetailView: View {
                     .frame(height: 0.3)
                     .background(Color("LinesColor"))
                     .padding(.horizontal, 20)
+                    .padding(.top, 12)
                 
                 HStack {
                     Spacer()
@@ -93,6 +94,7 @@ struct BookInstanceDetailView: View {
                                 .foregroundColor(Color("Texts"))
                         } else {
                             Text("Clique em 'Iniciar leitura'")
+                                .fontWeight(.bold)
                                 .font(.caption)
                                 .fontWeight(.semibold)
                                 .foregroundColor(Color("InfosDetailsView"))
