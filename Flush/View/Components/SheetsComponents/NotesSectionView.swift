@@ -67,7 +67,7 @@ struct NoteRowView: View {
         
         if let firstData = note.notePhoto.first {
             return UIImage(data: firstData)
-            }
+        }
         return nil
     }
     
