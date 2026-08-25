@@ -6,6 +6,7 @@
 //
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct NoteCellView: View {
     @Environment(\.modelContext) private var modelContext
@@ -19,41 +20,71 @@ struct NoteCellView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     
+    private var photo: UIImage? {
+//        if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
+//            return UIImage(data: firstData)
+//        }
+//        return nil
+        
+        if let firstData = note.notePhoto.first {
+            return UIImage(data: firstData)
+        }
+        return nil
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            
-            Text(note.noteTitle ?? "Nota sem título")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-            
-            if  !note.noteDescription.isEmpty {
-                Text(note.noteDescription)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+        HStack{
+            Group {
+                if let image = photo{
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image("defaultBook")
+                        .resizable()
+                        .scaledToFill()
+                }
             }
+            .frame(width: 50, height: 70)
+            .cornerRadius(8)
+            .clipped()
+            VStack(alignment: .leading, spacing: 6) {
+                
+                
+                Text(note.noteTitle ?? "Nota sem título")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                
+                if !note.noteDescription.isEmpty {
+                    Text(note.noteDescription)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
         }
         .contentShape(Rectangle())
-        .contextMenu {
-            Button() {
+//        .contextMenu {
+//            Button() {
 //                isEditingSheetPresented = true
-            } label: {
-                Label("Editar Nota", systemImage: "pencil")
-                    .foregroundColor(.blue)
-                    .font(.body)
-            }
-            
-            Divider()
-            
-            Button(role: .destructive) {
-                isShowingDeleteAlert = true
-            } label: {
-                Label("Apagar Nota", systemImage: "trash")
-                    .font(.body)
-            }
-        }
+//            } label: {
+//                Label("Editar Nota", systemImage: "pencil")
+//                    .foregroundColor(.blue)
+//                    .font(.body)
+//            }
+//            
+//            Divider()
+//            
+//            Button(role: .destructive) {
+//                isShowingDeleteAlert = true
+//            } label: {
+//                Label("Apagar Nota", systemImage: "trash")
+//                    .font(.body)
+//            }
+//        }
         
         .alert("Apagar Nota", isPresented: $isShowingDeleteAlert) {
             Button("Cancelar", role: .cancel) { }
