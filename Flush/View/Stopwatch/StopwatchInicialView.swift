@@ -26,6 +26,18 @@ struct StopwatchInitialView: View {
     
     @State private var selectedDuration: TimeInterval = 15 * 60
     
+    private var pickedHours: Int {
+        Int(selectedDuration) / 3600
+    }
+    
+    private var pickedMinutes: Int {
+        (Int(selectedDuration) % 3600) / 60
+    }
+    private var minMinuteAllowed: Int {
+        pickedHours == 0 ? 1 : 0
+    }
+    
+    
     private var timePickerSection: some View {
         VStack(spacing: 8) {
             Text("Selecione o tempo de leitura")
@@ -50,7 +62,7 @@ struct StopwatchInitialView: View {
             .buttonStyle(.plain)
         }
     }
-
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -62,14 +74,14 @@ struct StopwatchInitialView: View {
                 VStack(spacing: 20) {
                     Spacer()
                     timePickerSection
-
+                    
                     VStack(spacing: 24) {
                         bookSelectionButton
                         
                         if let existingBook = selectedBook {
                             bookProgressSection(existingBook)
                         }
-
+                        
                         VStack(spacing: 12) {
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor"){
                                 guard selectedBook != nil && stopwatchViewModel.timerFormater() != "00:00" else {
@@ -115,7 +127,7 @@ struct StopwatchInitialView: View {
                 SelectBookSheetView(selectedBook: self.$selectedBook)
                     .environmentObject(self.booksViewModel)
             }
-
+            
             .sheet(isPresented: $isShowingTimerPicker) {
                 timerPickerSheet
             }
@@ -149,7 +161,7 @@ struct StopwatchInitialView: View {
                 .fill(Color("StopwatchSelectors").opacity(0.2))
         }
     }
-
+    
     var timerCapsuleBorder: some View {
         RoundedRectangle(cornerRadius: 100, style: .continuous)
             .stroke(
@@ -230,7 +242,7 @@ struct StopwatchInitialView: View {
         }
         .padding(.horizontal, 24)
     }
-        
+    
     @ViewBuilder
     func bookProgressSection(_ book: Books) -> some View {
         VStack(spacing: 10) {
@@ -295,37 +307,38 @@ struct StopwatchInitialView: View {
                 Picker("Horas", selection: Binding(
                     get: { Int(selectedDuration) / 3600 },
                     set: { newHours in
-                        let currentMinutes = (Int(selectedDuration) % 3600) / 60
-                        let newTotal = Double(newHours * 3600) + Double(currentMinutes * 60)
-                        
+                        var newMinutes = pickedMinutes          // era: let currentMinutes = (Int(selectedDuration) % 3600) / 60
+                        if newHours == 0 && newMinutes == 0 {   // ← linha nova
+                            newMinutes = 1                       // ← linha nova
+                        }
+                        let newTotal = Double(newHours * 3600) + Double(newMinutes * 60)  // era "currentMinutes"
                         selectedDuration = newTotal
                         stopwatchViewModel.setDuration(newTotal)
                     }
+                    
                 )) {
                     ForEach(0..<24, id: \.self) { hour in
                         Text("\(hour) h").tag(hour)
                     }
                 }
                 .pickerStyle(.wheel)
-
+                
                 Picker("Minutos", selection: Binding(
                     get: { (Int(selectedDuration) % 3600) / 60 },
                     set: { newMinutes in
-                        let currentHours = Int(selectedDuration) / 3600
-                        let newTotal = Double(currentHours * 3600) + Double(newMinutes * 60)
-                        
+                        let newTotal = Double(pickedHours * 3600) + Double(newMinutes * 60)
                         selectedDuration = newTotal
                         stopwatchViewModel.setDuration(newTotal)
                     }
                 )) {
-                    ForEach(0..<60, id: \.self) { minute in
+                    ForEach(minMinuteAllowed..<60, id: \.self) { minute in
                         Text("\(minute) min").tag(minute)
                     }
                 }
                 .pickerStyle(.wheel)
             }
             .padding(.horizontal)
-
+            
             Button("Confirmar") {
                 isShowingTimerPicker = false
             }
@@ -335,4 +348,39 @@ struct StopwatchInitialView: View {
         }
         .presentationDetents([.height(260)])
     }
+}
+#Preview {
+    struct PreviewWrapper: View {
+        // 1. Criando a Namespace para a animação
+        @Namespace var namespace
+        
+        // 2. Estado local para o Binding
+        @State private var mockSelectedBook: Books? = nil
+        
+        // 3. Instanciando todas as dependências (ViewModels)
+        @StateObject private var stopwatchVM = StopwatchViewModel()
+        @StateObject private var photoLibraryVM = PhotoLibraryViewModel()
+        @StateObject private var booksVM = BooksViewModel()
+        @StateObject private var notesVM = NotesViewModel()
+        @StateObject private var userSettingsVM = UserSettingsViewModel()
+        
+        var body: some View {
+            StopwatchInitialView(
+                namespace: namespace,
+                selectedBook: $mockSelectedBook
+            )
+            // 4. Injetando os EnvironmentObjects
+            .environmentObject(stopwatchVM)
+            .environmentObject(photoLibraryVM)
+            .environmentObject(booksVM)
+            .environmentObject(notesVM)
+            .environmentObject(userSettingsVM)
+            
+            // 5. Injetando o contexto do SwiftData em memória RAM para o Preview não crashar
+            // ATENÇÃO: Substitua os nomes das classes dentro da array caso não sejam exatamente esses
+            .modelContainer(for: [Books.self], inMemory: true)
+        }
+    }
+    
+    return PreviewWrapper()
 }

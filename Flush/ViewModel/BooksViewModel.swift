@@ -20,6 +20,7 @@ class BooksViewModel: ObservableObject {
         case invalidAuthor
         case invalidTotalPages
         case invalidCurrentPage
+        case currentPageGreaterThanTotalPages
         //case invalidGoal
         case invalidPageLogic
         case savingError
@@ -34,6 +35,8 @@ class BooksViewModel: ObservableObject {
                 return "Número de páginas inválido."
             case .invalidCurrentPage:
                 return "Página atual inválida."
+            case .currentPageGreaterThanTotalPages:
+                return "A página atual deve ser menor que o total de páginas."
 //            case .invalidGoal:
 //                return "Escolha uma meta de leitura."
             case .invalidPageLogic:
@@ -281,6 +284,7 @@ class BooksViewModel: ObservableObject {
                 // se for a primeira vez, cria o registro
                 let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
                 //newSettings.dailyGoalMinutes = Int16(minutes)
+                context.insert(newSettings)
             }
             
             try context.save()
@@ -299,6 +303,10 @@ class BooksViewModel: ObservableObject {
         
         if convertedCurrentPage == 0 {
             throw BookError.invalidCurrentPage
+        }
+        
+        if convertedCurrentPage > book.bookTotalPages {
+            throw BookError.currentPageGreaterThanTotalPages
         }
         
         book.bookCurrentPage = convertedCurrentPage

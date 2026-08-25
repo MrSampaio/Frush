@@ -83,5 +83,32 @@ struct StopwatchFlowView: View {
         }
        
 }
+#Preview {
+    // É necessário criar uma estrutura de envoltório (wrapper)
+    // porque `Namespace` precisa ser criado como uma @Namespace property.
+    struct PreviewWrapper: View {
+        @Namespace var namespace
+        
+        // Estado local para o livro selecionado
+        @State private var mockBook: Books? = nil
+        
+        // Instanciando as ViewModels
+        @StateObject private var mockStopwatchViewModel = StopwatchViewModel()
+        @StateObject private var mockBooksViewModel = BooksViewModel()
+        @StateObject private var mockUserSettingsViewModel = UserSettingsViewModel()
+        
+        var body: some View {
+            StopwatchFlowView(
+                namespace: namespace,
+                selectedBook: $mockBook
+            )
+            // Injetando as ViewModels no ambiente (Environment)
+            .environmentObject(mockStopwatchViewModel)
+            .environmentObject(mockBooksViewModel)
+            .environmentObject(mockUserSettingsViewModel)
+            // Caso suas ViewModels dependam de persistência nativa do SwiftData:
+            // .modelContainer(for: [Books.self, UserSettings.self], inMemory: true)
+        }
+    }
     
    

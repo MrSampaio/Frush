@@ -14,7 +14,11 @@ struct BottomSheet: View {
     @Binding var readedPages: String
     
     @State private var showCustomDiscardAlert = false
-    
+    //@State var mimMinute: Int = 0
+    private var minMinuteAllowed: Int {
+        hours == 0 ? 1 : 0
+    }
+
     var onDismiss: () -> Void = {}
     var onSave: () -> Void = {}
 
@@ -47,7 +51,12 @@ struct BottomSheet: View {
                         HStack(spacing: 0) {
                             Picker("Horas", selection: Binding(
                                 get: { hours },
-                                set: { newHours in minutesPerDay = (newHours * 60) + minutes }
+                                set: { newHours in
+                                    var newMinutes = minutes
+                                            if newHours == 0 && newMinutes == 0 {
+                                                newMinutes = 1
+                                            }
+                                    minutesPerDay = (newHours * 60) + minutes }
                             )) {
                                 ForEach(0..<24, id: \.self) { hour in
                                     Text("\(hour) h").tag(hour)
@@ -59,7 +68,7 @@ struct BottomSheet: View {
                                 get: { minutes },
                                 set: { newMinutes in minutesPerDay = (hours * 60) + newMinutes }
                             )) {
-                                ForEach(0..<60, id: \.self) { minute in
+                                ForEach(minMinuteAllowed..<60, id: \.self) { minute in
                                     Text("\(minute) min").tag(minute)
                                 }
                             }

@@ -15,7 +15,7 @@ struct ButtonAction: View {
     
     var body: some View {
         Button(action: {
-                    action?()
+            action?()
         }) {
             Text(text)
                 .font(.body)

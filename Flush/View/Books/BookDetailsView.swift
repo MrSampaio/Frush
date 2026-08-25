@@ -17,6 +17,10 @@ struct BookDetailView: View {
     @State private var isPresentedBottomSheet: Bool = false
     @State private var tempGoalMinutes: Int = 15
     
+    @State private var navigateToTimer: Bool = false
+    @State private var bookForTimer: Books? = nil
+    @Namespace private var stopwatchNamespace
+    
     @State private var tempReadedPages: String = ""
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
@@ -46,6 +50,28 @@ struct BookDetailView: View {
                         BookInstanceDetailView(book: book)
                             .environmentObject(PhotoLibraryViewModel())
                             .id(book.bookCover ?? Data())
+                        
+                        VStack(spacing: 16) {
+                            
+                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
+                                isPresentedBottomSheet.toggle()
+                            }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 100, style: .continuous)
+                                    .stroke(Color.orange, lineWidth: 1)
+                            )
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
+                            
+                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor") {
+                                bookForTimer = book
+                                navigateToTimer = true
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .padding(.bottom, 24)
+                        
                         
                         CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
                             .padding(.horizontal)
@@ -87,19 +113,6 @@ struct BookDetailView: View {
                         .background(Color("CardNoteColor"))
                         .cornerRadius(30)
                         .padding(.horizontal)
-                        VStack(spacing: 16) {
-                            
-                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
-                                isPresentedBottomSheet.toggle()
-                            }
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
-                            
-                            // Button preenchido com cor
-                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
-                                .padding(.horizontal, 24)
-                        }
                     }
                     .padding(.bottom, 40)
                 }
@@ -167,6 +180,17 @@ struct BookDetailView: View {
                     isPresentedEditBook.toggle()
                     
                 })
+            }
+            
+            .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(isPresented: $navigateToTimer) {
+                withAnimation {
+                    StopwatchInitialView(
+                        namespace: stopwatchNamespace,
+                        selectedBook: $bookForTimer
+                    )
+                }
+                
             }
         }
     }

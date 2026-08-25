@@ -221,7 +221,9 @@ struct NoteSheetView: View {
             .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
             Button {
-                isShowingPhotoPicker = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isShowingPhotoPicker = true
+                }
             } label: {
                 Label("Escolher da galeria", systemImage: "photo.on.rectangle")
             }
