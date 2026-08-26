@@ -156,6 +156,7 @@ struct BookDetailView: View {
                     minutesPerDay: $tempGoalMinutes,
                     isPickerShown: false,
                     maxPages: book.bookTotalPages,
+                    allowDismissWhenEmpty: true,
                     readedPages: $tempReadedPages,
                     onDismiss: {
                         isPresentedBottomSheet = false
