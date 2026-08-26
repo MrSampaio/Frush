@@ -18,6 +18,9 @@ struct StopwatchRunningView: View {
     @State private var showAbandonAlert = false
     @State private var isShowingNoBookAlert = false
     
+//    @Environment(\.scenePhase) private var scenePhase
+//    @State private var ringsID = UUID()
+    
     private var isRunning: Bool {
         stopwatchViewModel.timerState == .running
     }
@@ -44,19 +47,16 @@ struct StopwatchRunningView: View {
             .clipped()
             .ignoresSafeArea(.all)
             */
-            GeometryReader { geo in
-                PulsingRingsView(
-                    isAnimating: isRunning,
-                    baseDiameter: 440,
-                    ringCount: 3,
-                    timeProgress: stopwatchViewModel.timeProgress
-                )
-                .position(x: geo.size.width / 2, y: geo.size.height / 2)   // 👈 centro fixo
-            }
+            PulsingRingsView(
+                isAnimating: isRunning,
+                baseDiameter: 440,
+                ringCount: 3,
+                timeProgress: stopwatchViewModel.timeProgress
+            )
             .allowsHitTesting(false)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
             .ignoresSafeArea(.all)
-            
             // Conteúdo dentro dos arcos amarelos
             VStack(spacing: 0) {
                 Text("Tempo de leitura")
