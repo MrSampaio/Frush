@@ -49,7 +49,6 @@ struct BookCaseView: View {
                         HStack {
                             TitleComponent(title: "Meus Livros")
                         }
-                        .padding(.top, 28)
                         
                         CardTotalPages(totalPages: bookViewModel.countGeralReadedPages())
                         
@@ -71,6 +70,7 @@ struct BookCaseView: View {
                     .padding(.horizontal, 24)
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 BookCaseToolbar(onAddClick: {
                     activeSheet = .addBook

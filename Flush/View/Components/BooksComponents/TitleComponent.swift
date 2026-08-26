@@ -13,12 +13,13 @@ struct TitleComponent: View {
     
     var body: some View {
         Text(title)
-            .font(.bitter(.medium, style: .largeTitle))
+            .font(.bitter(.medium, style: .title))
             .foregroundStyle(Color("TitleColor"))
+            .lineLimit(2)
     }
 }
 
 
 #Preview {
-    TitleComponent(title: "Teste")
+    TitleComponent(title: "Terceiro Livro")
 }

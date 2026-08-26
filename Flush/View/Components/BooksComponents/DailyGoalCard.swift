@@ -100,9 +100,10 @@ struct DailyGoalCardView: View {
                 Spacer()
                
                 Text("\(userSettingsViewModel.dailyGoal) min")
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.system(.callout))
                     .foregroundColor(Color("TextPagesColor"))
             }
+            .padding(.bottom, 6)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)

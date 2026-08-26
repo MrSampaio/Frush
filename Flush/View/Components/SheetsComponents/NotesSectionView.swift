@@ -23,8 +23,10 @@ struct NotesSectionView: View {
                     Text("Adicione sua primeira anotação")
                         .font(.subheadline)
                         .foregroundColor(Color("Texts"))
-                        .padding(.top, 20)
+                        .padding(.top, 26)
                         .padding(.bottom, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
                 } else {
                     NavigationStack {
                         LazyVStack {

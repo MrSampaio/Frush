@@ -50,10 +50,13 @@ struct BookSearchView: View {
                                 Button {
                                     selectedBook = book
                                 } label: {
-                                    BookCellView(book: book)
+                                  
+                                        BookCellView(book: book)
+                                  
                                 }
                                 .buttonStyle(.plain)
                                 .listRowBackground(Color("CardNoteColor"))
+                                .listRowSeparatorTint(Color("Texts").opacity(0.2))
                             }
                         } header: {
                             Text("Livros")
@@ -70,10 +73,11 @@ struct BookSearchView: View {
                                 Button {
                                     selectedNote = note
                                 } label: {
-                                    NoteCellView(note: note, noteViewModel: notesViewModel)
+                                        NoteCellView(note: note, noteViewModel: notesViewModel)
                                 }
                                 .buttonStyle(.plain)
                                 .listRowBackground(Color("CardNoteColor"))
+                                .listRowSeparatorTint(Color("Texts").opacity(0.2))
                             }
                         } header: {
                             Text("Notas")
@@ -102,8 +106,6 @@ struct BookSearchView: View {
                         }
                     }
                 }
-                //.navigationTitle("Buscar")
-                //.navigationBarTitleDisplayMode(.inline)
                 .searchable(
                     text: $searchText,
                     isPresented: $isSearchPresented,

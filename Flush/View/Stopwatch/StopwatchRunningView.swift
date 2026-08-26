@@ -35,7 +35,6 @@ struct StopwatchRunningView: View {
             Color("BackgroundColorViews")
                 .ignoresSafeArea(.all)
             
-            /*
             PulsingRingsView(
                 isAnimating: isRunning,
                 baseDiameter: 440,
@@ -46,17 +45,7 @@ struct StopwatchRunningView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
             .ignoresSafeArea(.all)
-            */
-            PulsingRingsView(
-                isAnimating: isRunning,
-                baseDiameter: 440,
-                ringCount: 3,
-                timeProgress: stopwatchViewModel.timeProgress
-            )
-            .allowsHitTesting(false)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-            .ignoresSafeArea(.all)
+            
             // Conteúdo dentro dos arcos amarelos
             VStack(spacing: 0) {
                 Text("Tempo de leitura")
@@ -69,7 +58,6 @@ struct StopwatchRunningView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(Color("Texts"))
                     .monospacedDigit()
-                    //.matchedGeometryEffect(id: "timerText", in: namespace)
                     .padding(.bottom, 14)
                 
                 HStack(spacing: 8) {
@@ -110,6 +98,7 @@ struct StopwatchRunningView: View {
                 }
                 .padding(.top, 20)
             }
+            .padding(.bottom, 65)
             .frame(width: 215)
         }
         .toolbar {

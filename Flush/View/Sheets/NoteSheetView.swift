@@ -128,26 +128,25 @@ struct NoteSheetView: View {
 
     private var noteContentHeader: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Livro: \(book.bookTitle ?? "Sem título")")
+            Text("Livro selecionado")
                 .font(.system(.title3))
                 .foregroundColor(Color("TextFieldPlaceholderColor"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
 
-            Text("Conteúdo da nota")
+            Text("\(book.bookTitle ?? "Sem título")")
                 .font(.system(.title, weight: .medium))
                 .foregroundColor(Color("Texts"))
                 .padding(.bottom, 6)
                 .padding(.leading, 4)
 
-            TipsComponent(content: "Adicione um título e um conteúdo para a sua nota.")
         }
     }
 
     private var titleField: some View {
         TextFieldSheets(
             text: $noteTitle,
-            placeholder: "Adicione o título",
+            placeholder: "Adicione o título da nota",
             label: nil
         )
     }
