@@ -48,6 +48,7 @@ struct StopwatchFlowView: View {
                 minutesPerDay: .constant(0),
                 isPickerShown: false,
                 maxPages: selectedBook?.bookTotalPages,
+                allowDismissWhenEmpty: false,
                 readedPages: $tempReadedPages,
                 onDismiss: {
                     tempReadedPages = ""

@@ -11,6 +11,7 @@ struct BottomSheet: View {
     @State private var showAlert = false
     var isPickerShown: Bool = false
     var maxPages: Int16? = nil
+    var allowDismissWhenEmpty: Bool = true
     
     @Binding var readedPages: String
     
@@ -157,7 +158,8 @@ struct BottomSheet: View {
                     
                 }
             }
-            .interactiveDismissDisabled(!isPickerShown)
+            .interactiveDismissDisabled(!isPickerShown && (!allowDismissWhenEmpty || !readedPages.isEmpty))
+
             
             .alert("Atenção", isPresented: $showCustomDiscardAlert) {
                 Button("Descartar tempo", role: .destructive) {
