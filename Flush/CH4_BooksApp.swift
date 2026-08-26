@@ -17,6 +17,7 @@ struct CH4_BooksApp: App {
     @StateObject var stopWatchViewModel = StopwatchViewModel()
     @StateObject var userSettingsViewModel = UserSettingsViewModel()
     @StateObject var filterViewModel = BookFilterViewModel()
+    @StateObject var router = AppRouter()
 
     var body: some Scene {
         WindowGroup {
@@ -28,13 +29,14 @@ struct CH4_BooksApp: App {
                 .environmentObject(notesViewModel)
                 .environmentObject(stopWatchViewModel)
                 .environmentObject(filterViewModel)
+                .environmentObject(router) 
         }
         .modelContainer(for: [
-                    Books.self,
-                    Notes.self,
-                    NoteImage.self,
-                    UserSettings.self
-                ])
+            Books.self,
+            Notes.self,
+            NoteImage.self,
+            UserSettings.self
+        ])
     }
 }
 
