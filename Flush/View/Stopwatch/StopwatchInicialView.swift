@@ -44,22 +44,55 @@ struct StopwatchInitialView: View {
                 .font(.body)
                 .foregroundColor(.white)
             
+//            Button(action: {
+//                isShowingTimerPicker = true
+//            }) {
+//                Text(stopwatchViewModel.timerFormater())
+//                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
+//                    .fontWeight(.regular)
+//                    .foregroundColor(.white)
+//                    .monospacedDigit()
+//                    .matchedGeometryEffect(id: "timerText", in: namespace)
+//                    .padding(.horizontal, 24) // Aumentei um pouco nas laterais para dar respiro ao retângulo
+//                    .padding(.vertical, 12)   // Padding vertical para dar altura ao retângulo
+//                    .background(
+//                        // 👇 Aqui definimos um retângulo com cantos mais suaves (ex: 16 ou 20)
+//                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+//                            .fill(Color("StopwatchSelectors").opacity(0.2))
+//                    )
+//                    .overlay(
+//                        // 👇 A borda segue o mesmo formato menos arredondado
+//                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+//                            .stroke(
+//                                LinearGradient(
+//                                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
+//                                    startPoint: .topLeading,
+//                                    endPoint: .bottomTrailing
+//                                ),
+//                                lineWidth: 0.5
+//                            )
+//                    )
+//                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+//            }
+//            .buttonStyle(.plain)
+            
             Button(action: {
                 isShowingTimerPicker = true
             }) {
                 Text(stopwatchViewModel.timerFormater())
                     .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
-                    .fontWeight(.semibold)
+                    .fontWeight(.regular)
                     .foregroundColor(.white)
                     .monospacedDigit()
                     .matchedGeometryEffect(id: "timerText", in: namespace)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(timerCapsuleBackground)
-                    .overlay(timerCapsuleBorder)
+//                    .padding(.horizontal, 12)
+//                    .padding(.vertical, 0)
+//                    .background(timerCapsuleBackground)
+//                    .overlay(timerCapsuleBorder)
                     .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
             }
-            .buttonStyle(.plain)
+            
+            .buttonStyle(.glass)
         }
     }
     
@@ -71,9 +104,14 @@ struct StopwatchInitialView: View {
                 
                 backgroundWithGradient(geometry)
                 
+                
                 VStack(spacing: 20) {
                     Spacer()
+                    Spacer()
+                    Spacer()
+                    
                     timePickerSection
+                        .padding(22)
                     
                     VStack(spacing: 24) {
                         bookSelectionButton
@@ -95,11 +133,12 @@ struct StopwatchInitialView: View {
                             
                             .padding(.top, 8)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 34)
                     }
                     
                     Spacer()
                 }
+
             }
             .toolbar {
                 ToolBarButton(
@@ -242,7 +281,7 @@ struct StopwatchInitialView: View {
                 .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
             }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 34)
     }
     
     @ViewBuilder
@@ -267,8 +306,8 @@ struct StopwatchInitialView: View {
                         .frame(width: barGeo.size.width * CGFloat(stopwatchViewModel.getBookProgress(book: book)))
                 }
             }
-            .frame(height: 10)
-            .padding(.horizontal, 28)
+            .frame(height: 15)
+            .padding(.horizontal, 34)
         }
     }
     

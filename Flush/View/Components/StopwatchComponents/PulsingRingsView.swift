@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct PulsingRingsView: View {
-    /// Pulsa quando a leitura está rodando; para quando pausada
+    /// Pulsa quando a leitura está rodando; congela quando pausada
     var isAnimating: Bool = true
     /// Diâmetro do anel principal — os demais são calculados a partir dele
     var baseDiameter: CGFloat = 360
@@ -21,8 +22,14 @@ struct PulsingRingsView: View {
     /// Opacidade de um arco que ainda não acendeu
     var dimOpacity: Double = 0.15
     
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var pulse = false
+    /// Duração de um ciclo completo de respiração, em segundos
+    private let cycleDuration: Double = 2.6
+    /// Distância entre um anel e o seguinte
+    private let ringSpacing: CGFloat = 130
+    
+    private var outerDiameter: CGFloat {
+        baseDiameter + CGFloat(ringCount) * ringSpacing
+    }
     
     private var ringGradient: LinearGradient {
         LinearGradient(
@@ -39,73 +46,53 @@ struct PulsingRingsView: View {
         let slice = 1.0 / Double(ringCount)
         let start = Double(index - 1) * slice
         
-        let local = (p - start) / slice          // 0 antes da fatia, 1 depois dela
+        let local = (p - start) / slice
         let clamped = min(max(local, 0), 1)
         
         return dimOpacity + clamped * (1 - dimOpacity)
     }
     
+    /// Oscila suavemente entre 0 e 1, derivado do relógio.
+    /// Não guarda estado: em qualquer instante o valor é o mesmo para a mesma hora.
+    private func pulsePhase(at date: Date) -> Double {
+        let seconds = date.timeIntervalSinceReferenceDate
+        let angle = (seconds / cycleDuration) * 2 * .pi
+        return (sin(angle) + 1) / 2
+    }
+    
     var body: some View {
-        ZStack {
-            // Anéis externos — acendem um a um conforme o tempo passa
-            ForEach(1...ringCount, id: \.self) { index in
-                let step = CGFloat(index)
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isAnimating)) { context in
+            let phase = pulsePhase(at: context.date)
+            
+            ZStack {
+                // Anéis externos — acendem um a um conforme o tempo passa
+                ForEach(1...ringCount, id: \.self) { index in
+                    let step = CGFloat(index)
+                    
+                    Circle()
+                        .stroke(ringGradient, lineWidth: lineWidth)
+                        .frame(width: baseDiameter + step * ringSpacing,
+                               height: baseDiameter + step * ringSpacing)
+                        .opacity(opacity(forRing: index))
+                        .scaleEffect(0.98 + 0.06 * phase)
+                }
                 
+                // Anel principal — sempre em 100%
                 Circle()
                     .stroke(ringGradient, lineWidth: lineWidth)
-                    .frame(width: baseDiameter + step * 130,
-                           height: baseDiameter + step * 130)
-                    .opacity(opacity(forRing: index))
-                    .scaleEffect(pulse ? 1.04 : 0.98)
-                    .animation(
-                        isAnimating
-                        ? .easeInOut(duration: 2.6)
-                            .repeatForever(autoreverses: true)
-                            //.delay(Double(index) * 0.18)
-                        : .default,
-                        value: pulse
-                    )
-                    .animation(.easeInOut(duration: 1.0), value: timeProgress)
+                    .frame(width: baseDiameter, height: baseDiameter)
+                    .shadow(color: Color.orange.opacity(0.6), radius: 20)
+                    .scaleEffect(1.0 + 0.015 * phase)
             }
-            
-            // Anel principal — sempre em 100%
-            Circle()
-                .stroke(ringGradient, lineWidth: lineWidth)
-                .frame(width: baseDiameter, height: baseDiameter)
-                .shadow(color: Color.orange.opacity(0.6), radius: 20)
-                .scaleEffect(pulse ? 1.015 : 1.0)
-                .animation(
-                    isAnimating
-                    ? .easeInOut(duration: 2.6).repeatForever(autoreverses: true)
-                    : .default,
-                    value: pulse
-                )
+            .frame(width: outerDiameter, height: outerDiameter)
         }
-        .frame(width: baseDiameter + CGFloat(ringCount) * 130,
-                   height: baseDiameter + CGFloat(ringCount) * 130)
-        .onAppear { pulse = isAnimating }
-        .onChange(of: isAnimating) { _, newValue in
-            pulse = newValue
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active, isAnimating else { return }
-            
-            // o sistema descarta o repeatForever ao ir para background;
-            // reinicia o ciclo ao voltar
-            pulse = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                pulse = true
-            }
-        }
+        .frame(width: outerDiameter, height: outerDiameter)
     }
 }
 
 #Preview {
-    VStack {
-        PulsingRingsView(isAnimating: true, timeProgress: 0.0)
+    ZStack {
+        Color("BackgroundColorViews").ignoresSafeArea()
         PulsingRingsView(isAnimating: true, timeProgress: 0.5)
-        PulsingRingsView(isAnimating: true, timeProgress: 1.0)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(Color("BackgroundColorViews"))
 }

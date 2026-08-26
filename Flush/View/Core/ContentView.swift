@@ -56,12 +56,3 @@ struct ContentView: View {
         .environmentObject(NotesViewModel())
         .environmentObject(BookFilterViewModel())
 }
-#Preview {
-    ContentView()
-        .environmentObject(UserSettingsViewModel())
-        .environmentObject(BooksViewModel())
-        .environmentObject(StopwatchViewModel())
-        .environmentObject(PhotoLibraryViewModel())
-        .environmentObject(NotesViewModel())
-        .environmentObject(BookFilterViewModel())
-}

@@ -61,8 +61,6 @@ class UserSettingsViewModel: ObservableObject {
                     }
                     
                 } else {
-                    // 👇 A MÁGICA ACONTECE AQUI:
-                    // Se o banco estiver vazio, cria as configurações padrão para o app não quebrar mais!
                     let newSettings = UserSettings(dailyGoalMinutes: 0)
                     context.insert(newSettings)
                     //try? context.save()

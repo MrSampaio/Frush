@@ -1,29 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "frush_icon2_Ch4_2026.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "tinted"
-        }
-      ],
+      "filename" : "icone_novo.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
