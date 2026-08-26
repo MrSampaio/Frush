@@ -36,6 +36,18 @@ struct BottomSheet: View {
     private var minutes: Int {
         minutesPerDay % 60
     }
+    
+    private var discardAlertMessage: String {
+        allowDismissWhenEmpty
+            ? "Tem certeza que deseja não colocar a última página lida? Se fizer isso, a página não será salva."
+            : "Tem certeza que deseja não colocar a última página lida? Se fizer isso, seu tempo de leitura será desconsiderado e não pode ser recuperado."
+    }
+    private var discardAlertMessageButton: String {
+        allowDismissWhenEmpty
+            ? "Descartar alteração"
+            : "Descartar tempo"
+    }
+
 
     var body: some View {
         NavigationStack {
@@ -162,12 +174,12 @@ struct BottomSheet: View {
 
             
             .alert("Atenção", isPresented: $showCustomDiscardAlert) {
-                Button("Descartar tempo", role: .destructive) {
+                Button("\(discardAlertMessageButton)", role: .destructive) {
                     onDismiss()
                 }
                 Button("Voltar", role: .cancel) { }
             } message: {
-                Text("Tem certeza que deseja não colocar a última página lida? Se fizer isso, seu tempo de leitura será desconsiderado e não pode ser recuperado.")
+                Text("\(discardAlertMessage)")
             }
         }
     }
