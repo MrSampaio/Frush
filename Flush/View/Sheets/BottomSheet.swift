@@ -75,7 +75,7 @@ struct BottomSheet: View {
                                             if newHours == 0 && newMinutes == 0 {
                                                 newMinutes = 1
                                             }
-                                    minutesPerDay = (newHours * 60) + minutes }
+                                    minutesPerDay = (newHours * 60) + newMinutes }
                             )) {
                                 ForEach(0..<24, id: \.self) { hour in
                                     Text("\(hour) h").tag(hour)
