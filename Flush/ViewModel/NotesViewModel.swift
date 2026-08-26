@@ -165,6 +165,8 @@ class NotesViewModel: ObservableObject {
 //        }
         
         //try self.saveNote(context: context)
+        note.notePhoto = photosDataArray
+        try? context.save()
         self.fetchNotes(context: context)
     }
     

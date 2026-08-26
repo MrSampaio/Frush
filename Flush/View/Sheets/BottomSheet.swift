@@ -11,6 +11,7 @@ struct BottomSheet: View {
     @State private var showAlert = false
     var isPickerShown: Bool = false
     var maxPages: Int16? = nil
+    var allowDismissWhenEmpty: Bool = true
     
     @Binding var readedPages: String
     
@@ -35,6 +36,18 @@ struct BottomSheet: View {
     private var minutes: Int {
         minutesPerDay % 60
     }
+    
+    private var discardAlertMessage: String {
+        allowDismissWhenEmpty
+            ? "Tem certeza que deseja não colocar a última página lida? Se fizer isso, a página não será salva."
+            : "Tem certeza que deseja não colocar a última página lida? Se fizer isso, seu tempo de leitura será desconsiderado e não pode ser recuperado."
+    }
+    private var discardAlertMessageButton: String {
+        allowDismissWhenEmpty
+            ? "Descartar alteração"
+            : "Descartar tempo"
+    }
+
 
     var body: some View {
         NavigationStack {
@@ -62,7 +75,7 @@ struct BottomSheet: View {
                                             if newHours == 0 && newMinutes == 0 {
                                                 newMinutes = 1
                                             }
-                                    minutesPerDay = (newHours * 60) + minutes }
+                                    minutesPerDay = (newHours * 60) + newMinutes }
                             )) {
                                 ForEach(0..<24, id: \.self) { hour in
                                     Text("\(hour) h").tag(hour)
@@ -157,15 +170,16 @@ struct BottomSheet: View {
                     
                 }
             }
-            .interactiveDismissDisabled(!isPickerShown)
+            .interactiveDismissDisabled(!isPickerShown && (!allowDismissWhenEmpty || !readedPages.isEmpty))
+
             
             .alert("Atenção", isPresented: $showCustomDiscardAlert) {
-                Button("Descartar tempo", role: .destructive) {
+                Button("\(discardAlertMessageButton)", role: .destructive) {
                     onDismiss()
                 }
                 Button("Voltar", role: .cancel) { }
             } message: {
-                Text("Tem certeza que deseja não colocar a última página lida? Se fizer isso, seu tempo de leitura será desconsiderado e não pode ser recuperado.")
+                Text("\(discardAlertMessage)")
             }
         }
     }
