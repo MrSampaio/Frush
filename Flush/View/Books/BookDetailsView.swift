@@ -17,13 +17,15 @@ struct BookDetailView: View {
     @State private var isPresentedBottomSheet: Bool = false
     @State private var tempGoalMinutes: Int = 15
     
-    @State private var navigateToTimer: Bool = false
-    @State private var bookForTimer: Books? = nil
-    @Namespace private var stopwatchNamespace
+//    @State private var navigateToTimer: Bool = false
+//    @State private var bookForTimer: Books? = nil
+//    @Namespace private var stopwatchNamespace
     
     @State private var tempReadedPages: String = ""
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    @EnvironmentObject var router: AppRouter
+    @Environment(\.dismiss) private var dismiss
     
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
@@ -57,11 +59,11 @@ struct BookDetailView: View {
                         VStack(spacing: 10) {
                             
                             ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor") {
-                                bookForTimer = book
-                                navigateToTimer = true
+                                router.startReading(book)
+                                dismiss()
                             }
-//                            .padding(.top, 16)
                             .padding(.horizontal, 24)
+//                            .padding(.top, 16)
                             
                             
                             ButtonAction(text: "Adicionar leitura", isGlass: true) {
@@ -153,6 +155,7 @@ struct BookDetailView: View {
                 BottomSheet(
                     minutesPerDay: $tempGoalMinutes,
                     isPickerShown: false,
+                    maxPages: book.bookTotalPages,
                     readedPages: $tempReadedPages,
                     onDismiss: {
                         isPresentedBottomSheet = false
@@ -203,15 +206,15 @@ struct BookDetailView: View {
             }
             
             .toolbar(.hidden, for: .tabBar)
-            .navigationDestination(isPresented: $navigateToTimer) {
-                withAnimation {
-                    StopwatchInitialView(
-                        namespace: stopwatchNamespace,
-                        selectedBook: $bookForTimer
-                    )
-                }
-                
-            }
+//            .navigationDestination(isPresented: $navigateToTimer) {
+//                withAnimation {
+//                    StopwatchInitialView(
+//                        namespace: stopwatchNamespace,
+//                        selectedBook: $bookForTimer
+//                    )
+//                }
+//                
+//            }
         }
     }
 }

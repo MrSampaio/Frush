@@ -10,6 +10,7 @@ struct BottomSheet: View {
     @Binding var minutesPerDay: Int
     @State private var showAlert = false
     var isPickerShown: Bool = false
+    var maxPages: Int16? = nil
     
     @Binding var readedPages: String
     
@@ -17,6 +18,11 @@ struct BottomSheet: View {
     //@State var mimMinute: Int = 0
     private var minMinuteAllowed: Int {
         hours == 0 ? 1 : 0
+    }
+    private var isPageValid: Bool {
+        guard let maxPages else { return true }
+        guard let page = Int16(readedPages), page > 0 else { return false }
+        return page <= maxPages
     }
 
     var onDismiss: () -> Void = {}
@@ -95,6 +101,13 @@ struct BottomSheet: View {
                     VStack(spacing: 0) {
                         TextFieldSheets(text: $readedPages, placeholder: "Informe a última página lida")
                             .keyboardType(.numberPad)
+                        
+                        if let maxPages, !readedPages.isEmpty, !isPageValid {
+                            Text("Informe um número entre 1 e \(maxPages).")
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                                .padding(.top, 8)
+                        }
                     }
                     .padding(.horizontal)
                 }
@@ -124,6 +137,7 @@ struct BottomSheet: View {
                         
                     }
                     
+                    
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
                             onSave()
@@ -136,7 +150,10 @@ struct BottomSheet: View {
                         .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.circle)
                         .tint(Color("ActionColor"))
+                        .disabled(!isPageValid)
+                        .opacity(isPageValid ? 1 : 0.4)
                     }
+                    
                     
                 }
             }

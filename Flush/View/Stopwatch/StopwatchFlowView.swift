@@ -19,6 +19,8 @@ struct StopwatchFlowView: View {
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     
     @State private var tempReadedPages: String = ""
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -42,49 +44,69 @@ struct StopwatchFlowView: View {
                 }
         }
         .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
-                BottomSheet(
-                            minutesPerDay: .constant(0),
-                            isPickerShown: false,
-                            readedPages: $tempReadedPages,
-                            onDismiss: {
-                                tempReadedPages = ""
-                                stopwatchViewModel.showProgressSheet = false
-                                stopwatchViewModel.abandonTimer()
-                            },
-                            onSave: {
-                                let book = selectedBook ?? userSettingsViewModel.lastBookReaded
-                                
-                                if let currentBook = book, let newPage = Int16(tempReadedPages) {
-                                    currentBook.bookCurrentPage = newPage
-                                    
-                                    do {
-                                        try booksViewModel.saveBook(context: modelContext)
-                                    } catch {
-                                        print("Error when trying to save last readed page: \(error)")
-                                    }
-                                }
-                                
-                                let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
-                                let minutesRead = max(1, rawMinutes)
-                                
-                                userSettingsViewModel.addCompletedReadingTime(
-                                    minutes: minutesRead,
-                                    context: modelContext
-                                )
-                                
-                                booksViewModel.fetchBooks(context: modelContext)
-                                userSettingsViewModel.fetchUserSettings(context: modelContext)
-                                
-                                tempReadedPages = ""
-                                stopwatchViewModel.showProgressSheet = false
-                                stopwatchViewModel.abandonTimer()
-                            }
+            BottomSheet(
+                minutesPerDay: .constant(0),
+                isPickerShown: false,
+                maxPages: selectedBook?.bookTotalPages,
+                readedPages: $tempReadedPages,
+                onDismiss: {
+                    tempReadedPages = ""
+                    stopwatchViewModel.showProgressSheet = false
+                    stopwatchViewModel.abandonTimer()
+                },
+                onSave: {
+                    let book = selectedBook ?? userSettingsViewModel.lastBookReaded
+                    
+                    guard let currentBook = book else {
+                        tempReadedPages = ""
+                        stopwatchViewModel.showProgressSheet = false
+                        stopwatchViewModel.abandonTimer()
+                        return
+                    }
+                    
+                    do {
+                        try booksViewModel.updateCurrentPage(
+                            book: currentBook,
+                            currentPage: tempReadedPages,
+                            context: modelContext
                         )
-                        .presentationDetents([.height(340)])
-                        .presentationDragIndicator(.visible)
-                        .presentationBackground(Color("BackgroundColorViews"))
-                        
+                        // grava a data de início apenas na primeira página registrada
+                        try booksViewModel.markReadingStartDate(for: currentBook, context: modelContext)
+                    } catch let error as LocalizedError {
+                        errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
+                        showErrorAlert = true
+                        return          // mantém a sheet aberta para o usuário corrigir
+                    } catch {
+                        errorMessage = "Erro inesperado."
+                        showErrorAlert = true
+                        return
+                    }
+                    
+                    let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
+                    let minutesRead = max(1, rawMinutes)
+                    
+                    userSettingsViewModel.addCompletedReadingTime(
+                        minutes: minutesRead,
+                        context: modelContext
+                    )
+                    
+                    booksViewModel.fetchBooks(context: modelContext)
+                    userSettingsViewModel.fetchUserSettings(context: modelContext)
+                    
+                    tempReadedPages = ""
+                    stopwatchViewModel.showProgressSheet = false
+                    stopwatchViewModel.abandonTimer()
                 }
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color("BackgroundColorViews"))
+            .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
+                Button("Tentar novamente", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
         }
        
 }

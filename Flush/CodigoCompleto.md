@@ -1,5 +1,3 @@
-### Link Github: https://github.com/MrSampaio/Frush 
-
 ### Arquivo: \⁠ ./ViewModel/BookFilterViewModel.swift\ ⁠
 ⁠ swift
 //
@@ -60,8 +58,8 @@ class BookFilterViewModel: ObservableObject {
 
 import Foundation
 import SwiftUI
-import CoreData
 import Combine
+import SwiftData
 
 class UserSettingsViewModel: ObservableObject {
     
@@ -74,15 +72,17 @@ class UserSettingsViewModel: ObservableObject {
     private var currentSettings: UserSettings?
     
     init(){
-        self.fetchUserSettings()
+        //self.fetchUserSettings()
     }
     
-    func fetchUserSettings() {
-            let context = CoreDataManager.shared.viewContext
-            let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    func fetchUserSettings(context: ModelContext) {
+//            let context = CoreDataManager.shared.viewContext
+//            let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        // e o equivalente ao NSFatchRequest
+        let descriptor = FetchDescriptor<UserSettings>()
             
             do {
-                let results = try context.fetch(request)
+                let results = try context.fetch(descriptor)
                 
                 if let settings = results.first {
                     self.currentSettings = settings
@@ -101,6 +101,7 @@ class UserSettingsViewModel: ObservableObject {
                         // Se a última leitura foi em outro dia (ou nunca leu), zera na tela e no banco
                         self.minutesReadToday = 0
                         settings.minutesReadToday = 0
+                        // o swift ja tem autosave porem podemos deixar
                         try? context.save()
                     }
                     
@@ -113,11 +114,9 @@ class UserSettingsViewModel: ObservableObject {
                 } else {
                     // 👇 A MÁGICA ACONTECE AQUI:
                     // Se o banco estiver vazio, cria as configurações padrão para o app não quebrar mais!
-                    let newSettings = UserSettings(context: context)
-                    newSettings.dailyGoalMinutes = 0
-                    newSettings.minutesReadToday = 0
-                    
-                    try? context.save()
+                    let newSettings = UserSettings(dailyGoalMinutes: 0)
+                    context.insert(newSettings)
+                    //try? context.save()
                     
                     self.currentSettings = newSettings
                     self.dailyGoal = 0
@@ -129,11 +128,11 @@ class UserSettingsViewModel: ObservableObject {
             }
         }
         
-        func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil) {
+    func updateUserSettings(newGoal: Int? = nil, newLastBook: Books? = nil, context: ModelContext) {
             
             // Se por algum milagre o currentSettings não estiver carregado, força a criação/busca
             if currentSettings == nil {
-                fetchUserSettings()
+                fetchUserSettings(context: context)
             }
             
             guard let settings = currentSettings else { return }
@@ -149,27 +148,30 @@ class UserSettingsViewModel: ObservableObject {
             }
             
             do {
-                try CoreDataManager.shared.viewContext.save()
-                fetchUserSettings() // Recarrega os dados na ViewModel
+                try context.save()
+                fetchUserSettings(context: context) // Recarrega os dados na ViewModel
                 print("UserSetting updated successfully")
             } catch {
                 fatalError("Error when trying to update UserSettings: \(error)")
             }
         }
-    func saveDailyGoal(minutes: Int) {
-        let context = CoreDataManager.shared.viewContext
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    
+    
+    func saveDailyGoal(minutes: Int,context: ModelContext) {
+//        let context = CoreDataManager.shared.viewContext
+//        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+        let desciptor = FetchDescriptor<UserSettings>()
         
         do {
-            let results = try context.fetch(request)
+            let results = try context.fetch(desciptor)
             
             if let existingSettings = results.first {
                 // se já existir configuração, apenas atualiza
                 existingSettings.dailyGoalMinutes = Int16(minutes)
             } else {
                 // se for a primeira vez, cria o registro
-                let newSettings = UserSettings(context: context)
-                newSettings.dailyGoalMinutes = Int16(minutes)
+                let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
+                context.insert(newSettings)
             }
             
             // faz uma função de save separada 
@@ -184,11 +186,11 @@ class UserSettingsViewModel: ObservableObject {
         }
     }
     
-    func addCompletedReadingTime(minutes: Int) {
+    func addCompletedReadingTime(minutes: Int, context: ModelContext) {
 
         // faz o fetch caso detecte que o não carregou a currentSettings do usuário, evita crashs sinistros
         if currentSettings == nil {
-            fetchUserSettings()
+            fetchUserSettings(context: context)
         }
         
         guard let settings = currentSettings else { return }
@@ -201,12 +203,13 @@ class UserSettingsViewModel: ObservableObject {
             settings.minutesReadToday = 0
         }
         
+        
        // soma os minutos atuais com os que já existem
         settings.minutesReadToday += Int16(minutes)
         settings.lastReadingDate = today
         
         do {
-            try CoreDataManager.shared.viewContext.save()
+            try context.save()
             self.minutesReadToday = Int(settings.minutesReadToday)
             print("Reading updated: \(self.minutesReadToday)")
             
@@ -238,6 +241,7 @@ extension View {
 //
 //  Created by Lucas on 15/08/26.
 //
+
 import Combine
 import Foundation
 import UIKit
@@ -254,7 +258,7 @@ class StopwatchViewModel: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var totalTime: TimeInterval = 0
     @Published var isRunning: Bool = false
-    @Published var timer: Timer? = nil
+    private var timer: Timer? = nil
     
     @Published var showProgressSheet: Bool = false
     
@@ -308,6 +312,8 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "savedBackgroundDate")
         // salva o tempo que faltava
         UserDefaults.standard.set(elapsedTime, forKey: "savedElapsedTime")
+        // salva a duração total escolhida
+        UserDefaults.standard.set(totalTime, forKey: "savedTotalTime") 
         // salva o estado do timer (se estava rodando ou pausado)
         UserDefaults.standard.set(timerState == .running ? "running" : "paused", forKey: "savedTimerState")
     }
@@ -341,7 +347,7 @@ class StopwatchViewModel: ObservableObject {
             } else {
                 // se o tempo acabou ENQUANTO o app estava fechado
                 self.elapsedTime = 0
-                self.stop()// ou a sua função que pausa/invalida o timer
+                self.finishTimer() // ou a sua função que pausa/invalida o timer
                 
                 // dispara a bottom sheet para ele preencher as páginas
                 DispatchQueue.main.async {
@@ -361,52 +367,12 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "savedTimerState")
     }
 
-//    // função para trazer os estados de volta pro app
-//    private func resumeStateOnForeground() {
-//        let savedDate = UserDefaults.standard.double(forKey: "savedBackgroundDate")
-//        let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
-//        let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
-//
-//        // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
-//        guard savedDate > 0 else { return }
-//
-//        let backgroundDate = Date(timeIntervalSince1970: savedDate)
-//        let timeAway = Date().timeIntervalSince(backgroundDate) // quanto tempo o app ficou fora de foco
-//
-//        if savedStateStr == "running" {
-//            // subtrai do cronômetro o tempo que o cara passou fora do app
-//            let newElapsedTime = savedElapsed - timeAway
-//
-//            if newElapsedTime > 0 {
-//                // se ainda sobrou tempo, atualiza e volta a rodar o timer visual
-//                self.elapsedTime = newElapsedTime
-//                self.startTimer()
-//            } else {
-//                // se o tempo acabou ENQUANTO o app estava fechado
-//                self.elapsedTime = 0
-//                self.stop() // ou a sua função que pausa/invalida o timer
-//                
-//                // dispara a bottom sheet para ele preencher as páginas
-//                DispatchQueue.main.async {
-//                    self.showProgressSheet = true
-//                }
-//            }
-//        } else if savedStateStr == "paused" {
-//            // se estava pausado, só devolve o tempo exato, não subtrai o tempo fora
-//            self.elapsedTime = savedElapsed
-//            self.timerState = .paused
-//        }
-//
-//        // limpa o UserDefaults para não correr o risco de puxar esses dados numa próxima leitura do zero
-//        UserDefaults.standard.removeObject(forKey: "savedBackgroundDate")
-//        UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
-//        UserDefaults.standard.removeObject(forKey: "savedTimerState")
-//    }
-    
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
     var timeProgress: Double {
         guard totalTime > 0 else { return 0 }
-        return (totalTime - elapsedTime) / totalTime
+        //return (totalTime - elapsedTime) / totalTime
+        let raw = (totalTime - elapsedTime) / totalTime
+        return (raw * 100).rounded() / 100
     }
     
     
@@ -426,14 +392,12 @@ class StopwatchViewModel: ObservableObject {
             if self.elapsedTime > 0 {
                 self.elapsedTime -= 0.1
             } else {
-                self.stop()
+                self.finishTimer()
                 
                 SoundManager.shared.playSound(named: .success)
                 DispatchQueue.main.async {
                     self.showProgressSheet = true
                 }
-                
-                
             }
         }
     }
@@ -462,12 +426,6 @@ class StopwatchViewModel: ObservableObject {
         self.currentPage = Int16(newPage)
     }
     
-    /*
-     func timerFormater() -> String{
-     let current = max(0, Int(elapsedTime))
-     return String(format: "%02d:%02d", current / 60, current % 60)
-     }
-     */
     func timerFormater() -> String {
         let current = max(0, Int(elapsedTime))
         let hours = current / 3600
@@ -491,27 +449,19 @@ class StopwatchViewModel: ObservableObject {
         return Int(totalPages)
     }
     
-//    func getBookProgress(book: Books) -> Int{
-//        //        bookProgress = Double(book.bookCurrentPage) / Double(book.bookTotalPages)
-//        //        return bookProgress
-//        
-//        let totalPages = book.bookTotalPages
-//        let currentPage = book.bookCurrentPage
-//        var bookProgress: Double {
-//            guard totalPages > 0 else { return 0 }
-//            return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
-//        }
-//        
-//        return Int(bookProgress)
-//        
-//    }
-    
     func getBookProgress(book: Books) -> Double {
         let totalPages = book.bookTotalPages
         let currentPage = book.bookCurrentPage
         
         guard totalPages > 0 else { return 0.0 }
         return min(max(Double(currentPage) / Double(totalPages), 0.0), 1.0)
+    }
+    
+    func finishTimer() {
+        timerState = .paused
+        isRunning = false
+        timer?.invalidate()
+        timer = nil
     }
     
 }
@@ -529,13 +479,15 @@ class StopwatchViewModel: ObservableObject {
 //
  
 import Foundation
-import CoreData
 import Combine
 import UIKit
+import SwiftData
+import SwiftUI
  
 class NotesViewModel: ObservableObject {
     @Published var savedNotes: [Notes] = []
-    
+    @Environment(\.modelContext) private var modelContext
+
     enum NoteError: LocalizedError {
         case invalidTitle
         case invalidDescription
@@ -563,50 +515,38 @@ class NotesViewModel: ObservableObject {
     let noteCategories = ["Citação", "Resumo", "Pensamento", "Crítica", "Conceito", "Lição", "Pergunta", "Favorito"]
     
     init() {
-        self.fetchNotes()
     }
     
     // funcao que carrega todas as notas do banco e atribui na lista savedNotes
-    func fetchNotes() {
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
+    func fetchNotes(context: ModelContext) {
+        //let request = NSFetchRequest<Notes>(entityName: "Notes")
+        let descriptor = FetchDescriptor<Notes>()
         do {
-            try self.savedNotes = CoreDataManager.shared.viewContext.fetch(request)
+            try self.savedNotes = context.fetch(descriptor)
         } catch let error {
             fatalError("Error when trying to fetch notes data: \(error)")
         }
     }
     
     //depois avaliar se realemtne e necessaria
-    func fetchNotes(for book: Books?) {
-        guard let book = book else {
+    func fetchNotes(for book: Books?, context: ModelContext) {
+        guard let targetBook = book else {
             self.savedNotes = []
             return
         }
         
-        let request = NSFetchRequest<Notes>(entityName: "Notes")
-        // Filtra para pegar apenas anotações onde o relacionamento 'book' é o livro atual
-        request.predicate = NSPredicate(format: "book == %@", book)
+        let descriptor = FetchDescriptor<Notes>()
         
         do {
-            self.savedNotes = try CoreDataManager.shared.viewContext.fetch(request)
+            let allNotes = try context.fetch(descriptor)
+            self.savedNotes = allNotes.filter { $0.book?.persistentModelID == targetBook.persistentModelID }
         } catch let error {
             print("Erro ao buscar anotações do livro: \(error)")
         }
     }
     
-    // funcao para salvar notas (chama ela sempre que quer subir efetivamente para o banco)
-    func saveNote() throws {
-        do {
-            try CoreDataManager.shared.viewContext.save()
-        } catch let error {
-            CoreDataManager.shared.viewContext.rollback()
-            print("Error when trying to save new note: \(error)")
-            throw NoteError.savingError
-        }
-    }
-    
     // funcao que adiciona notas com os parametros a serem recebidos pela view
-    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?) throws {
+    func addNote(noteTitle: String, noteDescription: String, noteCategory: String, notePhotos: [UIImage], to book: Books?, context: ModelContext) throws {
         
         let cleanTitle = noteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanDescription = noteDescription.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -616,12 +556,6 @@ class NotesViewModel: ObservableObject {
         //if noteCategory.isEmpty { throw NoteError.invalidCategory }
         guard let book else { throw NoteError.invalidBook }
         
-        let newNote = Notes(context: CoreDataManager.shared.viewContext)
-        newNote.noteTitle = cleanTitle
-        newNote.noteDescription = cleanDescription
-        newNote.noteCategory = noteCategory
-        newNote.book = book
-        
         var photosDataArray: [Data] = []
         for photo in notePhotos {
             if let data = photo.jpegData(compressionQuality: 0.8) {
@@ -629,14 +563,31 @@ class NotesViewModel: ObservableObject {
             }
         }
         
-        newNote.notePhoto = photosDataArray as NSObject
+        let newNote = Notes(
+            noteCategory: noteCategory,
+            noteDescription: cleanDescription,
+            noteTitle: cleanTitle,
+            notePhoto: photosDataArray
+        )
+        newNote.noteTitle = cleanTitle
+        newNote.noteDescription = cleanDescription
+        newNote.noteCategory = noteCategory
+        newNote.book = book
         
-        try self.saveNote()
+//        var photosDataArray: [Data] = []
+//        for photo in notePhotos {
+//            if let data = photo.jpegData(compressionQuality: 0.8) {
+//                photosDataArray.append(data)
+//            }
+//        }
+        //--------------------------depois resolver notephoto--------------------------
+        //newNote.notePhoto = photosDataArray
         
-        self.fetchNotes()
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     }
     
-    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage]) throws {
+    func updateNote(note: Notes, noteTitle: String, noteDescription: String, notePhotos: [UIImage], context: ModelContext) throws {
 
         
 //        let totalPagesInt = Int16(bookTotalPages) ?? 0
@@ -673,26 +624,34 @@ class NotesViewModel: ObservableObject {
             }
         }
         
-        if(note.notePhoto != photosDataArray as NSObject){
-            note.notePhoto = photosDataArray as NSObject
-        }
+//        if(note.notePhoto != photosDataArray as NSObject){
+//            note.notePhoto = photosDataArray as NSObject
+//        }
+        //--------------------------resolver comparacao depois--------------------------
+//        if(note.notePhoto != photosDataArray){
+//                    note.notePhoto = photosDataArray
+//                }
         
         
 //        if(book.bookCover != coverData){
 //            book.bookCover = coverData
 //        }
         
-        try self.saveNote()
-        self.fetchNotes()
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     }
     
     // funcao para deletar notas
-    func deleteNote(note: Notes) throws{
-        CoreDataManager.shared.viewContext.delete(note)
-        self.savedNotes.removeAll(where: { $0.objectID == note.objectID })
+    func deleteNote(note: Notes, context: ModelContext) throws{
+//        CoreDataManager.shared.viewContext.delete(note)
+//        self.savedNotes.removeAll(where: { $0.objectID == note.objectID })
         
-        try self.saveNote()
-        self.fetchNotes()
+        
+        context.delete(note)
+        //objectID vira persistentModelID no SwiftData
+        self.savedNotes.removeAll(where: { $0.persistentModelID == note.persistentModelID })
+        //try self.saveNote(context: context)
+        self.fetchNotes(context: context)
     
     }
 }
@@ -732,7 +691,7 @@ import SwiftUI
 import Combine
 import PhotosUI
 import UIKit
-import CoreData
+import SwiftData
 
 struct SelectableImage: Identifiable {
     let id = UUID()
@@ -768,29 +727,51 @@ class PhotoLibraryViewModel: ObservableObject {
         }
     }
     
+//    func loadDataImage(image: Data) -> UIImage{
+//        return UIImage(data: image)
+//    }
+//    
     func loadExistingImages(_ images: [UIImage]) {
         for image in images.prefix(maxNoteImages) {
             noteImages.append(SelectableImage(image: image))
         }
     }
     
-    func saveImageToCoreData(image: UIImage){
-        let newPhoto = Books(context: CoreDataManager.shared.viewContext)
-        
-        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
-        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
-        
-        newPhoto.bookCover = imageData
-        
-        do {
-            try CoreDataManager.shared.viewContext.save()
-            print("Success when saving the book cover")
-        } catch let error {
-            print("Error when saving the book cover \(error)")
-        }
-    }
+//    func saveImageToCoreData(image: UIImage){
+//        let newPhoto = Books(context: CoreDataManager.shared.viewContext)
+//        
+//        let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//        let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+//        
+//        newPhoto.bookCover = imageData
+//        
+//        do {
+//            try CoreDataManager.shared.viewContext.save()
+//            print("Success when saving the book cover")
+//        } catch let error {
+//            print("Error when saving the book cover \(error)")
+//        }
+//    }
+    //-------------------------depois resolver essa questao de imagem-------------------------
+//    func saveImage(image: UIImage, context: ModelContext) {
+//            let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
+//            let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
+//            
+//            
+//            let newPhotoBook = Books()
+//            newPhotoBook.bookCover = imageData
+//            
+//            context.insert(newPhotoBook)
+//            
+//            do {
+//                try context.save()
+//                print("Success when saving the book cover")
+//            } catch let error {
+//                print("Error when saving the book cover \(error)")
+//            }
+//        }
     
-    func convertImageToData(image: UIImage) -> Data?{
+    func convertImageToData(image: UIImage) -> Data{
 
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
         let imageData = image.jpegData(compressionQuality: 1) ?? defaultImageData
@@ -798,26 +779,31 @@ class PhotoLibraryViewModel: ObservableObject {
         return imageData
     }
     
+//    func getCoverImage(for book: Books) -> UIImage? {
+//        if book.entity.attributesByName.keys.contains("bookCover") {
+//            
+//            if let imageData = book.value(forKey: "bookCover") as? Data, let uiImage = UIImage(data: imageData) {
+//                return uiImage
+//            }
+//            
+//            if let imageName = book.value(forKey: "bookCover") as? String, !imageName.isEmpty, let uiImage = UIImage(named: imageName) {
+//                return uiImage
+//            }
+//        }
+//        
+//        if book.entity.attributesByName.keys.contains("bookImage") {
+//            if let imageData = book.value(forKey: "bookImage") as? Data, let uiImage = UIImage(data: imageData) {
+//                return uiImage
+//            }
+//        }
+//        return nil
+//    }
     func getCoverImage(for book: Books) -> UIImage? {
-        if book.entity.attributesByName.keys.contains("bookCover") {
-            
-            if let imageData = book.value(forKey: "bookCover") as? Data, let uiImage = UIImage(data: imageData) {
-                return uiImage
-            }
-            
-            if let imageName = book.value(forKey: "bookCover") as? String, !imageName.isEmpty, let uiImage = UIImage(named: imageName) {
-                return uiImage
-            }
-        }
         
-        if book.entity.attributesByName.keys.contains("bookImage") {
-            if let imageData = book.value(forKey: "bookImage") as? Data, let uiImage = UIImage(data: imageData) {
-                return uiImage
-            }
-        }
-        return nil
+        guard let data = book.bookCover else { return nil }
+        return UIImage(data: data)
     }
-    
+
     func loadPickedItems(_ items: [PhotosPickerItem]) {
         Task {
             for item in items {
@@ -860,9 +846,9 @@ class PhotoLibraryViewModel: ObservableObject {
 //
 import Foundation
 import SwiftUI
-import CoreData
 import Combine
 import PhotosUI
+import SwiftData
 
 class BooksViewModel: ObservableObject {
     
@@ -874,6 +860,7 @@ class BooksViewModel: ObservableObject {
         case invalidAuthor
         case invalidTotalPages
         case invalidCurrentPage
+        case currentPageGreaterThanTotalPages
         //case invalidGoal
         case invalidPageLogic
         case savingError
@@ -888,6 +875,8 @@ class BooksViewModel: ObservableObject {
                 return "Número de páginas inválido."
             case .invalidCurrentPage:
                 return "Página atual inválida."
+            case .currentPageGreaterThanTotalPages:
+                return "A página atual deve ser menor que o total de páginas."
 //            case .invalidGoal:
 //                return "Escolha uma meta de leitura."
             case .invalidPageLogic:
@@ -904,7 +893,6 @@ class BooksViewModel: ObservableObject {
     let bookCategories = ["Romance", "Suspense", "Ação", "Terror", "Drama", "Literatura", "Educativo", "Infantil", "Infantojuvenil"]
     
     init(){
-        self.fetchBooks()
     }
     
     func countGeralReadedPages() -> Int16{
@@ -922,10 +910,10 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao que carrega todos os livros do banco e atrbui na lista books
-    func fetchBooks(){
-        let request = NSFetchRequest<Books>(entityName: "Books")
+    func fetchBooks(context: ModelContext){
+        let descriptor = FetchDescriptor<Books>()
         do{
-            try self.savedBooks = CoreDataManager.shared.viewContext.fetch(request)
+            self.savedBooks = try context.fetch(descriptor)
             countGeralReadedPages()
 
         } catch let error{
@@ -935,18 +923,18 @@ class BooksViewModel: ObservableObject {
     }
     
     // funcao para salvar livros (chama ela sempre que quer subir efetivamente para o banco)
-    func saveBook() throws{
+    func saveBook(context: ModelContext) throws{
         do{
-            try CoreDataManager.shared.viewContext.save()
+            try context.save()
         } catch let error{
-            CoreDataManager.shared.viewContext.rollback()
+            // swiftdata nao tem roolback apenas avisamos a ui
             print("Error when trying to save new book: \(error)")
             throw BookError.savingError
         }
     }
     
     // funcao que adiciona livros com os parametros a serem recebidos pela view
-    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws{
+    func addBook(bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws{
         
         
         let totalPagesInt = Int16(bookTotalPages) ?? 0
@@ -969,18 +957,34 @@ class BooksViewModel: ObservableObject {
         }
         
         let defaultImageData = UIImage(named: "defaultBook")?.jpegData(compressionQuality: 1) ?? Data()
-        let coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
+        var coverData = bookCover?.jpegData(compressionQuality: 1) ?? defaultImageData
         
-        let newBook = Books(context: CoreDataManager.shared.viewContext)
-        newBook.bookTitle = cleanTitle
-        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
-        newBook.bookCover = coverData
-        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
-        newBook.bookTotalPages = totalPagesInt
+        //-----------------------depois resolver o bookCurrentPage e bookGoal-----------------------
+        
+        let newBook = Books(
+            bookAuthor: cleanAuthor,
+            bookCategory: bookCategory,
+            bookCover: coverData,
+            bookCurrentPage: 0,
+            bookGoal: 0,
+            bookTitle: cleanTitle,
+            bookTotalPages: totalPagesInt,
+            isTimerRunning: false,
+            wasLastPageAdded: true,
+            readingStartDate: nil
+        )
+        //salvando livro no banco
+        context.insert(newBook)
+        
+//        newBook.bookTitle = cleanTitle
+//        newBook.bookAuthor = cleanAuthor.isEmpty ? "Desconhecido" : cleanAuthor
+//        newBook.bookCover = coverData
+//        newBook.bookCategory = bookCategory.isEmpty ? "Sem categoria" : bookCategory
+//        newBook.bookTotalPages = totalPagesInt
 //        newBook.bookCurrentPage = bookCurrentPage
 //        newBook.bookGoal = bookGoal
-        newBook.isTimerRunning = false
-        newBook.wasLastPageAdded = true
+//        newBook.isTimerRunning = false
+//        newBook.wasLastPageAdded = true
 
         
 //        if currentePageInt <= 0 {
@@ -1001,26 +1005,26 @@ class BooksViewModel: ObservableObject {
 //        }
 
         
-        try self.saveBook()
+        try self.saveBook(context: context)
         
-        self.fetchBooks()
+        self.fetchBooks(context: context)
     }
     
     // funcao para deletar livros
-    func deleteBook(book: Books) throws{
+    func deleteBook(book: Books, context: ModelContext) throws{
 
 //        guard let index = indexSet.first else { return }
 //        let book = self.savedBooks[index]
         
-        CoreDataManager.shared.viewContext.delete(book)
-        self.savedBooks.removeAll(where: { $0.objectID == book.objectID })
+        context.delete(book)
+        self.savedBooks.removeAll(where: { $0.persistentModelID == book.persistentModelID })
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
 
     }
     
-    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String) throws {
+    func updateBook(book: Books, bookTitle: String, bookAuthor: String, bookCover: UIImage?, bookCategory: String, bookTotalPages: String, context: ModelContext) throws {
         
 //        guard let index = IndexSet.first else { return }
 //        
@@ -1089,17 +1093,16 @@ class BooksViewModel: ObservableObject {
             book.bookCover = coverData
         }
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
     }
         
     @Published var dailyGoalMinutes: Int = 0
     
-    func fetchDailyGoal() {
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
-        
+    func fetchDailyGoal(context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
         do {
-            let results = try CoreDataManager.shared.viewContext.fetch(request)
+            let results = try context.fetch(descriptor)
             if let settings = results.first {
                 self.dailyGoalMinutes = Int(settings.dailyGoalMinutes)
             }
@@ -1108,20 +1111,21 @@ class BooksViewModel: ObservableObject {
         }
     }
     
-    func saveDailyGoal(minutes: Int) {
-        let context = CoreDataManager.shared.viewContext
-        let request = NSFetchRequest<UserSettings>(entityName: "UserSettings")
+    func saveDailyGoal(minutes: Int, context: ModelContext) {
+        let descriptor = FetchDescriptor<UserSettings>()
+        
         
         do {
-            let results = try context.fetch(request)
+            let results = try context.fetch(descriptor)
             
             if let existingSettings = results.first {
                 // se já existir configuração, apenas atualiza
                 existingSettings.dailyGoalMinutes = Int16(minutes)
             } else {
                 // se for a primeira vez, cria o registro
-                let newSettings = UserSettings(context: context)
-                newSettings.dailyGoalMinutes = Int16(minutes)
+                let newSettings = UserSettings(dailyGoalMinutes: Int16(minutes))
+                //newSettings.dailyGoalMinutes = Int16(minutes)
+                context.insert(newSettings)
             }
             
             try context.save()
@@ -1135,17 +1139,41 @@ class BooksViewModel: ObservableObject {
     }
     
     
-    func updateCurrentPage(book: Books, currentPage: String) throws{
+    func updateCurrentPage(book: Books, currentPage: String, context: ModelContext) throws{
         let convertedCurrentPage = Int16(currentPage) ?? 0
         
         if convertedCurrentPage == 0 {
             throw BookError.invalidCurrentPage
         }
         
+        if convertedCurrentPage > book.bookTotalPages {
+            throw BookError.currentPageGreaterThanTotalPages
+        }
+        
         book.bookCurrentPage = convertedCurrentPage
         
-        try self.saveBook()
-        self.fetchBooks()
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
+    }
+    
+    // marca a data de início da leitura na primeira vez que um cronômetro é completado
+    // chame isso quando o usuário salva o progresso de leitura pela primeira vez
+    func markReadingStartDate(for book: Books, context: ModelContext) throws {
+        // só marca a data se ainda não foi marcada (primeira vez)
+        if book.readingStartDate == nil {
+            book.readingStartDate = Date()
+        }
+        
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
+    }
+
+
+    // reseta a data de início da leitura (use com cuidado)
+    func resetReadingStartDate(for book: Books, context: ModelContext) throws {
+        book.readingStartDate = nil
+        try self.saveBook(context: context)
+        self.fetchBooks(context: context)
     }
     
 //    func saveDailyGoal(minutes: Int) {
@@ -1185,11 +1213,11 @@ class BooksViewModel: ObservableObject {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 @main
 struct CH4_BooksApp: App {
-    let persistenceController = CoreDataManager.shared
+    //let persistenceController = CoreDataManager.shared
     @StateObject var photoViewModel = PhotoLibraryViewModel()
     @StateObject var booksViewModel = BooksViewModel()
     @StateObject var notesViewModel = NotesViewModel()
@@ -1200,7 +1228,7 @@ struct CH4_BooksApp: App {
     var body: some Scene {
         WindowGroup {
             RootFlowView()
-                .environment(\.managedObjectContext, persistenceController.viewContext)
+                //.environment(\.managedObjectContext, persistenceController.viewContext)
                 .environmentObject(userSettingsViewModel)
                 .environmentObject(photoViewModel)
                 .environmentObject(booksViewModel)
@@ -1208,6 +1236,12 @@ struct CH4_BooksApp: App {
                 .environmentObject(stopWatchViewModel)
                 .environmentObject(filterViewModel)
         }
+        .modelContainer(for: [
+                    Books.self,
+                    Notes.self,
+                    NoteImage.self,
+                    UserSettings.self
+                ])
     }
 }
 
@@ -1270,35 +1304,35 @@ struct RootFlowView: View {
 //  Created by Julio Sampaio on 13/08/26.
 //
 
-import Foundation
-import CoreData
+//import Foundation
+//import CoreData
 
-class CoreDataManager{
-    let persistentContainer: NSPersistentContainer
-    static let shared = CoreDataManager()
-    
-    var viewContext: NSManagedObjectContext{
-        return self.persistentContainer.viewContext
-    }
-    
-    init(){
-        self.persistentContainer = NSPersistentContainer(name: "Database")
-        self.persistentContainer.loadPersistentStores { (description, error) in
-            if let error = error{
-                print("Error loading persistent stores: \(error)")
-            }
-        }
-        
-        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        
-        
-        // atualiza automaticamente os possíveis novos atributos do banco
-        let description = persistentContainer.persistentStoreDescriptions.first
-        description?.shouldInferMappingModelAutomatically = true
-        description?.shouldMigrateStoreAutomatically = true
-    }
-    
-}
+//class CoreDataManager{
+//    let persistentContainer: NSPersistentContainer
+//    static let shared = CoreDataManager()
+//    
+//    var viewContext: NSManagedObjectContext{
+//        return self.persistentContainer.viewContext
+//    }
+//    
+//    init(){
+//        self.persistentContainer = NSPersistentContainer(name: "Database")
+//        self.persistentContainer.loadPersistentStores { (description, error) in
+//            if let error = error{
+//                print("Error loading persistent stores: \(error)")
+//            }
+//        }
+//        
+//        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+//        
+//        
+//        // atualiza automaticamente os possíveis novos atributos do banco
+//        let description = persistentContainer.persistentStoreDescriptions.first
+//        description?.shouldInferMappingModelAutomatically = true
+//        description?.shouldMigrateStoreAutomatically = true
+//    }
+//    
+//}
 
 //
 //  CoreDataManager.swift
@@ -1519,59 +1553,236 @@ extension Font {
 
 ---
 
-### Arquivo: \⁠ ./View/PreviewHelper/PreviewProviderHelper.swift\ ⁠
+### Arquivo: \⁠ ./Model/NoteImageModel.swift\ ⁠
 ⁠ swift
 //
-//  test.swift
+//  NoteImageModel.swift
 //  CH4-Books
+//
+//  Created by Lucas on 23/08/26.
 //
 
 import Foundation
-import SwiftUI
-import CoreData
+import SwiftData
 
-struct PreviewProviderHelper {
-    static let sharedContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Database")
-        let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
-        container.persistentStoreDescriptions = [description]
-        
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                print("Erro ao carregar container de teste: \(error)")
-            }
-        }
-        return container
-    }()
+@Model
+final class NoteImage {
+    @Attribute(.unique) var id: UUID
+    var fileName: String
     
-    static var sampleBook: Books {
-        let context = sharedContainer.viewContext
-        
-        let book = Books(context: context)
-        book.bookTitle = "Clean Code"
-        book.bookAuthor = "Robert C. Martin"
-        book.bookCategory = "Tecnologia"
-        book.bookCurrentPage = 45
-        book.bookGoal = 200
-        book.bookTotalPages = 425
-        book.isTimerRunning = false
-        book.wasLastPageAdded = false
-        
-        return book
+    var note: Notes?
+    
+    init(id: UUID, fileName: String) {
+        self.id = id
+        self.fileName = fileName
     }
 }
+ ⁠
 
-#Preview {
-    ZStack {
-        HStack(spacing: 16) {
-            BookCardView(
-                book: PreviewProviderHelper.sampleBook
-            )
-        }
+---
+
+### Arquivo: \⁠ ./Model/UserSettingsModel.swift\ ⁠
+⁠ swift
+//
+//  UserSettingsModel.swift
+//  CH4-Books
+//
+//  Created by Lucas on 23/08/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class UserSettings {
+    var dailyGoalMinutes: Int16
+    var lastReadingDate: Date?
+    var minutesReadToday: Int16 = 0
+    
+    
+    @Attribute(.transformable(by: NSSecureUnarchiveFromDataTransformer.self))
+    var lastBookSelected: Data?
+    
+    @Relationship(inverse: \Books.userSetttings)
+    var lastBookReaded: Books?
+    
+    init(dailyGoalMinutes: Int16) {
+        self.dailyGoalMinutes = dailyGoalMinutes
+        //        self.lastReadingDate = lastReadingDate
+        //        self.minutesReadToday = minutesReadToday
+        //        self.lastBookSelected = lastBookSelected
+        
     }
-    .environment(\.managedObjectContext, PreviewProviderHelper.sharedContainer.viewContext)
 }
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./Model/BooksModel.swift\ ⁠
+⁠ swift
+//
+//  teste.swift
+//  CH4-Books
+//
+//  Created by Lucas on 23/08/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class Books {
+    var bookAuthor: String
+    var bookCategory: String
+    var bookCover: Data?
+    var bookCurrentPage: Int16
+    var bookGoal: Int16
+    var bookTitle: String
+    var bookTotalPages: Int16
+    var isTimerRunning: Bool
+    var wasLastPageAdded: Bool
+    var readingStartDate: Date?
+    
+    @Relationship(inverse: \Notes.book)
+    var notes: [Notes]? = []
+    
+    var userSetttings: UserSettings?
+    
+    init(bookAuthor: String, bookCategory: String, bookCover: Data, bookCurrentPage: Int16, bookGoal: Int16, bookTitle: String, bookTotalPages: Int16, isTimerRunning: Bool, wasLastPageAdded: Bool, readingStartDate: Date?) {
+        self.bookAuthor = bookAuthor
+        self.bookCategory = bookCategory
+        self.bookCover = bookCover
+        self.bookCurrentPage = bookCurrentPage
+        self.bookGoal = bookGoal
+        self.bookTitle = bookTitle
+        self.bookTotalPages = bookTotalPages
+        self.isTimerRunning = isTimerRunning
+        self.wasLastPageAdded = wasLastPageAdded
+        self.readingStartDate = nil
+    }
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./Model/NotesModel.swift\ ⁠
+⁠ swift
+//
+//  NotesModel.swift
+//  CH4-Books
+//
+//  Created by Lucas on 23/08/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class Notes {
+    var noteCategory: String
+    var noteDescription: String
+    var noteTitle: String
+    
+    // transformador padrao para imagens
+    @Attribute(.transformable(by: NSSecureUnarchiveFromDataTransformer.self))
+    var notePhoto: [Data]
+    
+    var book: Books?
+    
+    @Relationship(inverse: \NoteImage.note)
+    var images: [NoteImage]? = []
+    
+    init(noteCategory: String, noteDescription: String, noteTitle: String, notePhoto: [Data]) {
+        self.noteCategory = noteCategory
+        self.noteDescription = noteDescription
+        self.noteTitle = noteTitle
+        self.notePhoto = notePhoto
+    }
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/PreviewHelper/PreviewProviderHelper.swift\ ⁠
+⁠ swift
+////
+////  test.swift
+////  CH4-Books
+////
+//
+//import Foundation
+//import SwiftUI
+//import SwiftData
+//
+////essa mudanca e para que o codigo rode na thread principal
+//@MainActor
+//struct PreviewProviderHelper {
+//    //    static let sharedContainer: NSPersistentContainer = {
+//    //        let container = NSPersistentContainer(name: "Database")
+//    //        let description = NSPersistentStoreDescription()
+//    //        description.type = NSInMemoryStoreType
+//    //        container.persistentStoreDescriptions = [description]
+//    //
+//    //        container.loadPersistentStores { _, error in
+//    //            if let error = error {
+//    //                print("Erro ao carregar container de teste: \(error)")
+//    //            }
+//    //        }
+//    //        return container
+//    //    }()
+//    
+//    static let sharedContainer: ModelContainer = {
+//        do {
+//            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//            // Nota: Se Books tiver relacionamento com Notes, coloque Notes.self aqui também
+//            let container = try ModelContainer(for: Books.self, Notes.self, configurations: config)
+//            return container
+//        } catch {
+//            fatalError("Erro ao carregar container de teste: \(error)")
+//        }
+//    }()
+//    
+//    static var sampleBook: Books {
+//        let context = sharedContainer.mainContext
+//        
+////        let book = Books(
+////            bookAuthor: "Robert C. Martin",
+////            bookCategory: "Tecnologia",
+////            bookCurrentPage: 45,
+////            bookGoal: 200,
+////            bookTitle: "Clean Code",
+////            bookTotalPages: 425,
+////            isTimerRunning: false,
+////            wasLastPageAdded: false
+////        )
+//        
+//        //        book.bookTitle = "Clean Code"
+//        //        book.bookAuthor = "Robert C. Martin"
+//        //        book.bookCategory = "Tecnologia"
+//        //        book.bookCurrentPage = 45
+//        //        book.bookGoal = 200
+//        //        book.bookTotalPages = 425
+//        //        book.isTimerRunning = false
+//        //        book.wasLastPageAdded = false
+//        
+//        
+//        
+//        return book
+//    }
+//    
+//}
+//
+//#Preview {
+//    ZStack {
+//        HStack(spacing: 16) {
+//            BookCardView(
+//                book: PreviewProviderHelper.sampleBook
+//            )
+//        }
+//    }
+//    // 👇 4. Injetamos o contêiner do SwiftData na View
+//    .modelContainer(PreviewProviderHelper.sharedContainer)
+//}
  ⁠
 
 ---
@@ -1586,13 +1797,15 @@ struct PreviewProviderHelper {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct SelectBookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
     @Binding var selectedBook: Books?
     
@@ -1606,13 +1819,13 @@ struct SelectBookSheetView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(booksViewModel.savedBooks, id: \.objectID) { book in
+                        ForEach(booksViewModel.savedBooks, id: \.self) { book in
                             let isSelected = selectedBook == book
                             
                             Button(action: {
                                 selectedBook = book
-                                userSettingsViewModel.updateUserSettings(newLastBook: book)
-                                userSettingsViewModel.fetchUserSettings()
+                                userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
+                                userSettingsViewModel.fetchUserSettings(context: modelContext)
                                 
                                 stopwatchViewModel.getTotalPages(book: book)
                                 stopwatchViewModel.getCurrentPage(book: book)
@@ -1653,10 +1866,10 @@ struct SelectBookSheetView: View {
                 )
             }
             .onAppear {
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
             }
             .onDisappear{
-                userSettingsViewModel.fetchUserSettings()
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
         }
     }
@@ -1685,7 +1898,7 @@ struct SelectBookSheetView: View {
 
 import SwiftUI
 import PhotosUI
-import CoreData
+import SwiftData
 
 struct NoteSheetView: View {
 
@@ -1709,6 +1922,8 @@ struct NoteSheetView: View {
     @State private var showingDiscardAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+
+    @Environment(\.modelContext) private var modelContext
 
     private static let maxImages = 3
     
@@ -1897,7 +2112,9 @@ struct NoteSheetView: View {
             .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
             Button {
-                isShowingPhotoPicker = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isShowingPhotoPicker = true
+                }
             } label: {
                 Label("Escolher da galeria", systemImage: "photo.on.rectangle")
             }
@@ -1953,7 +2170,7 @@ struct NoteSheetView: View {
                     note: note,
                     noteTitle: noteTitle,
                     noteDescription: noteDescription,
-                    notePhotos: noteImages.map(\.image)
+                    notePhotos: noteImages.map(\.image), context: modelContext
                 )
             } else {
                 try notesViewModel.addNote(
@@ -1961,11 +2178,11 @@ struct NoteSheetView: View {
                     noteDescription: noteDescription,
                     noteCategory: selectedCategory,
                     notePhotos: noteImages.map(\.image),
-                    to: book
+                    to: book, context: modelContext
                 )
             }
 
-            notesViewModel.fetchNotes(for: book)
+            notesViewModel.fetchNotes(for: book, context: modelContext)
             dismiss()
 
         } catch let error as LocalizedError {
@@ -1986,10 +2203,10 @@ struct NoteSheetView: View {
         )
     }
 }
-#Preview {
-    NoteSheetView(book: PreviewProviderHelper.sampleBook)
-        .environmentObject(NotesViewModel())
-}
+//#Preview {
+//    NoteSheetView(book: PreviewProviderHelper.sampleBook)
+//        .environmentObject(NotesViewModel())
+//}
  ⁠
 
 ---
@@ -2004,11 +2221,12 @@ struct NoteSheetView: View {
 //
 
 import SwiftUI
+import SwiftData
 
 struct NoteDetailSheetView: View {
     @EnvironmentObject private var notesViewModel: NotesViewModel
     
-    @ObservedObject var note: Notes
+    var note: Notes
     
     @Environment(\.dismiss) private var dismiss
     
@@ -2017,7 +2235,8 @@ struct NoteDetailSheetView: View {
     @State private var errorMessage = ""
     
     @State private var showingDeleteAlert = false
-    
+    @Environment(\.modelContext) private var modelContext
+
     private var noteImages: [UIImage] {
         if let photosData = note.notePhoto as? [Data] {
             return photosData.compactMap { UIImage(data: $0) }
@@ -2088,8 +2307,8 @@ struct NoteDetailSheetView: View {
                     Button("Cancelar", role: .cancel) { }
                     Button("Apagar", role: .destructive) {
                         do{
-                            try notesViewModel.deleteNote(note: note)
-                            notesViewModel.fetchNotes(for: note.book)
+                            try notesViewModel.deleteNote(note: note, context: modelContext)
+                            notesViewModel.fetchNotes(for: note.book, context: modelContext)
                             dismiss()
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -2127,7 +2346,7 @@ struct NoteDetailSheetView: View {
                 //                }
                 //            }
                 .sheet(isPresented: $isShowingEditSheet, onDismiss: {
-                    notesViewModel.fetchNotes(for: note.book)
+                    notesViewModel.fetchNotes(for: note.book, context: modelContext)
                 }) {
                     if let book = note.book {
                         NoteSheetView(book: book, noteToEdit: note)
@@ -2155,12 +2374,16 @@ import SwiftUI
 struct BottomSheet: View {
     @Binding var minutesPerDay: Int
     @State private var showAlert = false
-    @State var isPickerShown: Bool = false
+    var isPickerShown: Bool = false
     
     @Binding var readedPages: String
     
     @State private var showCustomDiscardAlert = false
-    
+    //@State var mimMinute: Int = 0
+    private var minMinuteAllowed: Int {
+        hours == 0 ? 1 : 0
+    }
+
     var onDismiss: () -> Void = {}
     var onSave: () -> Void = {}
 
@@ -2193,7 +2416,12 @@ struct BottomSheet: View {
                         HStack(spacing: 0) {
                             Picker("Horas", selection: Binding(
                                 get: { hours },
-                                set: { newHours in minutesPerDay = (newHours * 60) + minutes }
+                                set: { newHours in
+                                    var newMinutes = minutes
+                                            if newHours == 0 && newMinutes == 0 {
+                                                newMinutes = 1
+                                            }
+                                    minutesPerDay = (newHours * 60) + minutes }
                             )) {
                                 ForEach(0..<24, id: \.self) { hour in
                                     Text("\(hour) h").tag(hour)
@@ -2205,7 +2433,7 @@ struct BottomSheet: View {
                                 get: { minutes },
                                 set: { newMinutes in minutesPerDay = (hours * 60) + newMinutes }
                             )) {
-                                ForEach(0..<60, id: \.self) { minute in
+                                ForEach(minMinuteAllowed..<60, id: \.self) { minute in
                                     Text("\(minute) min").tag(minute)
                                 }
                             }
@@ -2258,23 +2486,23 @@ struct BottomSheet: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                         }
-//                        .foregroundColor(Color("ActionColor"))
-//                        Button("Cancelar") {
-//                            
-//                        }
                         
                     }
                     
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
                             onSave()
                         }) {
                             Image(systemName: "checkmark")
-                                .fontWeight(.bold)
-                                .foregroundColor(Color("ActionColor"))
+                                .fontWeight(.semibold)
+                                .font(.body.bold())
+                                .foregroundColor(.title)
                         }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.circle)
                         .tint(Color("ActionColor"))
                     }
+                    
                 }
             }
             .interactiveDismissDisabled(!isPickerShown)
@@ -2451,11 +2679,14 @@ struct PageProgressSheetView: View {
 import Foundation
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct BookSheetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
+    @Environment(\.modelContext) private var modelContext
+
     
     @State var bookToEdit: Books?
     @State private var initialCoverImage: UIImage? = nil
@@ -2630,9 +2861,9 @@ struct BookSheetView: View {
                     bookAuthor: bookAuthor,
                     bookCover: photoLibraryViewModel.selectedCoverImage,
                     bookCategory: selectedCategory,
-                    bookTotalPages: bookTotalPages
+                    bookTotalPages: bookTotalPages, context: modelContext
                 )
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
                 dismiss()
             } catch let error as LocalizedError {
                 errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -2648,9 +2879,9 @@ struct BookSheetView: View {
                     bookAuthor: bookAuthor,
                     bookCover: photoLibraryViewModel.selectedCoverImage,
                     bookCategory: selectedCategory,
-                    bookTotalPages: bookTotalPages
+                    bookTotalPages: bookTotalPages, context: modelContext
                 )
-                booksViewModel.fetchBooks()
+                booksViewModel.fetchBooks(context: modelContext)
                 dismiss()
             } catch let error as LocalizedError {
                 errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -2682,14 +2913,13 @@ struct BookSheetView: View {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct ContentView: View {
+    
     @State private var searchText = ""
     @State private var selectedBook: Books? = nil
     @Namespace private var stopwatchNamespace
-    
-    @EnvironmentObject var booksViewModel: BooksViewModel
     
     init() {
         let appearance = UITabBarAppearance()
@@ -2711,29 +2941,25 @@ struct ContentView: View {
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
+    
      
     var body: some View {
-        
         TabView {
             Tab("Estante", systemImage: "book"){
                 BookCaseView()
-//                    .tint(.blue)
-                   // .environmentObject(PhotoLibraryViewModel())
             }
             Tab("Cronômetro", systemImage: "timer"){
-                StopwatchInitialView(
+                StopwatchFlowView(
                     namespace: stopwatchNamespace,
-                    selectedBook: selectedBook
+                    selectedBook: $selectedBook
                 )
-//                .tint(.blue)
             }
             Tab(role: .search){
                 BookSearchView()
-//                    .tint(.blue)
             }
             
         }
-//        .tint(Color("ActionColor"))
+                  
     }
 }
 
@@ -2744,6 +2970,7 @@ struct ContentView: View {
         .environmentObject(StopwatchViewModel())
         .environmentObject(PhotoLibraryViewModel())
         .environmentObject(NotesViewModel())
+        .environmentObject(BookFilterViewModel())
 }
  ⁠
 
@@ -2759,7 +2986,7 @@ struct ContentView: View {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookSearchView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
@@ -2768,13 +2995,14 @@ struct BookSearchView: View {
     @State private var isSearchPresented = false
     @State private var selectedBook: Books?
     @State private var selectedNote: Notes?
+    @Environment(\.modelContext) private var modelContext
 
     var filteredBooks: [Books] {
         if searchText.isEmpty {
             return booksViewModel.savedBooks
         } else {
             return booksViewModel.savedBooks.filter { book in
-                book.bookTitle?.localizedCaseInsensitiveContains(searchText) ?? false
+                book.bookTitle.localizedCaseInsensitiveContains(searchText) ?? false
             }
         }
     }
@@ -2784,7 +3012,7 @@ struct BookSearchView: View {
             return notesViewModel.savedNotes
         } else {
             return notesViewModel.savedNotes.filter { note in
-                note.noteTitle?.localizedCaseInsensitiveContains(searchText) ?? false
+                note.noteTitle.localizedCaseInsensitiveContains(searchText) ?? false
             }
         }
     }
@@ -2863,18 +3091,18 @@ struct BookSearchView: View {
                 )
                 .onAppear {
                     isSearchPresented = true
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }
                 .sheet(item: $selectedBook, onDismiss: {
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }) { book in
                     BookDetailView(bookViewModel: booksViewModel, book: book)
                 }
                 .sheet(item: $selectedNote, onDismiss: {
-                    booksViewModel.fetchBooks()
-                    notesViewModel.fetchNotes()
+                    booksViewModel.fetchBooks(context: modelContext)
+                    notesViewModel.fetchNotes(context: modelContext)
                 }) { note in
                     NoteDetailSheetView(note: note)
                 }
@@ -2891,48 +3119,103 @@ struct BookSearchView: View {
 }
 
 
-#Preview {
-    let context = CoreDataManager.shared.viewContext
-    
-    let book1 = Books(context: context)
-    book1.bookTitle = "Dom Casmurro"
-    book1.bookAuthor = "Machado de Assis"
-    book1.bookCategory = "Romance"
-    book1.bookTotalPages = 256
-    book1.bookCurrentPage = 120
-    book1.isTimerRunning = false
-    book1.wasLastPageAdded = true
-    
-    let book2 = Books(context: context)
-    book2.bookTitle = "O Pequeno Príncipe"
-    book2.bookAuthor = "Antoine de Saint-Exupéry"
-    book2.bookCategory = "Infantil"
-    book2.bookTotalPages = 96
-    book2.bookCurrentPage = 96
-    book2.isTimerRunning = false
-    book2.wasLastPageAdded = true
-    
-    let note1 = Notes(context: context)
-    note1.noteTitle = "Anotações sobre "
-    note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
-    note1.noteCategory = "Pensamento"
-    note1.book = book1
-    
-    let note2 = Notes(context: context)
-    note2.noteTitle = "Ideias para resumo"
-    note2.noteDescription = "Pontos principais do capítulo 3."
-    note2.noteCategory = "Resumo"
-    note2.book = book2
-    
-    try? context.save()
-    
-    let booksVM = BooksViewModel()
-    let notesVM = NotesViewModel()
-    
-    return BookSearchView()
-        .environmentObject(booksVM)
-        .environmentObject(notesVM)
-}
+//#Preview {
+//    do {
+//        // Configura um banco de dados temporário na memória para o Preview
+//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//        let container = try ModelContainer(for: Books.self, Notes.self, configurations: config)
+//        let context = container.mainContext
+//        
+//        let book1 = Books()
+//        book1.bookTitle = "Dom Casmurro"
+//        book1.bookAuthor = "Machado de Assis"
+//        book1.bookCategory = "Romance"
+//        book1.bookTotalPages = 256
+//        book1.bookCurrentPage = 120
+//        book1.isTimerRunning = false
+//        book1.wasLastPageAdded = true
+//        
+//        let book2 = Books()
+//        book2.bookTitle = "O Pequeno Príncipe"
+//        book2.bookAuthor = "Antoine de Saint-Exupéry"
+//        book2.bookCategory = "Infantil"
+//        book2.bookTotalPages = 96
+//        book2.bookCurrentPage = 96
+//        book2.isTimerRunning = false
+//        book2.wasLastPageAdded = true
+//        
+//        let note1 = Notes()
+//        note1.noteTitle = "Anotações sobre "
+//        note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
+//        note1.noteCategory = "Pensamento"
+//        note1.book = book1
+//        
+//        let note2 = Notes()
+//        note2.noteTitle = "Ideias para resumo"
+//        note2.noteDescription = "Pontos principais do capítulo 3."
+//        note2.noteCategory = "Resumo"
+//        note2.book = book2
+//        
+//        context.insert(book1)
+//        context.insert(book2)
+//        context.insert(note1)
+//        context.insert(note2)
+//        
+//        let booksVM = BooksViewModel()
+//        let notesVM = NotesViewModel()
+//        
+//        BookSearchView()
+//            .environmentObject(booksVM)
+//            .environmentObject(notesVM)
+//            .modelContainer(container)
+//    } catch {
+//        fatalError("Failed to create model container for preview: \(error)")
+//    }
+//}
+
+
+//#Preview {
+//    let context = CoreDataManager.shared.viewContext
+//    
+//    let book1 = Books(context: context)
+//    book1.bookTitle = "Dom Casmurro"
+//    book1.bookAuthor = "Machado de Assis"
+//    book1.bookCategory = "Romance"
+//    book1.bookTotalPages = 256
+//    book1.bookCurrentPage = 120
+//    book1.isTimerRunning = false
+//    book1.wasLastPageAdded = true
+//    
+//    let book2 = Books(context: context)
+//    book2.bookTitle = "O Pequeno Príncipe"
+//    book2.bookAuthor = "Antoine de Saint-Exupéry"
+//    book2.bookCategory = "Infantil"
+//    book2.bookTotalPages = 96
+//    book2.bookCurrentPage = 96
+//    book2.isTimerRunning = false
+//    book2.wasLastPageAdded = true
+//    
+//    let note1 = Notes(context: context)
+//    note1.noteTitle = "Anotações sobre "
+//    note1.noteDescription = "Reflexão sobre a personagem e sua ambiguidade."
+//    note1.noteCategory = "Pensamento"
+//    note1.book = book1
+//    
+//    let note2 = Notes(context: context)
+//    note2.noteTitle = "Ideias para resumo"
+//    note2.noteDescription = "Pontos principais do capítulo 3."
+//    note2.noteCategory = "Resumo"
+//    note2.book = book2
+//    
+//    try? context.save()
+//    
+//    let booksVM = BooksViewModel()
+//    let notesVM = NotesViewModel()
+//    
+//    return BookSearchView()
+//        .environmentObject(booksVM)
+//        .environmentObject(notesVM)
+//}
  ⁠
 
 ---
@@ -2947,7 +3230,7 @@ struct BookSearchView: View {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookDetailView: View {
     @ObservedObject var bookViewModel: BooksViewModel
@@ -2958,12 +3241,18 @@ struct BookDetailView: View {
     @State private var isPresentedBottomSheet: Bool = false
     @State private var tempGoalMinutes: Int = 15
     
+    @State private var navigateToTimer: Bool = false
+    @State private var bookForTimer: Books? = nil
+    @Namespace private var stopwatchNamespace
+    
     @State private var tempReadedPages: String = ""
     
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @Environment(\.modelContext) private var modelContext
+
     
     var book: Books
     
@@ -2980,7 +3269,7 @@ struct BookDetailView: View {
                     .ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
-                    VStack() {
+                    VStack(spacing: 16) {
                         
                         BookInstanceDetailView(book: book)
                             .environmentObject(PhotoLibraryViewModel())
@@ -2989,18 +3278,45 @@ struct BookDetailView: View {
                         CardTotalPages(totalPages: bookViewModel.countBookReadedPages(book: book))
                             .padding(.horizontal)
                         
+                        VStack(spacing: 10) {
+                            
+                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor") {
+                                bookForTimer = book
+                                navigateToTimer = true
+                            }
+//                            .padding(.top, 16)
+                            .padding(.horizontal, 24)
+                            
+                            
+                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
+                                isPresentedBottomSheet.toggle()
+                            }
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 100, style: .continuous)
+//                                    .stroke(Color.orange, lineWidth: 1)
+//                            )
+                            .buttonStyle(.glass)
+                            .padding(.horizontal, 24)
+//                            .padding(.horizontal, 24)
+                            
+                            
+                            
+                        }
+//                        .padding(.bottom, 16)
+                        
+                        
                         NotesHeaderview(isPresentedAddNote: $isPresentedAddNote)
                                .padding(.horizontal, 24)
                                .padding(.top, 10)
                         
 
-                        VStack(spacing: 16) {
+                        VStack() {
                             
                                
                             VStack{
                                 VStack() {
                                     NotesSectionView(notes: Array(notesViewModel.savedNotes.prefix(3))) {
-                                        notesViewModel.fetchNotes(for: book)
+                                        notesViewModel.fetchNotes(for: book, context: modelContext)
                                     }
                                     Divider()
                                         .frame(height: 0.3)
@@ -3008,6 +3324,20 @@ struct BookDetailView: View {
                                         .padding(.horizontal, 28)
                                     
                                 }
+//<<<<<<< HEAD
+//                                
+//                                NavigationLink(destination: MyNotesListView(book: currentBook)) {
+//                                    Text(notesViewModel.savedNotes.isEmpty ? "Ver anotações" : "Ver mais anotações...")
+//                                        .font(.system(size: 14, weight: .semibold))
+//                                        .foregroundColor(Color(.action))
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                        .padding(.horizontal,28)
+//                                        .padding(.vertical)
+//                                        .padding(.bottom, 10)
+//                                }
+//                                
+//=======
+//>>>>>>> dev
                             }
 
                             
@@ -3026,31 +3356,18 @@ struct BookDetailView: View {
                         .background(Color("CardNoteColor"))
                         .cornerRadius(30)
                         .padding(.horizontal)
-                        VStack(spacing: 16) {
-                            
-                            ButtonAction(text: "Adicionar leitura", isGlass: true) {
-                                isPresentedBottomSheet.toggle()
-                            }
-                            .buttonStyle(.glass)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 16)
-                            
-                            // Button preenchido com cor
-                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor")
-                                .padding(.horizontal, 24)
-                        }
                     }
                     .padding(.bottom, 40)
                 }
             }
             .onAppear {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }
             .onDisappear {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }
             .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                notesViewModel.fetchNotes(for: book)
+                notesViewModel.fetchNotes(for: book, context: modelContext)
             }) {
                 NoteSheetView(book: book)
                     .environmentObject(notesViewModel)
@@ -3067,7 +3384,8 @@ struct BookDetailView: View {
                     onSave: {
                         
                         do{
-                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages)
+                            try bookViewModel.updateCurrentPage(book: book, currentPage: tempReadedPages, context: modelContext)
+                            try bookViewModel.markReadingStartDate(for: book, context: modelContext)
                         } catch let error as LocalizedError {
                             errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
                             showErrorAlert = true
@@ -3089,7 +3407,7 @@ struct BookDetailView: View {
                 .presentationBackground(Color("BackgroundColorViews"))
             }
             .sheet(isPresented: $isPresentedEditBook, onDismiss: {
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }){
                 BookSheetView(bookToEdit: book)
                     .environmentObject(photoLibraryViewModel)
@@ -3106,6 +3424,17 @@ struct BookDetailView: View {
                     isPresentedEditBook.toggle()
                     
                 })
+            }
+            
+            .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(isPresented: $navigateToTimer) {
+                withAnimation {
+                    StopwatchInitialView(
+                        namespace: stopwatchNamespace,
+                        selectedBook: $bookForTimer
+                    )
+                }
+                
             }
         }
     }
@@ -3129,12 +3458,16 @@ struct BookDetailView: View {
 //
 
 import SwiftUI
+import SwiftData
 
 struct BookCaseView: View {
     @EnvironmentObject var bookViewModel: BooksViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     @EnvironmentObject var filterViewModel: BookFilterViewModel
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
+    //injetando o contexto do banco
+    @Environment(\.modelContext) private var modelContext
     
     enum ActiveSheet: Identifiable {
         case addBook
@@ -3146,7 +3479,7 @@ struct BookCaseView: View {
     @State private var activeSheet: ActiveSheet? = nil
     
     @State private var tempGoalMinutes: Int = 15
-    @State private var tempReadedPages: String = ""
+    //@State private var tempReadedPages: String = ""
     
     var filteredBooks: [Books] {
         return filterViewModel.applyFilters(to: bookViewModel.savedBooks)
@@ -3198,8 +3531,8 @@ struct BookCaseView: View {
         }
         .onAppear {
             withAnimation {
-                bookViewModel.fetchBooks()
-                userSettingsViewModel.fetchUserSettings()
+                bookViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
             
             NotificationManager.shared.requestPermission()
@@ -3207,14 +3540,14 @@ struct BookCaseView: View {
 
         .sheet(item: $activeSheet, onDismiss: {
             withAnimation {
-                bookViewModel.fetchBooks()
-                userSettingsViewModel.fetchUserSettings()
+                bookViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
             }
         }) { sheet in
             switch sheet {
             case .addBook:
                 BookSheetView(bookToEdit: nil)
-                    .environmentObject(PhotoLibraryViewModel())
+                    .environmentObject(photoLibraryViewModel)
                     .environmentObject(bookViewModel)
                 
             case .editGoal:
@@ -3223,54 +3556,17 @@ struct BookCaseView: View {
                     isPickerShown: true,
                     readedPages: .constant(""),
                     onDismiss: {
-                        userSettingsViewModel.fetchUserSettings()
+                        userSettingsViewModel.fetchUserSettings(context: modelContext)
                         activeSheet = nil
                     },
                     onSave: {
-                        userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes)
+                        userSettingsViewModel.saveDailyGoal(minutes: tempGoalMinutes, context: modelContext)
                         activeSheet = nil
                     }
                 )
                 .onAppear {
                     tempGoalMinutes = userSettingsViewModel.dailyGoal
                 }
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(Color("BackgroundColorViews"))
-            }
-        }
-        
-        .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
-            if let currentBook = userSettingsViewModel.lastBookReaded {
-                BottomSheet(
-                    minutesPerDay: .constant(0),
-                    isPickerShown: false,
-                    readedPages: $tempReadedPages,
-                    onDismiss: {
-                        stopwatchViewModel.showProgressSheet = false
-                    },
-                    onSave: {
-                        if let newPage = Int16(tempReadedPages) {
-                            currentBook.bookCurrentPage = newPage
-                            
-                            do {
-                                try bookViewModel.saveBook()
-                            } catch {
-                                print("Error when trying to save last readed page by home: \(error)")
-                            }
-                        }
-                        
-                        let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
-                        let minutesRead = max(1, rawMinutes)
-                        
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
-                        
-                        bookViewModel.fetchBooks()
-                        userSettingsViewModel.fetchUserSettings()
-                        tempReadedPages = ""
-                        stopwatchViewModel.showProgressSheet = false
-                    }
-                )
                 .presentationDetents([.height(340)])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Color("BackgroundColorViews"))
@@ -3286,6 +3582,123 @@ struct BookCaseView: View {
         .environmentObject(NotesViewModel())
         .environmentObject(StopwatchViewModel())
         .environmentObject(BookFilterViewModel())
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Components/StopwatchComponents/PulsingRingsView.swift\ ⁠
+⁠ swift
+//
+//  PulsingRingsView.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 24/08/26.
+//
+
+import SwiftUI
+
+struct PulsingRingsView: View {
+    /// Pulsa quando a leitura está rodando; para quando pausada
+    var isAnimating: Bool = true
+    /// Diâmetro do anel principal — os demais são calculados a partir dele
+    var baseDiameter: CGFloat = 360
+    /// Quantidade de anéis externos
+    var ringCount: Int = 3
+    /// 0 = início da leitura, 1 = tempo esgotado. Acende os arcos externos em sequência.
+    var timeProgress: Double = 0
+    /// Espessura única para todos os arcos
+    var lineWidth: CGFloat = 6
+    /// Opacidade de um arco que ainda não acendeu
+    var dimOpacity: Double = 0.15
+    
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var pulse = false
+    
+    private var ringGradient: LinearGradient {
+        LinearGradient(
+            colors: [Color.yellow, Color.orange],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    
+    /// Cada arco externo acende dentro da sua própria fatia do tempo.
+    /// Arco 1 vai de 0 a 1/n, arco 2 de 1/n a 2/n, e assim por diante.
+    private func opacity(forRing index: Int) -> Double {
+        let p = min(max(timeProgress, 0), 1)
+        let slice = 1.0 / Double(ringCount)
+        let start = Double(index - 1) * slice
+        
+        let local = (p - start) / slice          // 0 antes da fatia, 1 depois dela
+        let clamped = min(max(local, 0), 1)
+        
+        return dimOpacity + clamped * (1 - dimOpacity)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Anéis externos — acendem um a um conforme o tempo passa
+            ForEach(1...ringCount, id: \.self) { index in
+                let step = CGFloat(index)
+                
+                Circle()
+                    .stroke(ringGradient, lineWidth: lineWidth)
+                    .frame(width: baseDiameter + step * 130,
+                           height: baseDiameter + step * 130)
+                    .opacity(opacity(forRing: index))
+                    .scaleEffect(pulse ? 1.04 : 0.98)
+                    .animation(
+                        isAnimating
+                        ? .easeInOut(duration: 2.6)
+                            .repeatForever(autoreverses: true)
+                            //.delay(Double(index) * 0.18)
+                        : .default,
+                        value: pulse
+                    )
+                    .animation(.easeInOut(duration: 1.0), value: timeProgress)
+            }
+            
+            // Anel principal — sempre em 100%
+            Circle()
+                .stroke(ringGradient, lineWidth: lineWidth)
+                .frame(width: baseDiameter, height: baseDiameter)
+                .shadow(color: Color.orange.opacity(0.6), radius: 20)
+                .scaleEffect(pulse ? 1.015 : 1.0)
+                .animation(
+                    isAnimating
+                    ? .easeInOut(duration: 2.6).repeatForever(autoreverses: true)
+                    : .default,
+                    value: pulse
+                )
+        }
+        .frame(width: baseDiameter + CGFloat(ringCount) * 130,
+                   height: baseDiameter + CGFloat(ringCount) * 130)
+        .onAppear { pulse = isAnimating }
+        .onChange(of: isAnimating) { _, newValue in
+            pulse = newValue
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active, isAnimating else { return }
+            
+            // o sistema descarta o repeatForever ao ir para background;
+            // reinicia o ciclo ao voltar
+            pulse = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                pulse = true
+            }
+        }
+    }
+}
+
+#Preview {
+    VStack {
+        PulsingRingsView(isAnimating: true, timeProgress: 0.0)
+        PulsingRingsView(isAnimating: true, timeProgress: 0.5)
+        PulsingRingsView(isAnimating: true, timeProgress: 1.0)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color("BackgroundColorViews"))
 }
  ⁠
 
@@ -3355,71 +3768,6 @@ struct BookCaseView: View {
 
 ---
 
-### Arquivo: \⁠ ./View/Components/StopwatchComponents/ConcentricRingsView.swift\ ⁠
-⁠ swift
-//
-//  ConcentricRingsView.swift
-//  CH4-Books
-//
-//  Created by Agatha Barbosa Marinho dos Santos on 16/08/26.
-//
-
-import SwiftUI
-
-struct ConcentricRingsView: View {
-    var progress: Double
-    private let totalRings = 5
-
-    var body: some View {
-        GeometryReader { geometry in
-            let baseWidth = geometry.size.width * 0.60
-            let baseHeight = geometry.size.height * 0.40
-
-            ZStack {
-                ForEach(0..<totalRings, id: \.self) { index in
-                    //espaçamento entre cada anel
-                    let step = CGFloat(index) * 38.0
-                    let cornerRadius = 70.0 + CGFloat(index) * 16.0
-                    let isAcendido = isRingActive(for: index)
-
-                    //opacidade bem para não cansar a vista
-                    let ringOpacity = isAcendido ? max(0.25, 0.7 - (Double(index) * 0.12)) : 0.08
-
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color("StopWatchColor1"),
-                                    Color("StopWatchColor2")
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: index == 0 ? 3.5 : 2.0 
-                        )
-                        .opacity(ringOpacity)
-                        .frame(
-                            width: baseWidth + (step * 2),
-                            height: baseHeight + (step * 2)
-                        )
-                        .animation(.easeInOut(duration: 0.4), value: progress)
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-    }
-
-    private func isRingActive(for index: Int) -> Bool {
-        if index == 0 { return true }
-        let stepProgress = 1.0 / Double(totalRings - 1)
-        let threshold = Double(index) * stepProgress
-        return progress >= threshold
-    }
-}
- ⁠
-
----
-
 ### Arquivo: \⁠ ./View/Components/OnboardingComponents/MenuSheetPickerOnboarding.swift\ ⁠
 ⁠ swift
 //
@@ -3434,9 +3782,12 @@ import SwiftUI
 struct MenuSheetPickerOnboarding: View {
     var title: String? = nil
     var placeholder: String
-    @Binding var selectedValue: String
-    var options: [String]
-    var formatOption: (String) -> String = { $0 }
+    
+    @Binding var selectedTotalMinutes: Int?
+
+    @State private var isShowingSheet = false
+    @State private var tempHours: Int = 0
+    @State private var tempMinutes: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -3447,20 +3798,23 @@ struct MenuSheetPickerOnboarding: View {
                     .padding(.leading, 4)
             }
 
-            Menu {
-                ForEach(options, id: \.self) { option in
-                    Button(formatOption(option)) {
-                        selectedValue = option
-                    }
+            Button {
+                if let total = selectedTotalMinutes {
+                    tempHours = total / 60
+                    tempMinutes = total % 60
+                } else {
+                    tempHours = 0
+                    tempMinutes = 0
                 }
+                isShowingSheet = true
             } label: {
                 HStack {
-                    Text(selectedValue.isEmpty ? placeholder : formatOption(selectedValue))
+                    Text(formattedDuration)
                         .font(.system(.body, weight: .regular))
-                        .foregroundColor(selectedValue.isEmpty ? Color("TextFieldPlaceholderColor") : .white)
-
+                        .foregroundColor(selectedTotalMinutes == nil ? Color("TextFieldPlaceholderColor") : .white)
+                    
                     Spacer()
-
+                    
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.footnote.weight(.semibold))
                         .foregroundColor(Color("ActionColor"))
@@ -3478,12 +3832,70 @@ struct MenuSheetPickerOnboarding: View {
             }
             .buttonStyle(.plain)
         }
+        .sheet(isPresented: $isShowingSheet) {
+            pickerSheetContent
+        }
+    }
+
+    private var pickerSheetContent: some View {
+        NavigationView {
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    Picker("Horas", selection: $tempHours) {
+                        ForEach(0..<24) { i in
+                            Text("\(i) h").tag(i)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+
+                    Picker("Minutos", selection: $tempMinutes) {
+                        ForEach(0..<60) { i in
+                            Text("\(i) m").tag(i)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+                }
+            }
+            .navigationTitle(title ?? "Duração")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancelar") {
+                        isShowingSheet = false
+                    }
+                    .foregroundColor(.red)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Concluir") {
+                        // Apenas salva e fecha o Picker
+                        selectedTotalMinutes = (tempHours * 60) + tempMinutes
+                        isShowingSheet = false
+                    }
+                    .fontWeight(.bold)
+                }
+            }
+        }
+        .presentationDetents([.height(300), .medium])
+    }
+
+    private var formattedDuration: String {
+        guard let total = selectedTotalMinutes else { return placeholder }
+        let h = total / 60
+        let m = total % 60
+        
+        if h > 0 && m > 0 {
+            return "\(h)h \(m)m"
+        } else if h > 0 {
+            return "\(h)h"
+        } else {
+            return "\(m)m"
+        }
     }
 }
-
-
-
-
  ⁠
 
 ---
@@ -3500,60 +3912,80 @@ struct MenuSheetPickerOnboarding: View {
 import SwiftUI
 
 struct NotesCardView: View {
-    let imageName: String
+    let imageName: UIImage?
     let tagText: String
     let title: String
     let description: String
     
     var body: some View {
         HStack(spacing: 16) {
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 90, height: 120)
-                .cornerRadius(16)
-                .clipped()
-            
-            VStack(alignment: .leading, spacing: 8) {
-
-                Text(title)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+            //if let imageName = UIImage {
                 
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(Color("Texts").opacity(0.6))
-                    .lineLimit(2)
+                if let image = imageName {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 90, height: 120)
+                        .cornerRadius(16)
+                        .clipped()
+                    //                Image(uiImage: imageName)
+                    //                    .resizable()
+                    //                    .scaledToFill()
+                    //                    .frame(width: 90, height: 120)
+                    //                    .cornerRadius(16)
+                    //                    .clipped()
+                    
+                    
+                }
+            else{
+                Image("defaultBook")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 90, height: 120)
+                    .cornerRadius(16)
+                    .clipped()
             }
-            
-            Spacer()
-            
-            Button(action: {
-                //acao
-            }) {
-                Image(systemName: "chevron.forward")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    
+                    Text(title)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                    
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundStyle(Color("Texts").opacity(0.6))
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    //acao
+                }) {
+                    Image(systemName: "chevron.forward")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                }
+                .buttonStyle(.plain)
+                .buttonBorderShape(.circle)
+                .padding(.trailing, 6)
             }
-            .buttonStyle(.plain)
-            .buttonBorderShape(.circle)
-            .padding(.trailing, 6)
+                .padding(16)
+                .background(Color("CardNoteColor"))
+                .cornerRadius(20)
         }
-        .padding(16)
-        .background(Color("CardNoteColor"))
-        .cornerRadius(20)
     }
-}
 
-#Preview {
-    NotesCardView(
-        imageName: "defaultBook",
-        tagText: "Referência",
-        title: "Título da nota",
-        description: "Descrição inicial da primeira..."
-    )
-}
+//#Preview {
+//    NotesCardView(
+//        imageName: "defaultBook",
+//        tagText: "Referência",
+//        title: "Título da nota",
+//        description: "Descrição inicial da primeira..."
+//    )
+//}
  ⁠
 
 ---
@@ -3623,8 +4055,11 @@ struct NoteDetailsToolbar: ToolbarContent {
 //  Created by Lucas on 18/08/26.
 //
 import SwiftUI
+import SwiftData
+import PhotosUI
 
 struct NoteCellView: View {
+    @Environment(\.modelContext) private var modelContext
     var note: Notes
     
     @ObservedObject var noteViewModel: NotesViewModel
@@ -3635,47 +4070,77 @@ struct NoteCellView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     
+    private var photo: UIImage? {
+//        if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
+//            return UIImage(data: firstData)
+//        }
+//        return nil
+        
+        if let firstData = note.notePhoto.first {
+            return UIImage(data: firstData)
+        }
+        return nil
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            
-            Text(note.noteTitle ?? "Nota sem título")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-            
-            if let description = note.noteDescription, !description.isEmpty {
-                Text(description)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+        HStack{
+            Group {
+                if let image = photo{
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image("defaultBook")
+                        .resizable()
+                        .scaledToFill()
+                }
             }
+            .frame(width: 50, height: 70)
+            .cornerRadius(8)
+            .clipped()
+            VStack(alignment: .leading, spacing: 6) {
+                
+                
+                Text(note.noteTitle ?? "Nota sem título")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                
+                if !note.noteDescription.isEmpty {
+                    Text(note.noteDescription)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
         }
         .contentShape(Rectangle())
-        .contextMenu {
-            Button() {
+//        .contextMenu {
+//            Button() {
 //                isEditingSheetPresented = true
-            } label: {
-                Label("Editar Nota", systemImage: "pencil")
-                    .foregroundColor(.blue)
-                    .font(.body)
-            }
-            
-            Divider()
-            
-            Button(role: .destructive) {
-                isShowingDeleteAlert = true
-            } label: {
-                Label("Apagar Nota", systemImage: "trash")
-                    .font(.body)
-            }
-        }
+//            } label: {
+//                Label("Editar Nota", systemImage: "pencil")
+//                    .foregroundColor(.blue)
+//                    .font(.body)
+//            }
+//            
+//            Divider()
+//            
+//            Button(role: .destructive) {
+//                isShowingDeleteAlert = true
+//            } label: {
+//                Label("Apagar Nota", systemImage: "trash")
+//                    .font(.body)
+//            }
+//        }
         
         .alert("Apagar Nota", isPresented: $isShowingDeleteAlert) {
             Button("Cancelar", role: .cancel) { }
             Button("Apagar", role: .destructive) {
                 do{
-                    try noteViewModel.deleteNote(note: note)
+                    try noteViewModel.deleteNote(note: note, context: modelContext)
                     
                 } catch let error as LocalizedError {
                    errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
@@ -3882,10 +4347,12 @@ struct TitleComponent: View {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct BookCardView: View {
-    @ObservedObject var book: Books
+    @Environment(\.modelContext) private var modelContext
+    //nao e mais necessario observedObject
+    var book: Books
     
     @State private var isEditingSheetPresented = false
     @State private var isShowingDeleteAlert = false
@@ -3971,7 +4438,7 @@ struct BookCardView: View {
         
         .sheet(isPresented: $isEditingSheetPresented, onDismiss: {
             withAnimation{
-                bookViewModel.fetchBooks()
+                bookViewModel.fetchBooks(context: modelContext)
             }
         }) {
             BookSheetView(bookToEdit: book)
@@ -3983,7 +4450,7 @@ struct BookCardView: View {
             Button("Apagar", role: .destructive) {
                 withAnimation {
                     do {
-                        try bookViewModel.deleteBook(book: book)
+                        try bookViewModel.deleteBook(book: book, context: modelContext)
                     } catch {
                         print("Erro ao tentar apagar o livro: \(error.localizedDescription)")
                     }
@@ -4375,29 +4842,40 @@ struct BooksDetailsToolbar: ToolbarContent {
 ### Arquivo: \⁠ ./View/Components/BooksDetailsComponents/BookInstanceDetailView.swift\ ⁠
 ⁠ swift
 //
-//  teste.swift
+//  BookInstanceDetailView.swift (ATUALIZADO)
 //  CH4-Books
 //
 //  Created by Lucas on 17/08/26.
 //
+
 import SwiftUI
 
 struct BookInstanceDetailView: View {
-    @ObservedObject var book: Books
+    var book: Books
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     
     var readingProgress: Double {
         guard book.bookTotalPages > 0 else { return 0.0 }
-            let current = Double(book.bookCurrentPage)
-            let total = Double(book.bookTotalPages)
-            return min(max(current / total, 0.0), 1.0)
+        let current = Double(book.bookCurrentPage)
+        let total = Double(book.bookTotalPages)
+        return min(max(current / total, 0.0), 1.0)
+    }
+    
+    var formattedReadingProgress: String {
+        let percentage = readingProgress * 100
+        return String(format: "%.0f%%", percentage)
+    }
+    
+    // Formata a data de início da leitura
+    var formattedReadingStartDate: String {
+        guard let date = book.readingStartDate else {
+            return "Ainda não iniciado"
         }
         
-        var formattedReadingProgress: String {
-            let percentage = readingProgress * 100
-            return String(format: "%.0f%%", percentage)
-        }
-    
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        return formatter.string(from: date)
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -4442,35 +4920,57 @@ struct BookInstanceDetailView: View {
                     .frame(height: 0.3)
                     .background(Color("LinesColor"))
                     .padding(.horizontal, 20)
+                    .padding(.top, 12)
                 
                 HStack {
                     Spacer()
+                    
                     VStack(spacing: 4) {
                         Text("Início da leitura")
-                            .font(.footnote).foregroundColor(Color("InfosDetailsView"))
-                        Text("24/02/2026")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color("Texts"))
+                            .font(.footnote)
+                            .foregroundColor(Color("InfosDetailsView"))
+                        
+                        if book.readingStartDate != nil {
+                            Text(formattedReadingStartDate)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color("Texts"))
+                        } else {
+                            Text("Clique em 'Iniciar leitura'")
+                                .fontWeight(.bold)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color("InfosDetailsView"))
+                        }
                     }
+                    
                     Spacer()
+                    
+                    // SEÇÃO: Páginas Totais
                     VStack(spacing: 4) {
-                        Text("Páginas").font(.footnote).foregroundColor(Color("InfosDetailsView"))
+                        Text("Páginas")
+                            .font(.footnote)
+                            .foregroundColor(Color("InfosDetailsView"))
                         Text("\(book.bookTotalPages) páginas")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color("Texts"))
 
                     }
+                    
                     Spacer()
+                    
+                    // SEÇÃO: Progresso
                     VStack(spacing: 4) {
-                        Text("Progresso").font(.footnote)
+                        Text("Progresso")
+                            .font(.footnote)
                             .foregroundColor(Color("InfosDetailsView"))
                         Text("\(formattedReadingProgress)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color("Texts"))
                     }
+                    
                     Spacer()
                 }
                 
@@ -4709,24 +5209,32 @@ struct TextFieldSheets: View {
 }
 
 #Preview {
-    ZStack {
-        Color.black.ignoresSafeArea()
+    struct PreviewWrapper: View {
+        @State private var text1: String = ""
+        @State private var text2: String = ""
         
-        VStack(spacing: 20) {
-            TextFieldSheets(
-                text: .constant(""),
-                placeholder: "Digite aqui...",
-                label: "Título do Campo"
-            )
-            
-           
-            TextFieldSheets(
-                text: .constant(""),
-                placeholder: "Apenas com placeholder"
-            )
+        var body: some View {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    TextFieldSheets(
+                        text: $text1,
+                        placeholder: "Digite aqui...",
+                        label: "Título do Campo"
+                    )
+                    
+                    TextFieldSheets(
+                        text: $text2,
+                        placeholder: "Apenas com placeholder"
+                    )
+                }
+                .padding()
+            }
         }
-        .padding()
     }
+    
+    return PreviewWrapper()
 }
  ⁠
 
@@ -4992,7 +5500,7 @@ struct CategoryMenuView: View {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct NotesSectionView: View {
     var notes: [Notes]
@@ -5004,55 +5512,54 @@ struct NotesSectionView: View {
     @State private var selectedNote: Notes?
 
     var body: some View {
-        Group {
-            if notes.isEmpty {
-                Text("Adicione sua primeira anotacão")
-                    .font(.subheadline)
-                    .foregroundColor(Color("Texts"))
-                    .padding(.top, 20)
-                    .padding(.bottom, 10)
-            } else {
-                LazyVStack() {
-                    NavigationStack{
-                        ForEach(notes, id: \.objectID) { note in
-                            NavigationLink(destination: NoteDetailSheetView(note: note)){
-                                NoteRowView(note: note)
-                            }
-    //                        Button {
-    //                            selectedNote = note
-    //                        } label: {
-    //
-    //                        }
-    //                        .buttonStyle(.plain)
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 28)
+            Group {
+                if notes.isEmpty {
+                    Text("Adicione sua primeira anotação")
+                        .font(.subheadline)
+                        .foregroundColor(Color("Texts"))
+                        .padding(.top, 20)
+                        .padding(.bottom, 10)
+                } else {
+                    NavigationStack {
+                        LazyVStack {
+                            ForEach(notes, id: \.self) { note in
+                                NavigationLink(destination: NoteDetailSheetView(note: note)) {
+                                    NoteRowView(note: note)
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 28)
 
-                            if note.objectID != notes.last?.objectID {
-                                Divider()
-                                    .frame(height: 0.3)
-                                    .background(Color("LinesColor"))
-                                    .padding(.horizontal, 28)
+                                if note.persistentModelID != notes.last?.persistentModelID {
+                                    Divider()
+                                        .frame(height: 0.3)
+                                        .background(Color("LinesColor"))
+                                        .padding(.horizontal, 28)
+                                }
                             }
-                        }.padding(.top, 16)
+                            .padding(.top, 16)
+                        }
                     }
-
                 }
             }
-        }
-        .background(Color("cardNote").opacity(0.9))
-        .cornerRadius(20)
-        .sheet(item: $selectedNote, onDismiss: onNotesChanged) { note in
-            NoteDetailSheetView(note: note)
-                .environmentObject(notesViewModel)
+            .background(Color("cardNote").opacity(0.9))
+            .cornerRadius(20)
+            .sheet(item: $selectedNote, onDismiss: onNotesChanged) { note in
+                NoteDetailSheetView(note: note)
+                    .environmentObject(notesViewModel)
+            }
         }
     }
-}
 
 struct NoteRowView: View {
     var note: Notes
 
     private var photo: UIImage? {
-        if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
+//        if let photosData = note.notePhoto as? [Data], let firstData = photosData.first {
+//            return UIImage(data: firstData)
+//        }
+//        return nil
+        
+        if let firstData = note.notePhoto.first {
             return UIImage(data: firstData)
         }
         return nil
@@ -5101,51 +5608,49 @@ struct NoteRowView: View {
 }
 
 
-#Preview("Com Anotações") {
-    // 1. Instância do CoreData em memória para o Preview
-    // NOTA: Altere "CH4_Books" para o nome exato do seu arquivo .xcdatamodeld
-    let container = NSPersistentContainer(name: "CH4_Books")
-    container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
-    container.loadPersistentStores { _, error in
-        if let error = error {
-            fatalError("Erro no CoreData Preview: \(error.localizedDescription)")
-        }
-    }
-    
-    let context = container.viewContext
-
-    // 2. Dados mockados (Mock Notes)
-    let note1 = Notes(context: context)
-    note1.noteTitle = "Anotações do Capítulo 1"
-    note1.noteDescription = "Principais insights sobre a introdução do livro e conceitos base."
-
-    let note2 = Notes(context: context)
-    note2.noteTitle = "Citação Favorita"
-    note2.noteDescription = "A simplicidade é o último grau de sofisticação."
-
-    return NavigationStack {
-        ScrollView {
-            NotesSectionView(notes: [note1, note2])
-                .padding()
-        }
-        .background(Color("BackgroundColorViews"))
-    }
-    .environment(\.managedObjectContext, context)
-    .environmentObject(NotesViewModel())
-}
-
-#Preview("Lista Vazia") {
-    
-    NavigationStack {
-                        //.ignoresSafeArea()
-            
-            NotesSectionView(notes: [])
-                .padding()
-                .background(Color(uiColor: .systemGroupedBackground))
-        
-    }
-    .environmentObject(NotesViewModel())
-}
+//#Preview("Com Anotações") {
+//    do {
+//        // Cria um container isolado na memória só para visualização
+//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//        let container = try ModelContainer(for: Notes.self, configurations: config)
+//        let context = container.mainContext
+//        
+//        let note1 = Notes()
+//        note1.noteTitle = "Anotações do Capítulo 1"
+//        note1.noteDescription = "Principais insights sobre a introdução do livro e conceitos base."
+//        note1.notePhoto = []
+//
+//        let note2 = Notes()
+//        note2.noteTitle = "Citação Favorita"
+//        note2.noteDescription = "A simplicidade é o último grau de sofisticação."
+//        note2.notePhoto = []
+//
+//        context.insert(note1)
+//        context.insert(note2)
+//
+//        NavigationStack {
+//            ScrollView {
+//                NotesSectionView(notes: [note1, note2])
+//                    .padding()
+//            }
+//            .background(Color("BackgroundColorViews"))
+//        }
+//        .modelContainer(container)
+//        .environmentObject(NotesViewModel())
+//        
+//    } catch {
+//        fatalError("Erro ao criar container de preview: \(error.localizedDescription)")
+//    }
+//}
+//
+//#Preview("Lista Vazia") {
+//    NavigationStack {
+//        NotesSectionView(notes: [])
+//            .padding()
+//            .background(Color(uiColor: .systemGroupedBackground))
+//    }
+//    .environmentObject(NotesViewModel())
+//}
  ⁠
 
 ---
@@ -5270,7 +5775,7 @@ struct ButtonAction: View {
     
     var body: some View {
         Button(action: {
-                    action?()
+            action?()
         }) {
             Text(text)
                 .font(.body)
@@ -5421,13 +5926,16 @@ struct ToolBarButton: ToolbarContent {
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 struct MyNotesListView: View {
-    @StateObject private var viewModel = NotesViewModel()
+    @EnvironmentObject private var viewModel: NotesViewModel
+    @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @Environment(\.dismiss) var dismiss
     @State private var selectedNote: Notes?
     @State private var isPresentedAddNote: Bool = false
+    @Environment(\.modelContext) private var modelContext
+    
     
     var book: Books?
     
@@ -5441,57 +5949,69 @@ struct MyNotesListView: View {
                         .padding(.top, 10)
                     
                     ScrollView(showsIndicators: false) {
-                        LazyVStack(spacing: 24) {
-                            ForEach(viewModel.savedNotes, id: \.self) { note in
-                                NavigationLink(destination: NoteDetailSheetView(note: note)){
-                                    NoteRowView(note: note)
+                        LazyVStack(spacing: 0) {
+                            ForEach(viewModel.savedNotes) { note in
+                                if let imageData = note.notePhoto.first {
+                                    let uiImage = UIImage(data: imageData)
+                                    
+                                    
+                                    //                                var image = photoLibraryViewModel.loadDataImage(image: note.notePhoto.first)
+                                    NavigationLink(destination: NoteDetailSheetView(note: note)){
+                                        
+                                        //NoteRowView(note: note)
+                                        NotesCardView(imageName: uiImage, tagText: note.noteCategory, title: note.noteTitle, description: note.noteDescription)
+                                    }
+                                    //                                .buttonStyle(PlainButtonStyle())
+                                    //                                Button(action: {
+                                    //                                    selectedNote = note
+                                    //                                }) {
+                                    //
+                                    //                                }
+                                    
+                                } else{
+                                    NotesCardView(imageName: nil, tagText: note.noteCategory, title: note.noteTitle, description: note.noteDescription)
                                 }
-//                                .buttonStyle(PlainButtonStyle())
-//                                Button(action: {
-//                                    selectedNote = note
-//                                }) {
-//                                    
-//                                }
-                                
                             }
+                            .padding(.horizontal)
+                            .padding(.bottom, 10)
                         }
-                        .padding(.horizontal)
-                        .padding(.bottom, 30)
+                    }
+                }
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    MyNotesToolBar(onBackClick: { dismiss() }, onAddClick: {
+                        isPresentedAddNote = true
+                    })
+                }
+                .onAppear {
+                    viewModel.fetchNotes(for: book, context: modelContext)
+                }
+                //        .sheet(item: $selectedNote) { note in
+                //            NoteDetailSheetView(note: note)
+                //        }
+                .sheet(isPresented: $isPresentedAddNote, onDismiss: {
+                    viewModel.fetchNotes(for: book, context: modelContext)
+                }) {
+                    if let book = book {
+                        NoteSheetView(book: book)
+                            .environmentObject(viewModel)
                     }
                 }
             }
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                MyNotesToolBar(onBackClick: { dismiss() }, onAddClick: {
-                    isPresentedAddNote = true
-                })
-            }
-            .onAppear {
-                viewModel.fetchNotes(for: book)
-            }
-    //        .sheet(item: $selectedNote) { note in
-    //            NoteDetailSheetView(note: note)
-    //        }
-            .sheet(isPresented: $isPresentedAddNote, onDismiss: {
-                viewModel.fetchNotes(for: book)
-            }) {
-                if let book = book {
-                    NoteSheetView(book: book)
-                        .environmentObject(viewModel)
-                }
-            }
-        }
-
-    }
-}
-
-struct NotesListView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            MyNotesListView(book: nil)
+            
         }
     }
 }
+
+//struct NotesListView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        NavigationStack {
+//            MyNotesListView(book: nil)
+//                .environmentObject(PhotoLibraryViewModel()
+//        }
+//    }
+//}
+//
  ⁠
 
 ---
@@ -5525,7 +6045,7 @@ struct NotesView: View {
                         VStack(spacing: 16) {
                             ForEach(0..<5) { _ in
                                 NotesCardView(
-                                    imageName: "defaultBook",
+                                    imageName: nil,
                                     tagText: "Referência",
                                     title: "Título da nota",
                                     description: "Descrição inicial da primeira..."
@@ -5553,177 +6073,325 @@ struct NotesView: View {
 
 ---
 
-### Arquivo: \⁠ ./View/Stopwatch/StopwatchView.swift\ ⁠
+### Arquivo: \⁠ ./View/Stopwatch/StopwatchRunningView.swift\ ⁠
 ⁠ swift
 //
-//  StopWatchView.swift
+//  StopwatchRunningView.swift
 //  CH4-Books
 //
-//  Created by Lucas on 15/08/26.
+//  Created by Agatha Barbosa Marinho dos Santos on 24/08/26.
 //
 
 import SwiftUI
+import SwiftData
 
+struct StopwatchRunningView: View {
+    var namespace: Namespace.ID
+    @Binding var selectedBook: Books?
     
-struct StopwatchView: View {
-    @State var selectedBook: Books
-    @State private var isShowingSheet = false
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
-    //@State private var progress: Double = 0.5
+    
+    @State private var isShowingNoteSheet = false
+    @State private var showAbandonAlert = false
+    @State private var isShowingNoBookAlert = false
+    
+    private var isRunning: Bool {
+        stopwatchViewModel.timerState == .running
+    }
+    
+    private var progress: Double {
+        guard let book = selectedBook else { return 0 }
+        return stopwatchViewModel.getBookProgress(book: book)
+    }
     
     var body: some View {
-
-        GeometryReader { geometry in
-            let cardWidth = geometry.size.width * 0.49
-            let cardHeight = geometry.size.height * 0.38
+        ZStack {
+            Color("BackgroundColorViews")
+                .ignoresSafeArea(.all)
             
-            ZStack {
-                Color("BackgroundColorViews")
-                    .ignoresSafeArea()
-                
-                // 10 Anéis Concentricos ao Fundo
-                ConcentricRingsView(progress: Double(stopwatchViewModel.getBookProgress(book: selectedBook)))
-                    .ignoresSafeArea()
-                
-                VStack {
-                    Spacer()
-                    
-                    //card central
-                    VStack (spacing: 24){
-                        
-                        Text(stopwatchViewModel.timerFormater())
-                            .font(.custom("Bitter", size: 70, relativeTo: .largeTitle))
-                            .fontWeight(.medium)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .monospacedDigit()
-                        
-                        //progresso do livro
-                        VStack(spacing: 6) {
-                            HStack(spacing: 6) {
-                                Text("Progresso do livro")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white)
-                                    .fontWeight(.regular)
-                                
-                                Text("\(stopwatchViewModel.getBookProgress(book: selectedBook) * 100)%")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(Color("ProgressBar"))
-                            }
-                            
-                            ProgressView(value: stopwatchViewModel.getBookProgress(book: selectedBook))
-                                .tint(Color("ProgressBar"))
-                                .frame(width: 170)
-                            
-                        }
-                        
-                        //seleção do livro
-                        VStack(spacing: 6) {
-                            Text("Selecione o livro")
-                                .font(.subheadline)
-                                .fontWeight(.regular)
-                                .foregroundColor(.white)
-                            
-                            Menu {
-                                Picker("Selecione o livro", selection: $selectedBook){
-                                    Text("Livro 1").tag("Livro 1")
-                                    Text("Livro 2").tag("Livro 2")
-                                    Text("Livro 3").tag("Livro 3")
-                                }
-                            } label: {
-//                                Text(verbatim: selectedBook.bookTitle)
-//                                    .font(.caption)
-//                                    .fontWeight(.medium)
-//                                    .foregroundColor(.white.opacity(0.7))
-//                                    .padding(.horizontal, 24)
-//                                    .padding(.vertical, 8)
-//                                    .background(Color.white.opacity(0.12))
-//                                    .clipShape(Capsule())
-                            }
-                            
-                            //botao inciar
-                            Button(action: {
-                                
-                                stopwatchViewModel.isRunning.toggle()
-                                
-                                if stopwatchViewModel.isRunning {
-                                    stopwatchViewModel.startTimer()
-                                    
-                                }
-                                else{
-                                    stopwatchViewModel.stop()
-                                }
-                                
-                               
-                            }) {
-                                Text(stopwatchViewModel.isRunning ? "Parar" : "Iniciar")
-                                    .font(.title3)
-                                    .frame(maxWidth: .infinity)
-                                    .fontWeight(.medium)
-                                    .padding(.vertical, 14)
-                                    .background(
-                                        Group {
-                                            if stopwatchViewModel.isRunning {
-                                                Color.red.opacity(0.85)
-                                            } else {
-                                                Color("ActionColor")
-                                            }
-                                        }
-                                    )
-                                    .foregroundColor(.white)
-                                    .clipShape(Capsule())
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 10)
-                            
-                        }
-                    }
-                    .frame(width: cardWidth, height: cardHeight)
-                    .background(
-                        RoundedRectangle(cornerRadius: 64, style: .continuous)
-                            .fill(Color("BackgroundColorViews"))
-                    )
-                    .padding(.bottom, 26)
-                    Spacer()
-                    
-                }
-                .padding(.horizontal)
-            }
-            //botao de editar (top bar)
-            .overlay(
-                HStack {
-                    Button(action: {
-                        isShowingSheet.toggle()
-                    }) {
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(Color("TitleColor"))
-                            .frame(width: 48, height: 48)
-                            .background(Color("ActionColor").opacity(0.8), in: Circle())
-                    }
-                    .glassEffect(.regular, in: Circle())
-                    .sheet(isPresented: $isShowingSheet) {
-                        NoteSheetView(book: PreviewProviderHelper.sampleBook)
-                    }
-                    
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, geometry.safeAreaInsets.top > 0 ? 8 : 16),
-                alignment: .topTrailing
-
+            /*
+            PulsingRingsView(
+                isAnimating: isRunning,
+                baseDiameter: 440,
+                ringCount: 3,
+                timeProgress: stopwatchViewModel.timeProgress
             )
-           
+            .allowsHitTesting(false)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
+            .ignoresSafeArea(.all)
+            */
+            GeometryReader { geo in
+                PulsingRingsView(
+                    isAnimating: isRunning,
+                    baseDiameter: 440,
+                    ringCount: 3,
+                    timeProgress: stopwatchViewModel.timeProgress
+                )
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)   // 👈 centro fixo
+            }
+            .allowsHitTesting(false)
+            .clipped()
+            .ignoresSafeArea(.all)
+            
+            // Conteúdo dentro dos arcos amarelos
+            VStack(spacing: 0) {
+                Text("Tempo de leitura")
+                    .font(.subheadline)
+                    .foregroundColor(Color("TextFieldPlaceholderColor"))
+                    .padding(.bottom, 2)
+                
+                Text(stopwatchViewModel.timerFormater())
+                    .font(.custom("Bitter", size: 70, relativeTo: .largeTitle))
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color("Texts"))
+                    .monospacedDigit()
+                    //.matchedGeometryEffect(id: "timerText", in: namespace)
+                    .padding(.bottom, 14)
+                
+                HStack(spacing: 8) {
+                    Rectangle()
+                        .fill(Color("LinesColor"))
+                        .frame(width: 20, height: 0.5)
+                    
+                    Text(selectedBook?.bookTitle ?? "Sem livro")
+                        .font(.subheadline)
+                        .foregroundColor(Color("TextFieldPlaceholderColor"))
+                    
+                    
+                    Rectangle()
+                        .fill(Color("LinesColor"))
+                        .frame(width: 20, height: 0.5)
+                }
+                .padding(.bottom, 20)
+
+                ButtonAction(
+                    text: isRunning ? "Pausar leitura" : "Continuar leitura",
+                    colorButton: "ActionColor"
+                ) {
+                    if isRunning {
+                        stopwatchViewModel.pauseTimer()
+                    } else {
+                        stopwatchViewModel.startTimer()
+                    }
+                }
+                .padding(.bottom, 4)
+                
+                Button {
+                    showAbandonAlert = true
+                } label: {
+                    Text("Abandonar leitura")
+                        .font(.subheadline)
+                        .foregroundColor(Color("ActionColor"))
+                        .underline()
+                }
+                .padding(.top, 20)
+            }
+            .frame(width: 215)
+        }
+        .toolbar {
+            ToolBarButton(
+                action: {
+                    if selectedBook != nil {
+                        isShowingNoteSheet = true
+                    } else {
+                        isShowingNoBookAlert = true
+                    }
+                },
+                icon: "square.and.pencil"
+            )
+        }
+        .alert("Abandonar leitura", isPresented: $showAbandonAlert) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Abandonar", role: .destructive) {
+                stopwatchViewModel.abandonTimer()
+            }
+        } message: {
+            Text("Tem certeza que deseja abandonar a leitura? O progresso será perdido.")
+        }
+        .alert("Atenção", isPresented: $isShowingNoBookAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Selecione um livro antes de adicionar uma anotação.")
+        }
+        .sheet(isPresented: $isShowingNoteSheet) {
+            if let currentBook = selectedBook {
+                NoteSheetView(book: currentBook)
+            }
         }
     }
 }
 
+
+#Preview {
+    let container = try! ModelContainer(
+        for: Books.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    
+    let book = Books(
+        bookAuthor: "Becca Fitzpatrick",
+        bookCategory: "Romance",
+        bookCover: Data(),
+        bookCurrentPage: 120,
+        bookGoal: 0,
+        bookTitle: "Hush, Hush",
+        bookTotalPages: 200,
+        isTimerRunning: true,
+        wasLastPageAdded: true,
+        readingStartDate: nil
+    )
+    container.mainContext.insert(book)
+    
+    let stopwatchVM = StopwatchViewModel()
+    stopwatchVM.totalTime = 15 * 60
+    stopwatchVM.elapsedTime = 6 * 60      // ~60% do tempo já passou
+    stopwatchVM.timerState = .running
+    
+    return PreviewWrapper(book: book)
+        .modelContainer(container)
+        .environmentObject(stopwatchVM)
+}
+
+private struct PreviewWrapper: View {
+    @Namespace var namespace
+    @State var book: Books?
+    
+    init(book: Books) {
+        _book = State(initialValue: book)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            StopwatchRunningView(namespace: namespace, selectedBook: $book)
+        }
+    }
+}
+ ⁠
+
+---
+
+### Arquivo: \⁠ ./View/Stopwatch/StopwatchFlowView.swift\ ⁠
+⁠ swift
+//
+//  StopwatchFlowView.swift
+//  CH4-Books
+//
+//  Created by Agatha Barbosa Marinho dos Santos on 24/08/26.
+//
+
+import SwiftUI
+import SwiftData
+
+struct StopwatchFlowView: View {
+    var namespace: Namespace.ID
+    @Binding var selectedBook: Books?
+    
+    @Environment(\.modelContext) private var modelContext
+    
+    @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
+    @EnvironmentObject var booksViewModel: BooksViewModel
+    @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
+    
+    @State private var tempReadedPages: String = ""
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                if stopwatchViewModel.timerState == .stopped {
+                    StopwatchInitialView(namespace: namespace, selectedBook: $selectedBook)
+                        .transition(.opacity)
+                } else {
+                    StopwatchRunningView(namespace: namespace, selectedBook: $selectedBook)
+                        .transition(.opacity)
+                }
+            }
+        }
+        .animation(.spring(response: 0.5, dampingFraction: 0.85),
+                               value: stopwatchViewModel.timerState)
+        .onAppear {
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                
+                if selectedBook == nil {
+                    selectedBook = userSettingsViewModel.lastBookReaded
+                }
+        }
+        .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
+                BottomSheet(
+                            minutesPerDay: .constant(0),
+                            isPickerShown: false,
+                            readedPages: $tempReadedPages,
+                            onDismiss: {
+                                tempReadedPages = ""
+                                stopwatchViewModel.showProgressSheet = false
+                                stopwatchViewModel.abandonTimer()
+                            },
+                            onSave: {
+                                let book = selectedBook ?? userSettingsViewModel.lastBookReaded
+                                
+                                if let currentBook = book, let newPage = Int16(tempReadedPages) {
+                                    currentBook.bookCurrentPage = newPage
+                                    
+                                    do {
+                                        try booksViewModel.saveBook(context: modelContext)
+                                    } catch {
+                                        print("Error when trying to save last readed page: \(error)")
+                                    }
+                                }
+                                
+                                let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
+                                let minutesRead = max(1, rawMinutes)
+                                
+                                userSettingsViewModel.addCompletedReadingTime(
+                                    minutes: minutesRead,
+                                    context: modelContext
+                                )
+                                
+                                booksViewModel.fetchBooks(context: modelContext)
+                                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                                
+                                tempReadedPages = ""
+                                stopwatchViewModel.showProgressSheet = false
+                                stopwatchViewModel.abandonTimer()
+                            }
+                        )
+                        .presentationDetents([.height(340)])
+                        .presentationDragIndicator(.visible)
+                        .presentationBackground(Color("BackgroundColorViews"))
+                        
+                }
+        }
+       
+}
 //#Preview {
-//    StopwatchView()
-//        .preferredColorScheme(.dark)
-//        .environmentObject(StopwatchViewModel())
-//        .environmentObject(PhotoLibraryViewModel())
+//    // É necessário criar uma estrutura de envoltório (wrapper)
+//    // porque `Namespace` precisa ser criado como uma @Namespace property.
+//    struct PreviewWrapper: View {
+//        @Namespace var namespace
+//
+//        // Estado local para o livro selecionado
+//        @State private var mockBook: Books? = nil
+//
+//        // Instanciando as ViewModels
+//        @StateObject private var mockStopwatchViewModel = StopwatchViewModel()
+//        @StateObject private var mockBooksViewModel = BooksViewModel()
+//        @StateObject private var mockUserSettingsViewModel = UserSettingsViewModel()
+//
+//        var body: some View {
+//            StopwatchFlowView(
+//                namespace: namespace,
+//                selectedBook: $mockBook
+//            )
+//            // Injetando as ViewModels no ambiente (Environment)
+//            .environmentObject(mockStopwatchViewModel)
+//            .environmentObject(mockBooksViewModel)
+//            .environmentObject(mockUserSettingsViewModel)
+//            // Caso suas ViewModels dependam de persistência nativa do SwiftData:
+//            // .modelContainer(for: [Books.self, UserSettings.self], inMemory: true)
+//        }
+//    }
 //}
+//
  ⁠
 
 ---
@@ -5738,209 +6406,177 @@ struct StopwatchView: View {
 //
 
 import SwiftUI
+import SwiftData
 
 struct StopwatchInitialView: View {
     var namespace: Namespace.ID
+    @Binding var selectedBook: Books?
+    
     @EnvironmentObject var stopwatchViewModel: StopwatchViewModel
     @EnvironmentObject var photoLibraryViewModel: PhotoLibraryViewModel
     @EnvironmentObject var booksViewModel: BooksViewModel
     @EnvironmentObject var notesViewModel: NotesViewModel
     @EnvironmentObject var userSettingsViewModel: UserSettingsViewModel
-    
-    @State var selectedBook: Books?
+    @Environment(\.modelContext) private var modelContext
     
     @State private var isShowingNoteSheet = false
     @State private var isShowingSelectBookSheet = false
     @State private var isShowingTimerPicker = false
     @State private var isShowingNoBookAlert = false
-    @State private var showAbandonAlert = false
-    @State private var tempReadedPages: String = ""
-    
-    @State private var showErrorAlert = false
-    @State private var errorMessage = ""
     
     @State private var selectedDuration: TimeInterval = 15 * 60
     
-    private var buttonTitle: String {
-        switch stopwatchViewModel.timerState {
-        case .running:
-            return "Pausar leitura"
-        case .paused:
-            return "Continuar leitura"
-        case .stopped:
-            return "Iniciar leitura"
+    private var pickedHours: Int {
+        Int(selectedDuration) / 3600
+    }
+    
+    private var pickedMinutes: Int {
+        (Int(selectedDuration) % 3600) / 60
+    }
+    private var minMinuteAllowed: Int {
+        pickedHours == 0 ? 1 : 0
+    }
+    
+    
+    private var timePickerSection: some View {
+        VStack(spacing: 8) {
+            Text("Selecione o tempo de leitura")
+                .font(.body)
+                .foregroundColor(.white)
+            
+            Button(action: {
+                isShowingTimerPicker = true
+            }) {
+                Text(stopwatchViewModel.timerFormater())
+                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .monospacedDigit()
+                    .matchedGeometryEffect(id: "timerText", in: namespace)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(timerCapsuleBackground)
+                    .overlay(timerCapsuleBorder)
+                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+            }
+            .buttonStyle(.plain)
         }
     }
-
+    
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                ZStack {
-                    Color("BackgroundColorViews")
-                        .ignoresSafeArea()
+        GeometryReader { geometry in
+            ZStack {
+                Color("BackgroundColorViews")
+                    .ignoresSafeArea()
+                
+                backgroundWithGradient(geometry)
+                
+                VStack(spacing: 20) {
+                    Spacer()
+                    timePickerSection
                     
-                    backgroundWithGradient(geometry)
-                    
-                    VStack(spacing: 20) {
-                        Spacer()
+                    VStack(spacing: 24) {
+                        bookSelectionButton
                         
-                        // Campo de Seleção do Tempo
-                        VStack(spacing: 8) {
-                            Text("Selecione o tempo de leitura")
-                                .font(.body)
-                                .foregroundColor(.white)
-                            
-                            Button(action: {
-                                isShowingTimerPicker = true
-                            }) {
-                                Text(stopwatchViewModel.timerFormater())
-                                    .font(.custom("Bitter", size: 60, relativeTo: .largeTitle))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .monospacedDigit()
-                                    .matchedGeometryEffect(id: "timerText", in: namespace)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                                .fill(Color("StopwatchSelectors").opacity(0.2))
-                                        }
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 100, style: .continuous)
-                                            .stroke(
-                                                LinearGradient(
-                                                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 0.5
-                                            )
-                                    )
-                                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                            }
-                            .disabled(stopwatchViewModel.timerState != .stopped)
-                            .buttonStyle(.plain)
+                        if let existingBook = selectedBook {
+                            bookProgressSection(existingBook)
                         }
                         
-                        VStack(spacing: 24) {
-                            bookSelectionButton
-                            
-                            if let existingBook = selectedBook {
-                                bookProgressSection(existingBook)
-                            }
-
-                            VStack(spacing: 12) {
-                                ButtonAction(text: buttonTitle, colorButton: "ActionColor"){
-                                    guard selectedBook != nil && stopwatchViewModel.timerFormater() != "00:00" else {
-                                        isShowingNoBookAlert = true
-                                        return
-                                    }
-                                    
-                                    if stopwatchViewModel.timerState == .running {
-                                        stopwatchViewModel.pauseTimer()
-                                    } else {
-                                        stopwatchViewModel.startTimer()
-                                    }
+                        VStack(spacing: 12) {
+                            ButtonAction(text: "Iniciar leitura", colorButton: "ActionColor"){
+                                guard let book = selectedBook, stopwatchViewModel.timerFormater() != "00:00" else {
+                                    isShowingNoBookAlert = true
+                                    return
                                 }
-                                .padding(.top, 8)
                                 
-
-                                if stopwatchViewModel.timerState != .stopped {
-                                    Button(action: {
-                                        showAbandonAlert = true
-                                    }) {
-                                        Text("Abandonar leitura")
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(.red)
-                                            .padding(.vertical, 8)
-                                    }
-                                }
+                                userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
+                                stopwatchViewModel.startTimer()
                             }
-                            .padding(.horizontal)
+                            
+                            .padding(.top, 8)
                         }
-                        
-                        Spacer()
-                    }
-                }
-                .toolbar {
-                    ToolBarButton(
-                        action: {
-                            if selectedBook != nil {
-                                isShowingNoteSheet = true
-                            } else {
-                                isShowingNoBookAlert = true
-                            }
-                        },
-                        icon: "square.and.pencil"
-                    )
-                }
-                
-                .sheet(isPresented: $isShowingNoteSheet) {
-                    if let currentBook = selectedBook {
-                        NoteSheetView(book: currentBook)
-                    }
-                }
-                .alert("Atenção", isPresented: $isShowingNoBookAlert) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text("Selecione um livro e um tempo de leitura.")
-                }
-                
-                .alert("Abandonar leitura", isPresented: $showAbandonAlert) {
-                    Button("Cancelar", role: .cancel) { }
-                    Button("Abandonar", role: .destructive) {
-                        stopwatchViewModel.abandonTimer()
-                    }
-                } message: {
-                    Text("Tem certeza que deseja abandonar a leitura? O progresso será perdido.")
-                }
-                
-                .sheet(isPresented: $isShowingSelectBookSheet) {
-                    SelectBookSheetView(selectedBook: self.$selectedBook)
-                        .environmentObject(self.booksViewModel)
-                }
-
-                .sheet(isPresented: $isShowingTimerPicker) {
-                    timerPickerSheet
-                }
-                
-                .sheet(isPresented: $stopwatchViewModel.showProgressSheet) {
-                    progressSheet
-                }
-                
-                .alert("Erro ao executar a ação.", isPresented: $showErrorAlert) {
-                    Button("Tentar novamente", role: .cancel) { }
-                } message: {
-                    Text(errorMessage)
-                }
-                
-                .onAppear {
-                    booksViewModel.fetchBooks()
-                    userSettingsViewModel.fetchUserSettings()
-                    
-                    if selectedBook == nil {
-                        selectedBook = userSettingsViewModel.lastBookReaded
+                        .padding(.horizontal)
                     }
                     
-                    if let safeBook = selectedBook {
-                        stopwatchViewModel.getTotalPages(book: safeBook)
-                        stopwatchViewModel.getCurrentPage(book: safeBook)
-                    }
+                    Spacer()
                 }
-                //utilizado para atualizar o cronometro caso haja modificacoes 
-                .onChange(of: selectedBook) { newBook in
-                                    if let safeBook = newBook {
-                                        stopwatchViewModel.getTotalPages(book: safeBook)
-                                        stopwatchViewModel.getCurrentPage(book: safeBook)
-                                    }
-                                }
+            }
+            .toolbar {
+                ToolBarButton(
+                    action: {
+                        if selectedBook != nil {
+                            isShowingNoteSheet = true
+                        } else {
+                            isShowingNoBookAlert = true
+                        }
+                    },
+                    icon: "square.and.pencil"
+                )
+            }
+            
+            .sheet(isPresented: $isShowingNoteSheet) {
+                if let currentBook = selectedBook {
+                    NoteSheetView(book: currentBook)
+                }
+            }
+            .alert("Atenção", isPresented: $isShowingNoBookAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Selecione um livro e um tempo de leitura.")
+            }
+            
+            .sheet(isPresented: $isShowingSelectBookSheet) {
+                SelectBookSheetView(selectedBook: self.$selectedBook)
+                    .environmentObject(self.booksViewModel)
+            }
+            
+            .sheet(isPresented: $isShowingTimerPicker) {
+                timerPickerSheet
+            }
+            
+            .onAppear {
+                booksViewModel.fetchBooks(context: modelContext)
+                userSettingsViewModel.fetchUserSettings(context: modelContext)
+                
+                if selectedBook == nil {
+                    selectedBook = userSettingsViewModel.lastBookReaded
+                }
+                
+                if let safeBook = selectedBook {
+                    stopwatchViewModel.getTotalPages(book: safeBook)
+                    stopwatchViewModel.getCurrentPage(book: safeBook)
+                }
+            }
+            // utilizado para atualizar o cronometro caso haja modificacoes
+            .onChange(of: selectedBook) { _, newBook in
+                if let safeBook = newBook {
+                    stopwatchViewModel.getTotalPages(book: safeBook)
+                    stopwatchViewModel.getCurrentPage(book: safeBook)
+                }
             }
         }
     }
     
-    private var bookSelectionButton: some View {
+    var timerCapsuleBackground: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 100, style: .continuous)
+                .fill(Color("StopwatchSelectors").opacity(0.2))
+        }
+    }
+    
+    var timerCapsuleBorder: some View {
+        RoundedRectangle(cornerRadius: 100, style: .continuous)
+            .stroke(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.1)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                lineWidth: 0.5
+            )
+    }
+    
+    var bookSelectionButton: some View {
         VStack(spacing: 8) {
             Text("Selecione o livro")
                 .font(.body)
@@ -5978,13 +6614,11 @@ struct StopwatchInitialView: View {
                             .lineLimit(1)
                     }
                     
-                    if stopwatchViewModel.timerState == .stopped {
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -6007,12 +6641,12 @@ struct StopwatchInitialView: View {
                 )
                 .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
             }
-            .disabled(stopwatchViewModel.timerState != .stopped)
         }
         .padding(.horizontal, 24)
     }
     
-    private func bookProgressSection(_ book: Books) -> some View {
+    @ViewBuilder
+    func bookProgressSection(_ book: Books) -> some View {
         VStack(spacing: 10) {
             HStack {
                 Text("Progresso do livro")
@@ -6038,7 +6672,7 @@ struct StopwatchInitialView: View {
         }
     }
     
-    private func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
+    func backgroundWithGradient(_ geometry: GeometryProxy) -> some View {
         Group {
             if let imageData = selectedBook?.bookCover, let uiImage = UIImage(data: imageData) {
                 Image(uiImage: uiImage)
@@ -6075,43 +6709,38 @@ struct StopwatchInitialView: View {
                 Picker("Horas", selection: Binding(
                     get: { Int(selectedDuration) / 3600 },
                     set: { newHours in
-                        let currentMinutes = (Int(selectedDuration) % 3600) / 60
-                        let hoursInSeconds = Double(newHours * 3600)
-                        let minutesInSeconds = Double(currentMinutes * 60)
-                        let newTotal = hoursInSeconds + minutesInSeconds
-                        
+                        var newMinutes = pickedMinutes          // era: let currentMinutes = (Int(selectedDuration) % 3600) / 60
+                        if newHours == 0 && newMinutes == 0 {   // ← linha nova
+                            newMinutes = 1                       // ← linha nova
+                        }
+                        let newTotal = Double(newHours * 3600) + Double(newMinutes * 60)  // era "currentMinutes"
                         selectedDuration = newTotal
-                        stopwatchViewModel.totalTime = newTotal
-                        stopwatchViewModel.elapsedTime = newTotal
+                        stopwatchViewModel.setDuration(newTotal)
                     }
+                    
                 )) {
                     ForEach(0..<24, id: \.self) { hour in
                         Text("\(hour) h").tag(hour)
                     }
                 }
                 .pickerStyle(.wheel)
-
+                
                 Picker("Minutos", selection: Binding(
                     get: { (Int(selectedDuration) % 3600) / 60 },
                     set: { newMinutes in
-                        let currentHours = Int(selectedDuration) / 3600
-                        let hoursInSeconds = Double(currentHours * 3600)
-                        let minutesInSeconds = Double(newMinutes * 60)
-                        let newTotal = hoursInSeconds + minutesInSeconds
-                        
+                        let newTotal = Double(pickedHours * 3600) + Double(newMinutes * 60)
                         selectedDuration = newTotal
-                        stopwatchViewModel.totalTime = newTotal
-                        stopwatchViewModel.elapsedTime = newTotal
+                        stopwatchViewModel.setDuration(newTotal)
                     }
                 )) {
-                    ForEach(0..<60, id: \.self) { minute in
+                    ForEach(minMinuteAllowed..<60, id: \.self) { minute in
                         Text("\(minute) min").tag(minute)
                     }
                 }
                 .pickerStyle(.wheel)
             }
             .padding(.horizontal)
-
+            
             Button("Confirmar") {
                 isShowingTimerPicker = false
             }
@@ -6121,49 +6750,41 @@ struct StopwatchInitialView: View {
         }
         .presentationDetents([.height(260)])
     }
-    
-    private var progressSheet: some View {
-        Group {
-            if let currentBook = selectedBook {
-                BottomSheet(
-                    minutesPerDay: .constant(0),
-                    isPickerShown: false,
-                    readedPages: $tempReadedPages,
-                    onDismiss: {
-                        stopwatchViewModel.showProgressSheet = false
-                    },
-                    onSave: {
-                        if let newPage = Int16(tempReadedPages) {
-                            currentBook.bookCurrentPage = newPage
-                            
-                            do {
-                                try booksViewModel.saveBook()
-                            } catch let error as LocalizedError {
-                                errorMessage = error.errorDescription ?? "Ocorreu um erro desconhecido."
-                                showErrorAlert = true
-                            } catch {
-                                errorMessage = "Erro inesperado."
-                                showErrorAlert = true
-                            }
-                        }
-                        
-                        let rawMinutes = Int(stopwatchViewModel.totalTime / 60)
-                        let minutesRead = max(1, rawMinutes)
-                        
-                        userSettingsViewModel.addCompletedReadingTime(minutes: minutesRead)
-                        
-                        booksViewModel.fetchBooks()
-                        userSettingsViewModel.fetchUserSettings()
-                        tempReadedPages = ""
-                        stopwatchViewModel.showProgressSheet = false
-                    }
-                )
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(Color("BackgroundColorViews"))
-            }
+}
+#Preview {
+    struct PreviewWrapper: View {
+        // 1. Criando a Namespace para a animação
+        @Namespace var namespace
+        
+        // 2. Estado local para o Binding
+        @State private var mockSelectedBook: Books? = nil
+        
+        // 3. Instanciando todas as dependências (ViewModels)
+        @StateObject private var stopwatchVM = StopwatchViewModel()
+        @StateObject private var photoLibraryVM = PhotoLibraryViewModel()
+        @StateObject private var booksVM = BooksViewModel()
+        @StateObject private var notesVM = NotesViewModel()
+        @StateObject private var userSettingsVM = UserSettingsViewModel()
+        
+        var body: some View {
+            StopwatchInitialView(
+                namespace: namespace,
+                selectedBook: $mockSelectedBook
+            )
+            // 4. Injetando os EnvironmentObjects
+            .environmentObject(stopwatchVM)
+            .environmentObject(photoLibraryVM)
+            .environmentObject(booksVM)
+            .environmentObject(notesVM)
+            .environmentObject(userSettingsVM)
+            
+            // 5. Injetando o contexto do SwiftData em memória RAM para o Preview não crashar
+            // ATENÇÃO: Substitua os nomes das classes dentro da array caso não sejam exatamente esses
+            .modelContainer(for: [Books.self], inMemory: true)
         }
     }
+    
+    return PreviewWrapper()
 }
  ⁠
 
@@ -6190,7 +6811,7 @@ struct FirstOnboardView: View {
             
             Image("OnboardingOficial")
                 .resizable()
-                .scaledToFit()
+                .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .mask(
                     LinearGradient(
@@ -6346,11 +6967,15 @@ struct FirstOnboardView: View {
  */
 
 import SwiftUI
+import SwiftData
 
 struct SecondOnboardView: View {
     @EnvironmentObject var booksViewModel: BooksViewModel
-    @State private var selectedGoal: String = ""
     var onStart: (() -> Void)? = nil
+    @Environment(\.modelContext) private var modelContext
+    @State private var minutosDeLeitura: Int? = nil
+    
+    @State private var showingZeroTimeAlert = false
 
     var body: some View {
         ZStack {
@@ -6362,7 +6987,7 @@ struct SecondOnboardView: View {
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .ignoresSafeArea()
-               
+                
             VStack(spacing: 20) {
                 Spacer()
                 
@@ -6400,11 +7025,9 @@ struct SecondOnboardView: View {
                 .padding(.horizontal, 16)
                 
                 MenuSheetPickerOnboarding(
-                    title: "",
-                    placeholder: "Selecione uma meta",
-                    selectedValue: $selectedGoal,
-                    options: booksViewModel.goalOptions,
-                    formatOption: { "\($0) minutos" }
+                    title: "Meta Diária",
+                    placeholder: "Selecione o tempo",
+                    selectedTotalMinutes: $minutosDeLeitura
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -6417,15 +7040,25 @@ struct SecondOnboardView: View {
                 Spacer()
                 
                 ButtonAction(text: "Iniciar jornada", colorButton: "ActionColor"){
-                    if let minutes = Int(selectedGoal) {
-                            booksViewModel.saveDailyGoal(minutes: minutes)
+                    if let minutes = minutosDeLeitura, minutes > 0 {
+                        print(minutes)
+                        booksViewModel.saveDailyGoal(minutes: minutes, context: modelContext)
+                        onStart?()
+                    } else {
+                        showingZeroTimeAlert = true
                     }
-                    onStart?()
                 }
                 .padding(.bottom, 40)
             }
             .padding(.horizontal, 26)
             
+        }
+        .alert(isPresented: $showingZeroTimeAlert) {
+            Alert(
+                title: Text("Tempo Inválido"),
+                message: Text("A meta diária precisa ser de pelo menos 1 minuto."),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 }
