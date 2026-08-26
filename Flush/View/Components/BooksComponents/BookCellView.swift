@@ -37,7 +37,7 @@ struct BookCellView: View {
                 Text(book.bookTitle ?? "Sem Título")
                     .font(.title2)
                     .fontWeight(.semibold)
-                    // ✨ Se estiver selecionado, usa a ActionColor, senão usa branco
+                
                     .foregroundStyle(isSelected ? Color("ActionColor") : .white)
                     .lineLimit(1)
                 

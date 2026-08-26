@@ -38,6 +38,8 @@ struct BookInstanceDetailView: View {
         VStack(spacing: 16) {
 
             TitleComponent(title: book.bookTitle ?? "Título desconhecido")
+                .padding(.horizontal, 60)
+                .multilineTextAlignment(.center)
             
             if let coverData = photoLibraryViewModel.getCoverImage(for: book){
                 Image(uiImage: coverData)

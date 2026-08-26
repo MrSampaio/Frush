@@ -13,27 +13,29 @@ struct CardTotalPages: View {
     
     var body: some View {
 
-        HStack {
+        HStack (spacing: 10) {
             Image("BookPagesReadCard")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 98, height: 51)
             
-            Spacer()
-            
             VStack (alignment: .leading, spacing: 4){
                 
                 if totalPages >= 1 {
                     Text("\(totalPages) páginas lidas")
-                        .font(.bitter(.bold, style: .title3))
+                        .font(.bitter(.bold, style: .headline))
                         .foregroundStyle(Color.black)
                     
                     Text(" continue assim!")
-                        .font(.bitter(.regular, style: .footnote))
+                        .font(.bitter(.regular, style: .subheadline))
                         .foregroundStyle(Color.black)
                 } else {
-                    Text("Que tal começar agora mesmo?")
-                        .font(.bitter(.medium, style: .subheadline))
+                    Text("Novo hábito de leitura")
+                        .font(.bitter(.bold, style: .headline))
+                        .foregroundStyle(Color.black)
+                    
+                    Text("Inicie agora mesmo!")
+                        .font(.bitter(.regular, style: .subheadline))
                         .foregroundStyle(Color.black)
                 }
             }

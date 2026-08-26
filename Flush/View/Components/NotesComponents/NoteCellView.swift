@@ -33,7 +33,7 @@ struct NoteCellView: View {
     }
     
     var body: some View {
-        HStack{
+        HStack(spacing: 24){
             Group {
                 if let image = photo{
                     Image(uiImage: image)
@@ -45,12 +45,10 @@ struct NoteCellView: View {
                         .scaledToFill()
                 }
             }
-            .frame(width: 50, height: 70)
-            .cornerRadius(8)
-            .clipped()
-            VStack(alignment: .leading, spacing: 6) {
-                
-                
+            .frame(width: 55, height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text(note.noteTitle ?? "Nota sem título")
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -64,27 +62,10 @@ struct NoteCellView: View {
                         .lineLimit(1)
                 }
             }
+            Spacer()
 
         }
         .contentShape(Rectangle())
-//        .contextMenu {
-//            Button() {
-//                isEditingSheetPresented = true
-//            } label: {
-//                Label("Editar Nota", systemImage: "pencil")
-//                    .foregroundColor(.blue)
-//                    .font(.body)
-//            }
-//            
-//            Divider()
-//            
-//            Button(role: .destructive) {
-//                isShowingDeleteAlert = true
-//            } label: {
-//                Label("Apagar Nota", systemImage: "trash")
-//                    .font(.body)
-//            }
-//        }
         
         .alert("Apagar Nota", isPresented: $isShowingDeleteAlert) {
             Button("Cancelar", role: .cancel) { }
@@ -107,7 +88,7 @@ struct NoteCellView: View {
 
         .frame(width: 170)
         .cornerRadius(12)
-        .padding(.horizontal, 8)
+        //.padding(.horizontal, 8)
         .padding(.bottom, 4)
     }
 }

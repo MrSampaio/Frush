@@ -15,7 +15,7 @@ struct MenuSheetPicker: View {
     var formatOption: (String) -> String = { $0 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 14) {
             if let title = title, !title.isEmpty {
                 Text(title)
                     .font(.system(.title3, weight: .medium))
