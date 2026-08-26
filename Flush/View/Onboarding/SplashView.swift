@@ -8,36 +8,36 @@
 import SwiftUI
 
 struct SplashView: View {
+    var onFinish: () -> Void = {}
+    
     var body: some View {
-        ZStack {
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: Color(hex: "FEF4C7"), location: 0.00),
-                    .init(color: Color(hex: "FEF0B8"), location: 0.05),
-                    .init(color: Color(hex: "FEE78F"), location: 0.20),
-                    .init(color: Color(hex: "FEDF6C"), location: 0.35),
-                    .init(color: Color(hex: "FED952"), location: 0.51),
-                    .init(color: Color(hex: "FED53F"), location: 0.66),
-                    .init(color: Color(hex: "FED233"), location: 0.83),
-                    .init(color: Color(hex: "FFD230"), location: 1.00)
-                ]),
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
-            )
-            .ignoresSafeArea()
+        ZStack(alignment: .center){
             
-            VStack(spacing: 16) {
+            Color("SplashBackground")
+                .ignoresSafeArea()
+            
+            VStack(alignment: .center, spacing: 0) {
+                VideoPlayerView(
+                    fileName: "animation",
+                    fileExtension: "mov",
+                    onFinish: onFinish
+                )
+                .frame(width: 250, height: 200)
+                
                 Image("FrushLogo")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 222, height: 184)
-                    .foregroundColor(Color(red: 0.15, green: 0.10, blue: 0.05))
-                
+                    .frame(width: 200, height: 120)
+                    .padding(.top, -40)
             }
-            .onAppear {
-                SoundManager.shared.playSound(named: .splash)
-            }
+            .padding(.bottom, 80)
         }
+        .task {
+            try? await Task.sleep(for: .milliseconds(500))
+            SoundManager.shared.playSound(named: .splash)
+        }
+        
+        
     }
 }
 

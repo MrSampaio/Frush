@@ -10,6 +10,7 @@
 		3601E126303F66D600031005 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3601E125303F66D600031005 /* WidgetKit.framework */; };
 		3601E128303F66D600031005 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3601E127303F66D600031005 /* SwiftUI.framework */; };
 		3601E139303F66D700031005 /* FrushWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3601E123303F66D600031005 /* FrushWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3617B81C303F757B00335232 /* animation.mov in Resources */ = {isa = PBXBuildFile; fileRef = 3617B81B303F757B00335232 /* animation.mov */; };
 		361872EE302F885E00CF27C2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 361872EC302F885700CF27C2 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		3601E123303F66D600031005 /* FrushWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FrushWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3601E125303F66D600031005 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3601E127303F66D600031005 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		3617B81B303F757B00335232 /* animation.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = animation.mov; sourceTree = "<group>"; };
 		361872EC302F885700CF27C2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		365691D2302E3C18000D19BC /* CH4-Books.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CH4-Books.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -127,6 +129,7 @@
 		365691C9302E3C18000D19BC = {
 			isa = PBXGroup;
 			children = (
+				3617B81B303F757B00335232 /* animation.mov */,
 				3601E13F303F675400031005 /* Shared */,
 				22DAEAED30314BE2001A9E75 /* CH4-Books-Info.plist */,
 				365691D4302E3C18000D19BC /* Flush */,
@@ -248,6 +251,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				361872EE302F885E00CF27C2 /* .gitignore in Resources */,
+				3617B81C303F757B00335232 /* animation.mov in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
