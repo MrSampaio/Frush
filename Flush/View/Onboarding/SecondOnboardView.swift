@@ -138,7 +138,7 @@ struct SecondOnboardView: View {
                 .padding(.horizontal, 16)
                 
                 MenuSheetPickerOnboarding(
-                    title: "Meta Diária",
+                    title: "",
                     placeholder: "Selecione o tempo",
                     selectedTotalMinutes: $minutosDeLeitura
                 )
