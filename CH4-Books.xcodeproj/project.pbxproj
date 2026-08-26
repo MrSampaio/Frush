@@ -266,6 +266,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CH4-Books-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Frush;
 				INFOPLIST_KEY_NSCameraUsageDescription = "A permissão da câmera é necessária para tirar fotos e anexar às suas notas.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A permissão da galeria é necessária para anexar fotos às suas notas.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -301,6 +302,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CH4-Books-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Frush;
 				INFOPLIST_KEY_NSCameraUsageDescription = "A permissão da câmera é necessária para tirar fotos e anexar às suas notas.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A permissão da galeria é necessária para anexar fotos às suas notas.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
