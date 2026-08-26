@@ -128,6 +128,7 @@ struct StopwatchInitialView: View {
                                 }
                                 
                                 userSettingsViewModel.updateUserSettings(newLastBook: book, context: modelContext)
+                                stopwatchViewModel.activeBookTitle = book.bookTitle    // 👈 novo
                                 stopwatchViewModel.startTimer()
                             }
                             

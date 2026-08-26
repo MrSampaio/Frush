@@ -29,7 +29,11 @@ struct CH4_BooksApp: App {
                 .environmentObject(notesViewModel)
                 .environmentObject(stopWatchViewModel)
                 .environmentObject(filterViewModel)
-                .environmentObject(router) 
+                .environmentObject(router)
+                .onOpenURL { url in
+                    guard url.scheme == "frush", url.host == "stopwatch" else { return }
+                    router.selectedTab = .stopwatch
+                }
         }
         .modelContainer(for: [
             Books.self,
@@ -57,14 +61,20 @@ struct RootFlowView: View {
         ZStack {
             switch screen {
             case .splash:
-                SplashView()
-                    .transition(.opacity)
-                    .task {
-                        try? await Task.sleep(for: .seconds(1.2))
+                SplashView {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        screen = hasCompletedOnboarding ? .main : .firstOnboard
+                    }
+                }
+                .transition(.opacity)
+                .task {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    if screen == .splash {
                         withAnimation(.easeInOut(duration: 0.35)) {
                             screen = hasCompletedOnboarding ? .main : .firstOnboard
                         }
                     }
+                }
  
             case .firstOnboard:
                 FirstOnboardView {
