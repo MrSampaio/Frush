@@ -29,7 +29,11 @@ struct CH4_BooksApp: App {
                 .environmentObject(notesViewModel)
                 .environmentObject(stopWatchViewModel)
                 .environmentObject(filterViewModel)
-                .environmentObject(router) 
+                .environmentObject(router)
+                .onOpenURL { url in
+                    guard url.scheme == "frush", url.host == "stopwatch" else { return }
+                    router.selectedTab = .stopwatch
+                }
         }
         .modelContainer(for: [
             Books.self,

@@ -30,12 +30,15 @@ class StopwatchViewModel: ObservableObject {
     // controle de Páginas do Livro
     @Published var currentPage: Int16 = 0
     @Published var totalPages: Int16 = 0
+
+    var activeBookTitle: String = "Leitura"
     
     private var cancellables = Set<AnyCancellable>()
         
     init() {
         // obeservador do tempo de vida ativo do app
         setupAppLifecycleObservers()
+        LiveActivityManager.shared.reattach()    
         checkPendingSession()
     }
     
@@ -79,6 +82,8 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.set(totalTime, forKey: "savedTotalTime") 
         // salva o estado do timer (se estava rodando ou pausado)
         UserDefaults.standard.set(timerState == .running ? "running" : "paused", forKey: "savedTimerState")
+        
+        UserDefaults.standard.set(activeBookTitle, forKey: "savedBookTitle")
     }
     
     // função para trazer os estados de volta pro app
@@ -87,6 +92,10 @@ class StopwatchViewModel: ObservableObject {
         let savedElapsed = UserDefaults.standard.double(forKey: "savedElapsedTime")
         let savedTotal = UserDefaults.standard.double(forKey: "savedTotalTime")
         let savedStateStr = UserDefaults.standard.string(forKey: "savedTimerState")
+        
+        if let savedTitle = UserDefaults.standard.string(forKey: "savedBookTitle") {
+            self.activeBookTitle = savedTitle
+        }
 
         // se não tiver data salva, significa que não tinha leitura ativa, aí ignora
         guard savedDate > 0 else { return }
@@ -128,6 +137,8 @@ class StopwatchViewModel: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "savedElapsedTime")
         UserDefaults.standard.removeObject(forKey: "savedTotalTime")
         UserDefaults.standard.removeObject(forKey: "savedTimerState")
+        UserDefaults.standard.removeObject(forKey: "savedBookTitle")
+
     }
 
     // progresso do Cronômetro (0.0 a 1.0) para os Anéis
@@ -149,6 +160,11 @@ class StopwatchViewModel: ObservableObject {
         timerState = .running
         isRunning = true
         
+        LiveActivityManager.shared.start(
+            bookTitle: activeBookTitle,
+            remaining: elapsedTime
+        )
+        
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
@@ -169,6 +185,11 @@ class StopwatchViewModel: ObservableObject {
         isRunning = false
         timer?.invalidate()
         timer = nil
+        
+        LiveActivityManager.shared.update(
+            remaining: elapsedTime,
+            isPaused: true
+        )
     }
     
     // para a contagem ao finalizar o tempo
@@ -177,6 +198,9 @@ class StopwatchViewModel: ObservableObject {
         isRunning = false
         timer?.invalidate()
         timer = nil
+        LiveActivityManager.shared.end()
+        
+
     }
     
     // Abandona a leitura e reseta o cronômetro para o valor original
@@ -225,6 +249,8 @@ class StopwatchViewModel: ObservableObject {
         isRunning = false
         timer?.invalidate()
         timer = nil
+        
+        LiveActivityManager.shared.end()
     }
     
 }
