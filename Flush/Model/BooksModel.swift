@@ -36,6 +36,6 @@ final class Books {
         self.bookTotalPages = bookTotalPages
         self.isTimerRunning = isTimerRunning
         self.wasLastPageAdded = wasLastPageAdded
-        self.readingStartDate = nil
+        self.readingStartDate = readingStartDate
     }
 }
