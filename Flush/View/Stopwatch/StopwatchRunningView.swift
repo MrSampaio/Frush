@@ -98,7 +98,7 @@ struct StopwatchRunningView: View {
                 }
                 .padding(.top, 20)
             }
-            .padding(.bottom, 65)
+            .padding(.bottom, 60)
             .frame(width: 215)
         }
         .toolbar {
