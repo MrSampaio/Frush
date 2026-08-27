@@ -44,7 +44,8 @@ struct CardTotalPages: View {
             Spacer()
             
         }
-        .padding(24)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 22)
         .background(
             LinearGradient(
                 colors: [
@@ -61,5 +62,8 @@ struct CardTotalPages: View {
 }
 
 #Preview {
-    CardTotalPages(totalPages: 0)
+    VStack{
+        CardTotalPages(totalPages: 0)
+    }
+    .padding(.horizontal, 24)
 }
