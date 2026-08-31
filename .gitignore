@@ -1,0 +1,86 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings — a principal fonte de conflitos em equipe
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+## Build artefatos
+build/
+DerivedData/
+*.o
+*.LinkFileList
+*.hmap
+
+## Obj-C/Swift specific
+*.hmap
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+## Índice e cache do Xcode
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+
+## Swift Package Manager
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+.swiftpm/configuration/
+# Descomente se NÃO quiser versionar as dependências resolvidas:
+# Package.resolved
+
+## Simulador / previews
+*.xcresult
+*.playground
+
+## CocoaPods
+# Pods/
+
+## Carthage
+Carthage/Build/
+
+## fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+## Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+## Segredos (nunca versionar)
+*.p12
+*.mobileprovision
+*.cer
+GoogleService-Info.plist
+Secrets.xcconfig

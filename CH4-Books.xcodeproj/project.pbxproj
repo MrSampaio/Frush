@@ -6,19 +6,107 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3601E126303F66D600031005 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3601E125303F66D600031005 /* WidgetKit.framework */; };
+		3601E128303F66D600031005 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3601E127303F66D600031005 /* SwiftUI.framework */; };
+		3601E139303F66D700031005 /* FrushWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3601E123303F66D600031005 /* FrushWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3617B81C303F757B00335232 /* animation.mov in Resources */ = {isa = PBXBuildFile; fileRef = 3617B81B303F757B00335232 /* animation.mov */; };
+		361872EE302F885E00CF27C2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 361872EC302F885700CF27C2 /* .gitignore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3601E137303F66D700031005 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 365691CA302E3C18000D19BC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3601E122303F66D600031005;
+			remoteInfo = FrushWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3601E13A303F66D700031005 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3601E139303F66D700031005 /* FrushWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		22DAEAED30314BE2001A9E75 /* CH4-Books-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "CH4-Books-Info.plist"; sourceTree = "<group>"; };
+		3601E123303F66D600031005 /* FrushWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FrushWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3601E125303F66D600031005 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		3601E127303F66D600031005 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		3617B81B303F757B00335232 /* animation.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = animation.mov; sourceTree = "<group>"; };
+		361872EC302F885700CF27C2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		365691D2302E3C18000D19BC /* CH4-Books.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CH4-Books.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3601E13D303F66D700031005 /* Exceptions for "FrushWidget" folder in "FrushWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3601E122303F66D600031005 /* FrushWidgetExtension */;
+		};
+		3601E148303F69A800031005 /* Exceptions for "Flush" folder in "FrushWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = 3601E122303F66D600031005 /* FrushWidgetExtension */;
+		};
+		3601E14A303F6D7A00031005 /* Exceptions for "FrushWidget" folder in "CH4-Books" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = 365691D1302E3C18000D19BC /* CH4-Books */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		365691D4302E3C18000D19BC /* CH4-Books */ = {
+		3601E129303F66D600031005 /* FrushWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "CH4-Books";
+			exceptions = (
+				3601E14A303F6D7A00031005 /* Exceptions for "FrushWidget" folder in "CH4-Books" target */,
+				3601E13D303F66D700031005 /* Exceptions for "FrushWidget" folder in "FrushWidgetExtension" target */,
+			);
+			path = FrushWidget;
+			sourceTree = "<group>";
+		};
+		3601E13F303F675400031005 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		365691D4302E3C18000D19BC /* Flush */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3601E148303F69A800031005 /* Exceptions for "Flush" folder in "FrushWidgetExtension" target */,
+			);
+			path = Flush;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3601E120303F66D600031005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3601E128303F66D600031005 /* SwiftUI.framework in Frameworks */,
+				3601E126303F66D600031005 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		365691CF302E3C18000D19BC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,11 +117,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3601E124303F66D600031005 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3601E125303F66D600031005 /* WidgetKit.framework */,
+				3601E127303F66D600031005 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		365691C9302E3C18000D19BC = {
 			isa = PBXGroup;
 			children = (
-				365691D4302E3C18000D19BC /* CH4-Books */,
+				3617B81B303F757B00335232 /* animation.mov */,
+				3601E13F303F675400031005 /* Shared */,
+				22DAEAED30314BE2001A9E75 /* CH4-Books-Info.plist */,
+				365691D4302E3C18000D19BC /* Flush */,
+				3601E129303F66D600031005 /* FrushWidget */,
+				3601E124303F66D600031005 /* Frameworks */,
 				365691D3302E3C18000D19BC /* Products */,
+				361872EC302F885700CF27C2 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -41,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				365691D2302E3C18000D19BC /* CH4-Books.app */,
+				3601E123303F66D600031005 /* FrushWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +152,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3601E122303F66D600031005 /* FrushWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3601E13E303F66D700031005 /* Build configuration list for PBXNativeTarget "FrushWidgetExtension" */;
+			buildPhases = (
+				3601E11F303F66D600031005 /* Sources */,
+				3601E120303F66D600031005 /* Frameworks */,
+				3601E121303F66D600031005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3601E129303F66D600031005 /* FrushWidget */,
+				3601E13F303F675400031005 /* Shared */,
+			);
+			name = FrushWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = FrushWidgetExtension;
+			productReference = 3601E123303F66D600031005 /* FrushWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		365691D1302E3C18000D19BC /* CH4-Books */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 365691E2302E3C19000D19BC /* Build configuration list for PBXNativeTarget "CH4-Books" */;
@@ -55,13 +182,16 @@
 				365691CE302E3C18000D19BC /* Sources */,
 				365691CF302E3C18000D19BC /* Frameworks */,
 				365691D0302E3C18000D19BC /* Resources */,
+				3601E13A303F66D700031005 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3601E138303F66D700031005 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				365691D4302E3C18000D19BC /* CH4-Books */,
+				3601E13F303F675400031005 /* Shared */,
+				365691D4302E3C18000D19BC /* Flush */,
 			);
 			name = "CH4-Books";
 			packageProductDependencies = (
@@ -80,6 +210,9 @@
 				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					3601E122303F66D600031005 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 					365691D1302E3C18000D19BC = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -100,21 +233,38 @@
 			projectRoot = "";
 			targets = (
 				365691D1302E3C18000D19BC /* CH4-Books */,
+				3601E122303F66D600031005 /* FrushWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		365691D0302E3C18000D19BC /* Resources */ = {
+		3601E121303F66D600031005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		365691D0302E3C18000D19BC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				361872EE302F885E00CF27C2 /* .gitignore in Resources */,
+				3617B81C303F757B00335232 /* animation.mov in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3601E11F303F66D600031005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		365691CE302E3C18000D19BC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +274,75 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3601E138303F66D700031005 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3601E122303F66D600031005 /* FrushWidgetExtension */;
+			targetProxy = 3601E137303F66D700031005 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3601E13B303F66D700031005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A8862Q9V7N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FrushWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FrushWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sampaio.ch4-book.CH4-Books.FrushWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3601E13C303F66D700031005 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A8862Q9V7N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FrushWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FrushWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sampaio.ch4-book.CH4-Books.FrushWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		365691E0302E3C19000D19BC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -253,9 +471,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = YDGZTDXJVC;
+				DEVELOPMENT_TEAM = A8862Q9V7N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CH4-Books-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Frush;
+				INFOPLIST_KEY_NSCameraUsageDescription = "A permissão da câmera é necessária para tirar fotos e anexar às suas notas.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A permissão da galeria é necessária para anexar fotos às suas notas.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -285,9 +508,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = YDGZTDXJVC;
+				DEVELOPMENT_TEAM = A8862Q9V7N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CH4-Books-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Frush;
+				INFOPLIST_KEY_NSCameraUsageDescription = "A permissão da câmera é necessária para tirar fotos e anexar às suas notas.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A permissão da galeria é necessária para anexar fotos às suas notas.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -313,6 +541,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3601E13E303F66D700031005 /* Build configuration list for PBXNativeTarget "FrushWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3601E13B303F66D700031005 /* Debug */,
+				3601E13C303F66D700031005 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		365691CD302E3C18000D19BC /* Build configuration list for PBXProject "CH4-Books" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
