@@ -97,7 +97,7 @@ Frush
 ## 📱 System Showcase
 
 <div align="center">
-  <img src="./documentation/Shot.svg" alt="Frush App" width="1000"/>
+  <img src="./documentation/mockup_ip14.png" alt="Frush App" width="1000"/>
 </div>
 
 ## 📦 Installation & Build
