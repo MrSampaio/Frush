@@ -152,4 +152,4 @@ Once the application is compiled and running, explore the reading flow by follow
 
 ## 🍎 Thank you, Apple Developer Academy teammates!
 
-This project was developed in collaboration with the Frush team. Without you guys, this wouldn't have been possible! ❤️
+This project was developed in collaboration with [@01lucasPinheiro](https://github.com/01lucasPinheiro), [@Agathabsantos](https://github.com/Agathabsantos), and [@joicecardoso](https://www.linkedin.com/in/joice-cardoso-design/).
