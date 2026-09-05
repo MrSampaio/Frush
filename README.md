@@ -22,8 +22,10 @@ Frush is available for testing on TestFlight! Join the beta and try it out on yo
 
 Experience the full journey from your bookshelf to a completed reading session, engineered natively for iOS.
 
+
 <div align="center">
-  <img src="documentation/full_flow_ios.gif" width="260" alt="Frush Core Flow"/>
+  <video src="https://github.com/user-attachments/assets/d34e50c0-6b99-4194-ba80-df81207d7197"  width="400" autoplay muted loop playsinline>
+  </video>
   <p><i>End-to-end flow: browsing the library, starting a focused reading session, and logging progress at the end.</i></p>
 </div>
 
@@ -166,7 +168,7 @@ Press `Cmd + R` or click the Play (▶) button. Xcode will resolve any internal 
 
 ---
 
-## 💻 Usage Guide
+## Usage Guide
 
 Once the application is compiled and running, explore the reading flow by following the core steps:
 
