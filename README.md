@@ -18,37 +18,6 @@ Frush is available for testing on TestFlight! Join the beta and try it out on yo
   <img src="./documentation/mockup_ip14.png" alt="Frush App" width="1000"/>
 </div>
 
-## System in Action: Core Flow
-
-Experience the full journey from your bookshelf to a completed reading session, engineered natively for iOS.
-
-
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/d34e50c0-6b99-4194-ba80-df81207d7197"  width="400" autoplay muted loop playsinline>
-  </video>
-  <p><i>End-to-end flow: browsing the library, starting a focused reading session, and logging progress at the end.</i></p>
-</div>
-
-<br>
-
-### Reading Sessions, Live Activities & Dynamic Island
-Frush's biggest differentiator: your reading session doesn't stop when you leave the app. Powered by ActivityKit, the countdown keeps running live on the Lock Screen and Dynamic Island, so you always know how much time is left without unlocking your phone.
-
-<div align="center">
-  <img src="./documentation/live_activity_dynamic_island.gif" alt="Live Activity and Dynamic Island Animation" width="700"/>
-  <p><i>The reading Stopwatch's pulsing rings, mirrored in real-time on the Lock Screen and Dynamic Island.</i></p>
-</div>
-
-<br>
-
-### Notes with Photos
-Capture thoughts, quotes, or favorite passages the moment they happen — attach a photo straight from the camera or your library and revisit them anytime from the book's detail page.
-
-<div align="center">
-  <img src="./documentation/notes_with_photos.gif" width="260" alt="Notes with Photos"/>
-  <p><i>Creating a note linked to a book and attaching a photo, then browsing saved notes by category.</i></p>
-</div>
-
 ## Features
 - **Personal Book Library**: Add, edit, and organize books with cover, author, category, and total page count.
 - **Reading Stopwatch**: A focused reading timer with pause/resume, background-aware state recovery, and animated pulsing rings.
@@ -141,6 +110,29 @@ Frush
 │   │   │   ├── PreviewProviderHelper.swift
 ```
 ---
+
+## System in Action: Core Flow
+
+Experience the full journey from your bookshelf to a completed reading session, engineered natively for iOS.
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/d34e50c0-6b99-4194-ba80-df81207d7197"  width="400" autoplay muted loop playsinline>
+  </video>
+  <p><i>End-to-end flow: browsing the library, starting a focused reading session, and logging progress at the end.</i></p>
+</div>
+
+<br>
+
+### Reading Sessions, Notes, Live Activities & Dynamic Island
+Frush's biggest differentiator: your reading session doesn't stop when you leave the app. Powered by ActivityKit, the countdown keeps running live on the Lock Screen and Dynamic Island, so you always know how much time is left without unlocking your phone.
+Also, capture thoughts, quotes, or favorite passages the moment they happen — attach a photo straight from the camera or your library and revisit them anytime from the book's detail page.
+
+<div align="center">
+   <video src="https://github.com/user-attachments/assets/d1cc5101-9abd-4284-9286-c22d26573fc5" width="400" autoplay muted loop playsinline>
+  </video>
+  <img src="./documentation/live_activity_dynamic_island.gif" alt="Live Activity and Dynamic Island Animation" width="700"/>
+  <p><i>The reading Stopwatch's pulsing rings, mirrored in real-time on the Lock Screen and Dynamic Island.</i></p>
+</div>
 
 ## Installation & Build
 
