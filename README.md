@@ -3,9 +3,9 @@
 Frush is a native iOS reading companion that helps readers build consistent habits by combining a personal book library, a distraction-free reading timer, and rich notes with photos. The app guides users from onboarding through daily reading sessions, tracking progress page by page and turning reading time into Live Activities on the Lock Screen and Dynamic Island. Frush allows readers to set daily goals, log their sessions, capture thoughts and images from their books, and watch their progress grow over time.
 
 ## TestFlight
- 
+
 Frush is available for testing on TestFlight! Join the beta and try it out on your own device:
- 
+
 **[testflight.apple.com/join/8a2ggnnM](https://testflight.apple.com/join/8a2ggnnM)**
 
 ## System Showcase
@@ -110,6 +110,37 @@ Frush
 │   │   │   ├── PreviewProviderHelper.swift
 ```
 
+## System in Action: Core Flow
+
+Experience the full journey from your bookshelf to a completed reading session, engineered natively for iOS.
+
+<div align="center">
+  <img src="./documentation/full_flow_ios.gif" width="260" alt="Frush Core Flow"/>
+  <p><i>End-to-end flow: browsing the library, starting a focused reading session, and logging progress at the end.</i></p>
+</div>
+
+<br>
+
+### Reading Sessions, Live Activities & Dynamic Island
+Frush's biggest differentiator: your reading session doesn't stop when you leave the app. Powered by ActivityKit, the countdown keeps running live on the Lock Screen and Dynamic Island, so you always know how much time is left without unlocking your phone.
+
+<div align="center">
+  <img src="./documentation/live_activity_dynamic_island.gif" alt="Live Activity and Dynamic Island Animation" width="700"/>
+  <p><i>The reading Stopwatch's pulsing rings, mirrored in real-time on the Lock Screen and Dynamic Island.</i></p>
+</div>
+
+<br>
+
+### Notes with Photos
+Capture thoughts, quotes, or favorite passages the moment they happen — attach a photo straight from the camera or your library and revisit them anytime from the book's detail page.
+
+<div align="center">
+  <img src="./documentation/notes_with_photos.gif" width="260" alt="Notes with Photos"/>
+  <p><i>Creating a note linked to a book and attaching a photo, then browsing saved notes by category.</i></p>
+</div>
+
+---
+
 ## Installation & Build
 
 Frush is a native iOS project built with Xcode. To run it locally, follow these steps:
@@ -136,7 +167,7 @@ Press `Cmd + R` or click the Play (▶) button. Xcode will resolve any internal 
 
 ---
 
-## Usage Guide
+## 💻 Usage Guide
 
 Once the application is compiled and running, explore the reading flow by following the core steps:
 
