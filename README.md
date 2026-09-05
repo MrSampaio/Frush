@@ -2,7 +2,13 @@
 
 Frush is a native iOS reading companion that helps readers build consistent habits by combining a personal book library, a distraction-free reading timer, and rich notes with photos. The app guides users from onboarding through daily reading sessions, tracking progress page by page and turning reading time into Live Activities on the Lock Screen and Dynamic Island. Frush allows readers to set daily goals, log their sessions, capture thoughts and images from their books, and watch their progress grow over time.
 
-## 📱 System Showcase
+## TestFlight
+ 
+Frush is available for testing on TestFlight! Join the beta and try it out on your own device:
+ 
+**[testflight.apple.com/join/8a2ggnnM](https://testflight.apple.com/join/8a2ggnnM)**
+
+## System Showcase
 
 <div align="center">
   <img src="./documentation/mockup3.png" alt="Frush App" width="1000"/>
@@ -12,7 +18,7 @@ Frush is a native iOS reading companion that helps readers build consistent habi
   <img src="./documentation/mockup_ip14.png" alt="Frush App" width="1000"/>
 </div>
 
-## 🚀 Features
+## Features
 - **Personal Book Library**: Add, edit, and organize books with cover, author, category, and total page count.
 - **Reading Stopwatch**: A focused reading timer with pause/resume, background-aware state recovery, and animated pulsing rings.
 - **Live Activities & Widgets**: The active reading session is mirrored on the Lock Screen and Dynamic Island via ActivityKit, plus a Home Screen widget built with WidgetKit.
@@ -23,7 +29,7 @@ Frush is a native iOS reading companion that helps readers build consistent habi
 - **Sound & Notification Feedback**: Custom sounds and local notifications reinforce session completion and daily goals.
 - **Deep Linking**: Custom URL scheme (`frush://stopwatch`) routes users straight into an active reading session.
 
-## 🛠️ Tech Stack
+## Tech Stack
 - **Frontend**: SwiftUI
 - **Backend**: Not applicable (client-side application)
 - **Database**: SwiftData (local persistence)
@@ -32,7 +38,7 @@ Frush is a native iOS reading companion that helps readers build consistent habi
 - **Frameworks**: Combine, ActivityKit (Live Activities & Dynamic Island), WidgetKit, AppIntents, PhotosUI, UIKit (Camera Picker), AVKit (Splash video)
 - **Libraries**: Not applicable
 
-## 📂 Project Structure
+## Project Structure
 ```
 Frush
 ├── FrushWidget
@@ -104,7 +110,7 @@ Frush
 │   │   │   ├── PreviewProviderHelper.swift
 ```
 
-## 📦 Installation & Build
+## Installation & Build
 
 Frush is a native iOS project built with Xcode. To run it locally, follow these steps:
 
@@ -130,7 +136,7 @@ Press `Cmd + R` or click the Play (▶) button. Xcode will resolve any internal 
 
 ---
 
-## 💻 Usage Guide
+## Usage Guide
 
 Once the application is compiled and running, explore the reading flow by following the core steps:
 
