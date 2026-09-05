@@ -2,6 +2,16 @@
 
 Frush is a native iOS reading companion that helps readers build consistent habits by combining a personal book library, a distraction-free reading timer, and rich notes with photos. The app guides users from onboarding through daily reading sessions, tracking progress page by page and turning reading time into Live Activities on the Lock Screen and Dynamic Island. Frush allows readers to set daily goals, log their sessions, capture thoughts and images from their books, and watch their progress grow over time.
 
+## 📱 System Showcase
+
+<div align="center">
+  <img src="./documentation/mockup3.png" alt="Frush App" width="1000"/>
+</div>
+
+<div align="center">
+  <img src="./documentation/mockup_ip14.png" alt="Frush App" width="1000"/>
+</div>
+
 ## 🚀 Features
 - **Personal Book Library**: Add, edit, and organize books with cover, author, category, and total page count.
 - **Reading Stopwatch**: A focused reading timer with pause/resume, background-aware state recovery, and animated pulsing rings.
@@ -93,16 +103,6 @@ Frush
 │   │   ├── PreviewHelper
 │   │   │   ├── PreviewProviderHelper.swift
 ```
-
-## 📱 System Showcase
-
-<div align="center">
-  <img src="./documentation/mockup3.png" alt="Frush App" width="1000"/>
-</div>
-
-<div align="center">
-  <img src="./documentation/mockup_ip14.png" alt="Frush App" width="1000"/>
-</div>
 
 ## 📦 Installation & Build
 
